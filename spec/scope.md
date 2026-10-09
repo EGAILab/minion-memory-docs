@@ -6,7 +6,8 @@ Conventions: `spec/README.md`.
 > extensible, profile-vocabularied and enforced before ranking. They do **not** define scope
 > identity, containment, inheritance, intersection, retrieval visibility across facets, or a
 > cross-language representation. Those are recorded as `REQUIREMENT_UNCERTAIN` (NF-018) and must
-> be settled in the Layer 02 contract (likely with Owner decisions), not here.
+> be resolved in Layer 02 by authority reading where the sources decide, and otherwise by Owner
+> decision on an options packet (`process/finding-taxonomy.md` §1.1 path C) — not here.
 
 ### SCOPE-001 — MemoryScope is a shared-core concept
 <a id="scope-001"></a>
@@ -18,11 +19,16 @@ facet vocabularies are PROVISIONAL.
 
 ### SCOPE-002 — Core owns shape and composition; profiles own vocabulary
 <a id="scope-002"></a>
-- **Profile:** core · **Source status:** FROZEN · **Sources:** [FND §G.3] [R00 §21] [R04 §41.1] [MVP §18.1]
+- **Profile:** core · **Source status:** FROZEN · **Sources:** [FND §G.7] [FND §G.3] [R00 §21] [R04 §41.1] [MVP §18.1]
 
 The core owns MemoryScope's shape and composition rules; each profile owns its scope facet
 vocabulary. Learning scope facets must not define agent scope vocabulary (and vice versa).
 Profile-specific facets remain namespaced in persistence.
+
+*Note:* FROZEN applies to the boundary "MemoryScope exists in core; profile vocabularies remain
+profile-owned" ([FND §G.7] status row: FROZEN boundary / PROVISIONAL vocabulary). The facet
+vocabularies themselves are PROVISIONAL, and the namespacing-in-persistence sentence is normative
+but unlabeled ([R04 §41.1]) (WP00-CR-008).
 
 ### SCOPE-003 — Scope is a correctness and privacy boundary
 <a id="scope-003"></a>

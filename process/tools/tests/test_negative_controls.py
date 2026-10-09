@@ -341,3 +341,23 @@ def test_cr002_uncertain_finding_without_escalation_is_caught(world: World) -> N
     data["findings"][0]["owner_decision_required"] = False
     dump(path, data)
     assert_caught(world, "findings", "needs owner_decision_required: true or an escalation_condition")
+
+
+# ----------------------------------------------------------------- WP00-CR-008 (targeted closure 1)
+
+
+def test_cr008_frozen_without_frozen_labelled_citation_is_caught(world: World) -> None:
+    """Re-point FROZEN CORE-001 at DOC section 2, which carries no FROZEN label."""
+    spec = world.docs / "spec" / "core.md"
+    text = spec.read_text(encoding="utf-8").replace(
+        "**Source status:** FROZEN · **Sources:** [DOC §1]",
+        "**Source status:** FROZEN · **Sources:** [DOC §2]",
+    )
+    spec.write_text(text, encoding="utf-8")
+    assert_caught(world, "spec", "CORE-001 is FROZEN but cites no source section carrying a FROZEN label")
+
+
+def test_cr008_positive_control_normative_needs_no_label(world: World) -> None:
+    """CORE-002 is NORMATIVE and cites unlabeled DOC section 2 too: no FROZEN-label demand applies."""
+    errors = only_failures(world).get("spec", [])
+    assert not any("CORE-002" in e for e in errors), errors

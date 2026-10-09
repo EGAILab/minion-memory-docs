@@ -33,7 +33,7 @@ GIT_ENV = {
     "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
 }
 
-DOC_TEXT = "# Fixture authority\n\n## 1. Intro\n\nText.\n\n## 2. Rules\n\nMore text.\n"
+DOC_TEXT = "# Fixture authority\n\n## 1. Intro\n\n| FROZEN | Text. |\n\n## 2. Rules\n\nMore text.\n"
 
 SPEC = """# Fixture spec
 

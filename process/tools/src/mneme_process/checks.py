@@ -344,11 +344,43 @@ def check_sources(ctx: Context) -> list[str]:
     return errors
 
 
+def _frozen_labelled_sections(ctx: Context) -> set[tuple[str, str]]:
+    """(document key, anchor) of every source section whose derived text carries a FROZEN label.
+
+    Used as a necessary (not sufficient) condition for a requirement's FROZEN status: whether the
+    box actually covers the requirement's main statement stays a reviewer judgment.
+    """
+    found: set[tuple[str, str]] = set()
+    directory = ctx.docs / SOURCE_TEXT_DIR
+    for path in sorted(directory.glob("*.md")) if directory.is_dir() else []:
+        parts = path.read_text(encoding="utf-8").split("\n", 2)
+        if len(parts) < 3:
+            continue
+        body = parts[2]
+        lines = body.splitlines()
+        anchors = sources.index_text(body)
+        for i, anchor in enumerate(anchors):
+            end = anchors[i + 1].line - 1 if i + 1 < len(anchors) else len(lines)
+            if re.search(r"\bFROZEN\b", "\n".join(lines[anchor.line - 1 : end])):
+                found.add((path.stem, anchor.anchor))
+    return found
+
+
 def check_spec(ctx: Context) -> list[str]:
     errors: list[str] = []
     index = _index(ctx, errors)
     parsed = _spec(ctx)
     errors.extend(parsed.errors)
+    frozen_sections = _frozen_labelled_sections(ctx)
+    for req in parsed.requirements:
+        if req.source_status != "FROZEN":
+            continue
+        cited = {(m.group(1), m.group(2)) for m in (CITATION.fullmatch(s) for s in req.sources) if m}
+        if not cited & frozen_sections:
+            errors.append(
+                f"{req.file}:{req.line}: {req.id} is FROZEN but cites no source section carrying a "
+                "FROZEN label (spec/README.md §3)"
+            )
     findings = _finding_ids(ctx, [])
     seen: dict[str, str] = {}
     for req in parsed.requirements:

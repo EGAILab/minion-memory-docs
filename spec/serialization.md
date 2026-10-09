@@ -6,7 +6,8 @@ Conventions: `spec/README.md`.
 > domain: integer width, float policy, string/Unicode domain, canonical byte form for hashing,
 > timestamp encoding and JSON/YAML profile are unspecified. These are hazard rows in
 > `assurance/layers/00-cross-language-hazard-inventory.md` and findings NF-013/NF-015/NF-019, to
-> be settled in the Layer 01 contract.
+> be resolved in Layer 01: lossless representation by the contract (path B), every observable
+> domain choice by Owner decision (`process/finding-taxonomy.md` §1.1 path C).
 
 ### SER-001 — Explicit schema versions; declared read window
 <a id="ser-001"></a>

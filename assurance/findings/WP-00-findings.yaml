@@ -165,7 +165,7 @@ findings:
       sections as Mneme seams. Using both would create a second, hidden injection path (kickoff
       §19 forbids that). Separately, assemble_system joins components sorted by name in both
       Python and Rust, so a `memory` component would precede `system_base` in the dispatched prompt.
-    recommendation: Layer 16 contract names exactly one canonical injection path and its placement.
+    recommendation: Layer 16 contract presents the canonical injection path and placement options to the Owner (observable, path C) and adopts exactly one after a recorded decision.
     resolution_layer: "16"
 
   - id: NF-009
@@ -198,7 +198,7 @@ findings:
     sources: ["[FND §16]", "[R00 §10]", "[R04 §7]"]
     requirements: [CORE-001]
     summary: IDs are "opaque, immutable, producer-generated"; alphabet, length, case sensitivity and Unicode are not specified (hazard H11).
-    recommendation: Layer 01 contract defines a portable lexical domain consistent with "opaque".
+    recommendation: Layer 01 contract resolves the ID domain by authority reading where "opaque" decides it, and presents any restriction, normalization or case-folding option to the Owner (taxonomy §1.1 path C).
     resolution_layer: "01"
 
   - id: NF-011
@@ -213,7 +213,7 @@ findings:
     sources: ["[MVP §18.1]", "[FND §16]", "[R00 §4.1]"]
     requirements: [CORE-002]
     summary: MVP §18.1 says "semantic versions"; FND/R00 examples use integer editions (version 4). Ordering/comparison is required by reconciliation (PKG-004).
-    recommendation: Layer 01 contract fixes the version domain and comparison; reading "semantic version" as "version of semantic content" is consistent with all examples.
+    recommendation: Layer 01 contract shows whether the sources settle versions as integer editions compared numerically (path A); otherwise it presents version-semantics options to the Owner. Reading "semantic version" as "version of semantic content" is consistent with all examples but is not itself a decision.
     resolution_layer: "01"
 
   - id: NF-012
@@ -231,7 +231,7 @@ findings:
       Every source states the conflict rule for Knowledge entities. Whether it is a core rule for
       every versioned artifact is unstated. R05 calls MemoryRecord "derived" yet its committed
       lineage "canonical".
-    recommendation: Layer 01 decides whether CORE-003 is core-wide; Layer 13 reconciles MemoryRecord versions with it.
+    recommendation: Layer 01 contract determines by authority reading (path A) whether CORE-003 is core-wide; extending it to artifacts the sources do not name is presented to the Owner (path C). Layer 13 reconciles MemoryRecord versions under the same rule.
     resolution_layer: "01"
     review_note: >
       Qualified per WP00 Codex review 1: a derived durable artifact can have canonical committed lineage and still be rebuildable as an index/projection; the open question is only CORE-003's scope and MemoryRecord versioning.
@@ -248,7 +248,7 @@ findings:
     sources: ["[R04 §7]", "[MVP §18.1]", "[R01 §8]"]
     requirements: [CORE-003, CORE-011]
     summary: "\"normalized content hash\" requires a normalization (key order, number form, text normalization, line endings) and an algorithm both languages reproduce byte-for-byte (hazards H3, H7)."
-    recommendation: Layer 01 defines canonical bytes and algorithm with cross-language fixtures.
+    recommendation: Layer 01 contract presents hash algorithm and canonical-byte options to the Owner where hashes are observable (interchange, conflict detection); purely internal integrity is path B. Cross-language fixtures follow the decision.
     resolution_layer: "01"
 
   - id: NF-014
@@ -267,7 +267,7 @@ findings:
       result". Unspecified: uniqueness scope (global, per profile, per scope), whether a source
       identity and an operation_id are the same concept, and the outcome when the same identity
       arrives with different content (reject as conflict vs return prior result).
-    recommendation: Layer 01 defines the identity; Layer 04 the persistence behavior.
+    recommendation: Layer 01 contract presents the uniqueness-domain and conflicting-retry options (reject vs return prior result) to the Owner (path C); Layer 04 implements the recorded decision in persistence.
     resolution_layer: "01"
 
   - id: NF-015
@@ -282,7 +282,7 @@ findings:
     sources: ["[FND §6]", "[R04 §9]", "[R05 §5.1]"]
     requirements: [HIST-004]
     summary: occurred_at/recorded_at are distinct, but representation, timezone/offset, precision and unknown encoding are not specified (hazard H4).
-    recommendation: Layer 01 serialization contract fixes them.
+    recommendation: Layer 01 serialization contract encodes an agreed time domain losslessly (path B) and presents precision, offset policy and unknown-time options to the Owner (path C).
     resolution_layer: "01"
 
   - id: NF-016
@@ -300,7 +300,7 @@ findings:
       "No total global order across devices/episodes" coexists with since-boundary reads and a
       checkpoint's history_through_event. A per-store durable append order (distinct from semantic
       order) would reconcile them, but no source says so.
-    recommendation: Layer 02 contract defines HistoryBoundary without asserting a semantic global order.
+    recommendation: Layer 02 contract represents HistoryBoundary as a durable per-store append position asserting no semantic order (path B); any semantic order for non-episode containers is presented to the Owner (path C).
     resolution_layer: "02"
     review_note: >
       Qualified per WP00 Codex review 1: an append cursor and episode semantic order coexist; no source contradiction is claimed. HIST-003 is now episode-scoped (WP00-CR-007).
@@ -317,7 +317,7 @@ findings:
     sources: ["[R04 §38]", "[R05 §9]"]
     requirements: [PROJ-003, ACTX-002]
     summary: Token budgets depend on a tokenizer the core must not depend on; character units depend on hazard H2 length units.
-    recommendation: Layer 06 defines measured-cost units and how a consumer supplies a cost function.
+    recommendation: Layer 06 contract lets the consumer supply the cost function (path B); prescribing any core cost unit or tokenizer is presented to the Owner (path C).
     resolution_layer: "06"
 
   - id: NF-018
@@ -356,7 +356,7 @@ findings:
       Payloads are "versioned JSON"/"structured observations", but integer width, float specials,
       Unicode scalar domain (Python str holds lone surrogates; Rust String cannot) and canonical
       JSON form are unspecified (hazards H1, H2, H6).
-    recommendation: Layer 01 fixes the portable value domain and rejects values outside it at the seam.
+    recommendation: Layer 01 contract presents value-domain options (integers, floats, Unicode scalars vs surrogates, canonical JSON) to the Owner; only after a recorded decision does the contract define rejection or representation at the seam.
     resolution_layer: "01"
 
   - id: NF-020

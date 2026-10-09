@@ -43,5 +43,8 @@ High-risk (value domain, hashing): contract-first checkpoint is mandatory (agent
 
 - Hash canonicalization chosen too early constrains Knowledge package hashing (Layer 07/12): keep
   the canonical-bytes rule general, with package-specific normalization layered later.
-- Python `str` lone surrogates: the contract must reject them at the seam, not let Python accept
-  what Rust cannot represent.
+- Python `str` can hold lone surrogates; Rust `String` cannot (hazard H2). Whether payload values
+  may contain them — and therefore whether a seam rejects, escapes, or otherwise represents them —
+  is an observable value-domain choice the sources do not make (NF-019, path C). The Layer 01
+  contract presents the options to the Owner and selects none. The governance/canonical YAML
+  profile's Unicode-scalar rule is a separate tooling constraint and is not precedent for it.
