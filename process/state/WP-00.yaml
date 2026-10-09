@@ -9,11 +9,11 @@ workflow:
     code:
       repo: minion-memory
       ref: wp00/bootstrap
-      sha: a91db170b5e7827caf1a6ffd02546ec23a1d51fa
+      sha: 139f81f9cee8201e96e69c093d3489c0ed3d36a4
     docs:
       repo: minion-memory-docs
       ref: wp00/bootstrap
-      sha: 42f5193dda74b6d5134eab27f7038661c4e583f3
+      sha: c3e0d2ed15e116588a196d92e6ca36ce2750cda7
   authority:
     source_bundle:
       id: mneme-v2.3-dual-profile
@@ -22,12 +22,17 @@ workflow:
       minion_agent_docs: 8744bd019066f9c18d000c1a0ad19b435775300a
       minion_agent: 3de4b75d0119b6c413dae651a3cba039873756c7
   dependencies: {}
-  open_findings: [NF-001, NF-002, NF-003, NF-004, NF-005, NF-006, NF-007, NF-008, NF-009, NF-010,
-                  NF-011, NF-012, NF-013, NF-014, NF-015, NF-016, NF-017, NF-018, NF-019, NF-020,
-                  NF-021]
+  open_findings: [WP00-CR-001, WP00-CR-002, WP00-CR-003, WP00-CR-004, WP00-CR-005, WP00-CR-006,
+                  WP00-CR-007, WP00-CR-008, WP00-CR-009, WP00-CR-010, WP00-CR-011, WP00-CR-012,
+                  WP00-CR-013, NF-001, NF-002, NF-003, NF-004, NF-005, NF-006, NF-007, NF-008, NF-009,
+                  NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-016, NF-017, NF-018, NF-019,
+                  NF-020, NF-021]
   provisionally_closed: []
   convergence: null
-  scoping_review: null
+  scoping_review:
+    outcome: CHANGES_REQUIRED
+    verdict: "CHANGES_REQUIRED — WP00-CR-001 through WP00-CR-010 are blocking; WP00-CR-011 through WP00-CR-013 are non-blocking."
+    source: assurance/reviews/WP-00-scoping-review-codex-1.md @ 07c96d6fdeaadc859cea2a2fc034a5252ca13378 (reviewed code a91db170 / docs 42f5193d)
   governance_source:
     artifact: reference/governance/2026-10-09-owner-wp00-kickoff.md
     decision: >
@@ -39,10 +44,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-00-codex-scoping-review.md: independent SCOPING_REVIEW of code
-    a91db170 / docs 42f5193d; record the review under assurance/reviews/ on branch
-    review/wp00-codex-1 and return a verdict (APPROVED | CHANGES_REQUIRED | HANDOFF_BLOCKED).
+    Execute process/handoffs/WP-00-codex-targeted-closure-1.md: targeted finding-closure review of
+    remediation 1 at code 139f81f9 / docs c3e0d2ed; record on branch review/wp00-codex-2; verdict
+    APPROVED | CHANGES_REQUIRED | HANDOFF_BLOCKED; notify Claude via Herdr (w6:p1).
   updated_by: Claude
-  updated_reason: WP-00 bootstrap candidate complete and gated; handing off for independent review.
+  updated_reason: Remediation 1 of Codex scoping review 1 complete and gated; handing off for targeted closure.
   history:
     assurance_index: plans/WP-00.md
