@@ -1,0 +1,31 @@
+workflow:
+  schema_version: 2
+  work_package: WP-P01
+  title: Process hardening 1 (carried forward from WP-00)
+  layer: "00"
+  status: SCOPING
+  requirements: []
+  current_candidate: null
+  dependencies:
+    WP-00: {relation: blocked_by, status: CLOSED}
+  open_findings: [WP00-CR-014]
+  provisionally_closed: []
+  convergence: null
+  scoping_review: null
+  governance_source:
+    artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
+    decision: G-011 carries WP00-CR-014 and remaining WP-00 process items into a process-hardening WP.
+    scope: [WP-P01]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Claude
+  next_action: >
+    Scope WP-P01: (1) WP00-CR-014 FROZEN-citation guard recognizes positive status labels only,
+    with negated/mention-only controls and a NORMATIVE control citing only an unlabelled section;
+    (2) UTF-8-safe `mneme-process state roundtrip` command; (3) state-chain rule for CLOSED states
+    and post-acceptance record commits; (4) land the WP-00 post-acceptance records on main.
+  updated_by: Claude
+  updated_reason: Created by WP-00 closure per Owner decision G-011.
+  history:
+    assurance_index: assurance/reviews/WP-00-targeted-closure-codex-2.md

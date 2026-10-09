@@ -3,7 +3,7 @@ workflow:
   work_package: WP-00
   title: Project / process / authority / contract bootstrap
   layer: "00"
-  status: SCOPING
+  status: CLOSED
   requirements: []
   current_candidate:
     code:
@@ -22,8 +22,7 @@ workflow:
       minion_agent_docs: 8744bd019066f9c18d000c1a0ad19b435775300a
       minion_agent: 3de4b75d0119b6c413dae651a3cba039873756c7
   dependencies: {}
-  open_findings: [WP00-CR-014, NF-001, NF-002, NF-004, NF-005, NF-007, NF-008, NF-009,
-                  NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-016, NF-017, NF-018, NF-019]
+  open_findings: []
   provisionally_closed: [WP00-CR-001, WP00-CR-002, WP00-CR-003, WP00-CR-004, WP00-CR-005, WP00-CR-006,
                          WP00-CR-007, WP00-CR-008, WP00-CR-009, WP00-CR-010, WP00-CR-011, WP00-CR-012,
                          WP00-CR-013]
@@ -42,11 +41,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
-  next_action: >
-    Close WP-00 per G-011: move WP00-CR-014 to WP-P01 and the remaining NF findings to their
-    resolution layers, then record CLOSED.
+  next_owner: null
+  next_action: null
+  carried_forward:
+    WP-P01: [WP00-CR-014]
+    resolving_layers: assurance/findings/WP-00-findings.yaml (OPEN NF findings keep their resolution_layer)
   updated_by: Claude
-  updated_reason: Owner decisions G-008..G-011 recorded; pair accepted onto main; resuming SCOPING for closure.
+  updated_reason: WP-00 closed per G-011 on the accepted pair (scoping review APPROVED, candidates on main).
   history:
     assurance_index: plans/WP-00.md

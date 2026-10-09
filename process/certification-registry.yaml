@@ -19,3 +19,11 @@ work_packages:
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-00.md
     governance: reference/governance/2026-10-10-owner-wp00-acceptance.md
+  WP-P01:
+    title: Process hardening 1 (carried forward from WP-00)
+    layer: "00"
+    requirements: []
+    contract: {status: DRAFT}
+    python: {status: NOT_IMPLEMENTED}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
