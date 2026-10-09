@@ -48,7 +48,7 @@ mapping. It is not the raw historical fact and not learner state.
 
 ### EVID-002 — Evidence directions and quality
 <a id="evid-002"></a>
-- **Profile:** learning · **Source status:** FROZEN · **Sources:** [FND §7.3] [R03 §8] [R03 §8.1] [FND §App-D]
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [FND §7.3] [R03 §8] [R03 §8.1] [FND §App-D]
 
 Evidence may be positive, negative/contradictory, ambiguous, insufficient or partial, and may carry
 quality/confidence. Attribution may be ambiguous or insufficient; quality reflecting response mode,
@@ -81,7 +81,7 @@ evaluator/mapping version that produced it.
 
 ### EVID-006 — Historical evidence is never rewritten
 <a id="evid-006"></a>
-- **Profile:** learning · **Source status:** FROZEN · **Sources:** [MVP §6] [R03 §8.1] [R03 §13] [R04 §35] [R04 §40]
+- **Profile:** learning · **Source status:** FROZEN · **Sources:** [FND §8] [FND §14] [MVP §6] [R03 §8.1] [R03 §13] [R04 §35] [R04 §40]
 
 Historical evidence retains its mapping/provenance/version and is not rewritten when mappings
 improve; reinterpretation appends new evidence (HIST-007). The current LearnerMemoryModel may

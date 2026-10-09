@@ -37,7 +37,10 @@ semantics.
 content-addressed reconstruction, and the master design names `memory`. The *runtime* does not let
 any caller contribute a component: the driver hard-codes `system_base`. Injection today is only
 possible through `PromptComposer` sections, which fold memory into `system_base` (one hash for base
-prompt + memory; no component-level reuse or attribution in the header).
+prompt + memory; no component-level reuse or attribution *in the header*). The combined text stays
+reconstructable, and an adapter could keep its own attribution metadata (projection ID, record
+refs) alongside; what is absent is a distinct header-level memory component (qualified per WP00
+Codex review 1).
 
 Kickoff §19 forbids introducing a second hidden injection path. The bundle (IAA §12) lists both
 seams. Choosing exactly one is a Layer-16 contract decision (NF-008); enabling the header component

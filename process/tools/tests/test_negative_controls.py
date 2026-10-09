@@ -180,7 +180,7 @@ def test_state_only_child_rule_is_caught(world: World) -> None:
     spec = world.docs / "spec" / "core.md"
     spec.write_text(spec.read_text(encoding="utf-8") + "\nLate edit.\n", encoding="utf-8")
     world.commit_all(world.docs, "content change after the reviewed candidate")
-    assert_caught(world, "state", "state-only child rule")
+    assert_caught(world, "state", "state-only descendant rule")
 
 
 def test_history_keys_in_state_are_caught(world: World) -> None:
@@ -232,3 +232,112 @@ def test_fixture_uses_the_real_schema_files(rel: str) -> None:
     from conftest import REAL_CODE
 
     assert (REAL_CODE / rel).is_file(), f"the fixture copies {rel} from the real code repo"
+
+
+# ----------------------------------------------------------------- WP00-CR remediation controls
+
+
+def _approved_review() -> dict[str, str]:
+    return {"outcome": "APPROVED", "verdict": "APPROVED", "source": "assurance/reviews/x.md"}
+
+
+def _closed(world: World, **overrides: object) -> None:
+    fields: dict[str, object] = {
+        "status": "CLOSED",
+        "open_findings": [],
+        "next_owner": None,
+        "next_action": None,
+        "scoping_review": _approved_review(),
+    }
+    fields.update(overrides)
+    world.write_state(**fields)
+
+
+def _accept_on_main(world: World) -> None:
+    for repo in (world.code, world.docs):
+        git(repo, "branch", "-f", "main", git(repo, "rev-parse", "HEAD"))
+
+
+def test_cr003_closure_without_scoping_approval_is_caught(world: World) -> None:
+    _accept_on_main(world)
+    _closed(world, scoping_review=None)
+    assert_caught(world, "state", "closes only with scoping_review")
+
+
+@pytest.mark.parametrize("outcome", ["CHANGES_REQUIRED", "approved", "NOT APPROVED", None])
+def test_cr003_closure_with_non_approval_outcome_is_caught(world: World, outcome: object) -> None:
+    _accept_on_main(world)
+    _closed(world, scoping_review={**_approved_review(), "outcome": outcome})
+    assert_caught(world, "state", "closes only with scoping_review")
+
+
+def test_cr003_closure_without_main_acceptance_is_caught(world: World) -> None:
+    _closed(world)
+    assert_caught(world, "state", "is not accepted on main")
+
+
+def test_cr003_product_wp_closure_needs_certified_closed(world: World) -> None:
+    _accept_on_main(world)
+    _closed(world, requirements=["CORE-001"])
+    assert_caught(world, "state", "CERTIFIED_CLOSED")
+
+
+def test_cr003_positive_control_valid_scoping_closure_passes(world: World) -> None:
+    """The closure guard must not over-block: approved review + accepted candidates passes."""
+    _closed(world)
+    world.commit_all(world.docs, "close")
+    _accept_on_main(world)
+    assert "state" not in only_failures(world)
+
+
+@pytest.mark.parametrize("actor", ["Claude", "Codex"])
+def test_cr004_quarantine_blocks_every_agent(world: World, actor: str) -> None:
+    world.write_state(next_owner=actor, quarantine={"derived_from_quarantined_artifact": True})
+    assert_caught(world, "state", "authorizes no agent action")
+
+
+def test_cr004_positive_control_quarantine_routed_to_owner(world: World) -> None:
+    world.write_state(next_owner="Owner", quarantine={"derived_from_quarantined_artifact": True})
+    assert "state" not in only_failures(world)
+
+
+@pytest.mark.parametrize("title", ["title: !!str fixture", "title: &unused fixture"])
+def test_cr005_explicit_tag_or_anchor_in_scenario_is_caught(world: World, title: str) -> None:
+    path = world.code / "conformance" / "core" / "first-rule.yaml"
+    path.write_text(path.read_text(encoding="utf-8").replace("title: fixture", title), encoding="utf-8")
+    assert_caught(world, "conformance", "syntax is not allowed")
+
+
+def test_cr011_content_change_then_revert_after_candidate_is_caught(world: World) -> None:
+    spec = world.docs / "spec" / "core.md"
+    original = spec.read_text(encoding="utf-8")
+    spec.write_text(original + "\nTransient edit.\n", encoding="utf-8")
+    world.commit_all(world.docs, "content change")
+    spec.write_text(original, encoding="utf-8")
+    world.commit_all(world.docs, "exact revert")
+    assert_caught(world, "state", "state-only descendant rule")
+
+
+def test_cr011_positive_control_multi_commit_state_chain_passes(world: World) -> None:
+    world.write_state(updated_reason="second state-only commit")
+    world.commit_all(world.docs, "state again")
+    handoff = world.docs / "process" / "handoffs" / "h.md"
+    handoff.parent.mkdir(parents=True, exist_ok=True)
+    handoff.write_text("handoff\n", encoding="utf-8")
+    world.commit_all(world.docs, "handoff")
+    assert "state" not in only_failures(world)
+
+
+def test_malformed_status_type_is_reported_not_crashed(world: World) -> None:
+    world.write_state(status=["SCOPING"])
+    errors = only_failures(world)["state"]
+    assert any("unknown status" in e for e in errors), errors
+    assert not any("internal error" in e for e in errors), errors
+
+
+def test_cr002_uncertain_finding_without_escalation_is_caught(world: World) -> None:
+    path = world.docs / checks.FINDINGS_DIR / "F.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data["findings"][0]["owner_decision_required"] = False
+    dump(path, data)
+    assert_caught(world, "findings", "needs owner_decision_required: true or an escalation_condition")

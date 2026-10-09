@@ -119,7 +119,7 @@ interpretation belongs to EvidenceMapping/LearnerMemoryModel.
 
 ### OBS-004 — Unknown is never defaulted
 <a id="obs-004"></a>
-- **Profile:** learning · **Source status:** FROZEN · **Sources:** [R03 §6.1] [FND §7.3] [R00 §7.3]
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [R03 §6.1] [FND §7.3] [R00 §7.3]
 
 Unknown or absent information remains unknown; it is never defaulted to false, zero or failure.
 

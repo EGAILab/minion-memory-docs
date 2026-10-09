@@ -99,6 +99,12 @@ def _walk_nodes(node: Node, errors: list[str], seen: set[int]) -> None:
             stack.extend(current.value)
 
 
+def _has_surrogate(text: str) -> bool:
+    """Python `str` can hold U+D800..U+DFFF; Rust `String` cannot (hazard H2). The portable profile
+    admits Unicode scalar values only, explicitly rather than by PyYAML's incidental reader check."""
+    return any(0xD800 <= ord(ch) <= 0xDFFF for ch in text)
+
+
 def _check_domain(value: Any, errors: list[str]) -> None:
     """Iterative JSON-domain, depth and size check."""
     stack: list[tuple[Any, int]] = [(value, 1)]
@@ -116,6 +122,8 @@ def _check_domain(value: Any, errors: list[str]) -> None:
             for key, child in item.items():
                 if not isinstance(key, str):
                     errors.append(f"non-string key {key!r}")
+                elif _has_surrogate(key):
+                    errors.append(f"key {key!r} contains a surrogate code point")
                 stack.append((child, depth + 1))
         elif isinstance(item, list):
             if depth > MAX_DEPTH:
@@ -125,7 +133,10 @@ def _check_domain(value: Any, errors: list[str]) -> None:
         elif isinstance(item, float):
             if not math.isfinite(item):
                 errors.append(f"non-finite float {item!r} is not allowed")
-        elif item is None or isinstance(item, (str, bool, int)):
+        elif isinstance(item, str):
+            if _has_surrogate(item):
+                errors.append("string contains a surrogate code point (not a Unicode scalar value)")
+        elif item is None or isinstance(item, (bool, int)):
             continue
         else:
             errors.append(f"value of type {type(item).__name__} is outside the JSON domain")
@@ -135,9 +146,17 @@ def load_core(text: str) -> YamlResult:
     """Load one YAML document under the cross-language rules. Never raises on bad input."""
     errors: list[str] = []
     try:
+        # Syntax-level check first: composition erases explicit-but-redundant syntax such as
+        # `!!str x` or an unused `&anchor`, which the portable profile forbids outright.
+        for token in yaml.scan(text, Loader=_CoreLoader):
+            if isinstance(token, (yaml.TagToken, yaml.AnchorToken, yaml.AliasToken)):
+                kind = type(token).__name__.removesuffix("Token").lower()
+                errors.append(f"line {token.start_mark.line + 1}: {kind} syntax is not allowed")
         node = yaml.compose(text, Loader=_CoreLoader)
     except Exception as error:
         return YamlResult(None, (f"YAML parse error: {error}",))
+    if errors:
+        return YamlResult(None, tuple(errors))
     if node is None:
         return YamlResult(None, ("empty YAML document",))
     _walk_nodes(node, errors, set())

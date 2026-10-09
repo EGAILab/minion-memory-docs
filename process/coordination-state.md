@@ -25,7 +25,7 @@ exact action) is separate from history (reviews, rejected candidates, witnesses,
 |---|---|---|
 | Control state | GitHub issue body | `minion-memory-docs/process/state/<WP>.yaml` |
 | Candidate | PR head SHA | exact local commit SHA on a short-lived branch (`wpNN/<purpose>`) |
-| Accepted milestone | default branch | `main` in each repo, advanced only by fast-forward to an independently approved SHA |
+| Accepted milestone | default branch | `main` in each repo, advanced only by fast-forward to an independently approved SHA, under a recorded acceptance authority (§6) |
 | Remote reachability | `git ls-remote` / GitHub API | `git cat-file -e <sha>^{commit}` in the named local repo, and reachable from the named branch |
 
 `main` is never an ordinary work branch. Until a WP's first approval, `main` may be unborn.
@@ -33,14 +33,20 @@ exact action) is separate from history (reviews, rejected candidates, witnesses,
 **Self-reference rule.** A state file cannot contain the SHA of the commit that contains it. So:
 
 1. the author commits the reviewed content → docs candidate `D`;
-2. the author commits the state update as a **state-only child** `S` of `D` (diff touches only
-   `process/state/**`, `process/handoffs/**` — hand-off prompts and the gate results run at the
-   exact candidate — and, when a transition changes registry status,
-   `process/certification-registry.yaml`);
-3. the state file inside `S` names `D` (not `S`) as the docs candidate.
+2. the author then commits one or more **state-only descendants** of `D` on the same ref (a
+   linear chain `D → S1 → … → Sn`). **Every** commit in `D..ref` — checked per commit, not only
+   on the endpoint diff — touches only `process/state/**`, `process/handoffs/**` (hand-off
+   prompts and gate results run at the exact candidate) and, when a transition changes registry
+   status, `process/certification-registry.yaml`;
+3. the state file at the ref head names `D` (never an `Si`) as the docs candidate.
 
-A reviewer verifies `git diff --name-only D S` ⊆ the state-only paths before trusting `S`.
-`mneme-process check state` enforces this for every state file it reads from a commit.
+A reviewer verifies, for each commit `c` in `git rev-list D..<ref>`, that
+`git diff-tree --no-commit-id --name-only -r -m c` ⊆ the state-only paths before trusting the
+head. A content change followed by its exact revert therefore fails even though the endpoint
+diff is empty. `mneme-process check state` enforces this per commit (WP00-CR-011).
+
+Content that must follow a candidate (e.g. an independent review record) is **not** a
+state-only commit: it becomes part of the next content candidate.
 
 ## 3. State file shape (schema v2, adapted)
 
@@ -86,9 +92,15 @@ Rules (validated by `mneme-process check state` and `state validate`):
 - `INCIDENT` / `INVALID_UNAUTHORIZED` authorize nothing (no hand-off, review, acceptance).
 - SHAs are 40 lowercase hex. `requirements`, `open_findings`, `provisionally_closed` are lists of IDs
   (container shape validated before elements).
-- `CLOSED` from `SCOPING` requires `requirements: []`, no open findings, `scoping_review.outcome:
-  APPROVED` (exact token) with non-empty `verdict`/`source`, and every candidate SHA reachable from
-  `main` (accepted).
+- `CLOSED` requires no open findings and every candidate SHA reachable from `main` (accepted).
+  A scoping/process-only WP (`requirements: []`) additionally requires `scoping_review.outcome:
+  APPROVED` (exact token; `approved`, `NOT APPROVED`, `CHANGES_REQUIRED`, null are refused) with
+  non-empty `verdict`/`source`. A product WP additionally requires its registry entry to be
+  `cross_language: CERTIFIED_CLOSED`. All three are machine-checked (WP00-CR-003); the validator
+  checks recorded evidence, while the independence of the approving review remains the agent's
+  verification duty.
+- A quarantined candidate (`quarantine.derived_from_quarantined_artifact: true`) authorizes **no**
+  agent action: `next_owner` must be `Owner` or null (WP00-CR-004).
 - Lean budget: a state file SHOULD stay under 8,000 characters; history-shaped keys (`reviews`,
   `remediations`, `review_history`, `history_log`) draw a warning.
 - The file is loaded through the YAML-1.2-core boundary (`process/hazard-families.md` H6): no
@@ -152,7 +164,11 @@ governance_source:
   scope: ["<WP / requirement / transition>"]
 ```
 
-No standing delegation of routine governance to Claude exists in Minion-Memory yet (Minion-Agent's
-`minion-agent#75` does not transfer). Until the Owner grants one, routine acceptance (fast-forwarding
-`main` to an independently approved SHA) is performed by Claude only when the approving review is
-recorded, and the WP-00 report asks the Owner whether to grant an equivalent delegation (NF-020).
+**Approval and acceptance are separate acts (WP00-CR-001).** An independent review approves an
+exact candidate; it never grants authority to accept it. Accepting a candidate onto `main` (and
+any routine transition that depends on acceptance) requires a recorded acceptance authority:
+either an explicit Owner decision for that candidate, or a standing delegation the Owner has
+recorded in `reference/governance/`. No such delegation exists in Minion-Memory (Minion-Agent's
+`minion-agent#75` does not transfer; NF-020). Until one is recorded, Claude does not advance `main`;
+after an approval it records the approval and routes acceptance to the Owner (`next_owner: Owner`
+with the exact SHAs to accept).

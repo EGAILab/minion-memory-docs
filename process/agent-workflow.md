@@ -63,7 +63,8 @@ slicing, including the SCOPING semantic-risk map). Default sequence:
    §4.1, §4.1.1).
 7. Python implementation through real public seams; focused tests; canonical runner.
 8. Gates per `process/gate-tiers.md`; hand-off for `IMPLEMENTATION_REVIEW`.
-9. Remediation / convergence (§6) until approval; acceptance by fast-forward of `main`.
+9. Remediation / convergence (§6) until approval; acceptance (fast-forward of `main`) only under a
+   recorded acceptance authority — Owner decision or recorded delegation (coordination-state §6).
 10. `RUST_IMPLEMENTATION` by Codex against the accepted shared contract and canonical corpus — not
     against Python.
 11. `CLOSURE_REVIEW` by Claude (who did not author the Rust candidate).
@@ -178,7 +179,8 @@ cross-language closed until both languages are certified and closure is recorded
 
 ## 9. Owner role
 
-The Owner is governance authority. Escalate: authority conflicts or silence on a semantic choice;
+The Owner is governance authority. Escalate: authority conflicts or silence on an observable
+semantic choice (finding-taxonomy §1.1 path C — agents never select those, whatever layer owns them);
 Foundation/MVP/Requirement revisions; scope or layer-order changes; unresolved Claude/Codex
 disagreement; consumer-side (Minion-Agent) changes; remote creation/publishing; destructive history
 operations; standing delegation. Minion-Agent's standing delegation (`minion-agent#75`) does not

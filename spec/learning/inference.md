@@ -86,7 +86,7 @@ new/learning/review/relearning are MVP lifecycle labels, not Foundation ontology
 
 ### LMEM-011 — Re-inference and rescheduling are separate operations
 <a id="lmem-011"></a>
-- **Profile:** learning · **Source status:** FROZEN · **Sources:** [FND §14] [R02 §12] [R04 §13]
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [FND §14] [R02 §12] [R04 §13]
 
 Rebuilding learner state with a new model does not automatically rewrite historical scheduling
 decisions or force immediate rescheduling. Observed history and counterfactual simulation are
@@ -94,7 +94,7 @@ explicitly distinguished.
 
 ### LMEM-012 — Learner state does not follow split/merge
 <a id="lmem-012"></a>
-- **Profile:** learning · **Source status:** FROZEN · **Sources:** [FND §4.6] [R00 §10] [R01 §11] [R04 §7]
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [FND §4.6] [R00 §10] [R01 §11] [R04 §7]
 
 Learner state is not automatically copied or averaged across Knowledge split/merge operations.
 
@@ -104,3 +104,30 @@ Learner state is not automatically copied or averaged across Knowledge split/mer
 
 A simple interpretable baseline model is maintained as a permanent fallback and regression
 benchmark.
+
+### LMEM-014 — Learner-model evaluation discipline
+<a id="lmem-014"></a>
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [FND §15] [FND §15.1] [MVP §10]
+
+When learner models are evaluated or compared, validation should consider predictive quality,
+calibration, delayed retention, efficiency, cold start, longitudinal stability, cross-context,
+cross-domain, robustness and auditability/replay; accurate next-response prediction alone does not
+prove better long-term scheduling. Evaluation should prefer temporal train → future-test splits for
+longitudinal claims and avoid leakage from future learner data; use learner holdout when testing
+cold-start generalization; use knowledge/domain holdout when claiming cross-content generalization;
+and distinguish offline retrospective evaluation from prospective causal learning experiments.
+
+*Note:* modal strength is the source's ("prefer", "use … when"). A model-fitting/benchmark
+platform is deferred from the MVP ([MVP §10]); this requirement governs any evaluation that is
+performed and mandates no platform (WP00-CR-010).
+
+### LMEM-015 — Learner-model ReplayCheckpoint dependencies
+<a id="lmem-015"></a>
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [R02 §11] [R04 §28] [R04 §33] [IAA §2] [IAA §A15]
+
+A Learning Profile ReplayCheckpoint (PERS-009) additionally records: the LearnerMemoryModel
+definition/version; the fitted-parameter identity/version (parameters hash); the model-state
+snapshot; the history-through event and evidence boundary; the Knowledge/event/evidence schema
+boundaries; the relevant Knowledge artifact versions or snapshot/hash set; and the
+evaluator/evidence-mapper interpretation boundary when required. It is ignored when any of these
+dependencies is incompatible.

@@ -21,11 +21,16 @@ observations and MemoryRecords are unchanged (PROJ-003, PROJ-004).
 
 ### ACTX-003 — Model-visible projections are reconstructable
 <a id="actx-003"></a>
-- **Profile:** agent · **Source status:** NORMATIVE · **Sources:** [FND §G.4] [R05 §11] [IAA §A32] [MVP §18.3]
+- **Profile:** agent · **Source status:** NORMATIVE · **Sources:** [R05 §11] [FND §G.4] [IAA §A32] [MVP §18.3]
 
-When memory context is model-visible and materially affects behavior, enough is preserved to
-explain/reconstruct the exact projection dispatched: projection identity or content reference,
-selected MemoryRecord IDs/versions, policy/version, scope and relevant budget.
+When memory context is model-visible, enough is preserved to explain/reconstruct the memory
+projection that was dispatched: projection identity or content reference, selected MemoryRecord
+IDs/versions, policy/version, scope and relevant budget.
+
+*Note:* [FND §G.4] and [IAA §A32] state the obligation for projections that "materially affect
+behavior"; that is the Foundation minimum. The more specific agent-profile rule [R05 §11] applies to
+every model-visible memory projection, without a materiality exemption, matching MINT-006
+(WP00-CR-009).
 
 ### ACTX-004 — Context fencing
 <a id="actx-004"></a>

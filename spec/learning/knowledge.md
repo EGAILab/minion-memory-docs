@@ -92,12 +92,13 @@ learner history records actual support exposure/usage.
 
 ### KNOW-011 — RecallForm is a semantic activity definition
 <a id="know-011"></a>
-- **Profile:** learning · **Source status:** FROZEN · **Sources:** [FND §5] [MVP §3] [R00 §5] [R01 §6] [FND §19]
+- **Profile:** learning · **Source status:** NORMATIVE · **Sources:** [FND §5] [MVP §3] [R00 §5] [R01 §6] [FND §19]
 
 A RecallForm is the authored semantic definition of a memory probe/activity, not a UI card:
 stimulus/prompt, interaction(s)/response specification, evaluation spec or evaluator reference,
 declarative EvidenceMapping(s) where declarative, learning support/hints, and declared
-test/exposure semantics. Renderer implementation is not Knowledge ontology. The name RecallForm is
+test/exposure semantics. Renderer implementation is not Knowledge ontology (this sentence is
+FROZEN in [FND §5]; the rest of the definition is normative but unlabeled). The name RecallForm is
 PROVISIONAL at Foundation level ("MemoryProbe" is a candidate) but is the normative implementation
 term. The MVP uses self-assessed front/back and may support typed response where practical.
 

@@ -135,7 +135,7 @@ class World:
                         "id": "NF-001",
                         "title": "t",
                         "classification": "REQUIREMENT_UNCERTAIN",
-                        "owner_decision_required": False,
+                        "owner_decision_required": True,
                         "blocking": ["none"],
                         "status": "OPEN",
                         "sources": ["[DOC §2]"],

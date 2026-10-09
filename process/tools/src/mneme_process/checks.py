@@ -79,6 +79,7 @@ LANG_STATUSES = frozenset({"NOT_IMPLEMENTED", "IN_PROGRESS", "APPROVED", "CERTIF
 XL_STATUSES = frozenset({"NOT_CLOSED", "CERTIFIED_CLOSED"})
 CONTRACT_STATUSES = frozenset({"DRAFT", "IN_REVIEW", "AGREED", "ACCEPTED"})
 OWNERS = frozenset({"Claude", "Codex", "Owner"})
+AGENTS = frozenset({"Claude", "Codex"})
 SHA = re.compile(r"^[0-9a-f]{40}$")
 REQ_ID = re.compile(r"^[A-Z]{2,5}-\d{3}$")
 FINDING_ID = re.compile(r"^[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}$")
@@ -459,8 +460,9 @@ def validate_state(state: Any, label: str) -> list[str]:
     if not isinstance(wf.get("work_package"), str) or not wf["work_package"]:
         errors.append(f"{label}: work_package must be a non-empty string")
     status = wf.get("status")
-    if status not in transitions.STATUSES:
+    if not isinstance(status, str) or status not in transitions.STATUSES:
         errors.append(f"{label}: unknown status {status!r}")
+        status = None  # shape errors are reported, never raised (totality)
     for key in ("next_owner", "next_action", "updated_by", "updated_reason"):
         if key in wf and wf[key] is not None and not isinstance(wf[key], str):
             errors.append(f"{label}: {key} must be a string or null")
@@ -490,8 +492,23 @@ def validate_state(state: Any, label: str) -> list[str]:
         conv = wf.get("convergence")
         if not isinstance(conv, dict) or not conv.get("episode") or not conv.get("open_findings"):
             errors.append(f"{label}: CONTRACT_CONVERGENCE needs convergence.episode and open_findings")
-    if status == "CLOSED" and wf.get("open_findings"):
-        errors.append(f"{label}: CLOSED with open findings")
+    if status == "CLOSED":
+        if wf.get("open_findings"):
+            errors.append(f"{label}: CLOSED with open findings")
+        if wf.get("requirements") == []:
+            review = wf.get("scoping_review")
+            if (
+                not isinstance(review, dict)
+                or review.get("outcome") != "APPROVED"
+                or not isinstance(review.get("verdict"), str)
+                or not review["verdict"].strip()
+                or not isinstance(review.get("source"), str)
+                or not review["source"].strip()
+            ):
+                errors.append(
+                    f"{label}: a scoping/process-only WP closes only with scoping_review "
+                    "{outcome: APPROVED, verdict, source} recorded"
+                )
     candidate = wf.get("current_candidate")
     if candidate is not None:
         if not isinstance(candidate, dict) or not set(candidate) <= {"code", "docs"}:
@@ -512,8 +529,10 @@ def validate_state(state: Any, label: str) -> list[str]:
         quarantine.get("derived_from_quarantined_artifact"), bool
     ):
         errors.append(f"{label}: quarantine.derived_from_quarantined_artifact must be a boolean")
-    elif quarantine["derived_from_quarantined_artifact"] and wf.get("next_owner") == "Codex":
-        errors.append(f"{label}: a quarantined candidate cannot be handed off")
+    elif quarantine["derived_from_quarantined_artifact"] and wf.get("next_owner") in AGENTS:
+        errors.append(
+            f"{label}: a quarantined candidate authorizes no agent action (next_owner must be Owner or null)"
+        )
     if status in transitions.NON_ACTIONABLE and wf.get("next_owner") is not None:
         errors.append(f"{label}: {status} authorizes no owner/action")
     bad = HISTORY_KEYS & set(wf)
@@ -559,16 +578,42 @@ def check_state(ctx: Context) -> list[str]:
                 continue
             if _git(repo, "merge-base", "--is-ancestor", sha, ref)[0] != 0:
                 errors.append(f"{path.name}: {side} candidate {sha} is not reachable from {ref}")
+            if (
+                wf.get("status") == "CLOSED"
+                and _git(repo, "merge-base", "--is-ancestor", sha, "main")[0] != 0
+            ):
+                errors.append(f"{path.name}: CLOSED but {side} candidate {sha[:12]} is not accepted on main")
             if side == "docs":
-                status, head = _git(repo, "rev-parse", ref)
-                if status == 0 and head != sha:
-                    _, changed = _git(repo, "diff", "--name-only", sha, head)
-                    extra = [f for f in changed.splitlines() if f and not f.startswith(STATE_ONLY_PATHS)]
-                    if extra:
-                        errors.append(
-                            f"{path.name}: commits after docs candidate {sha[:12]} on {ref} change "
-                            f"non-state paths {extra} (state-only child rule)"
-                        )
+                errors.extend(_state_only_chain(path.name, repo, sha, ref))
+        if wf.get("status") == "CLOSED" and wf.get("requirements"):
+            registry = _load(ctx.docs / REGISTRY, [], REGISTRY)
+            entry = (registry or {}).get("work_packages", {}).get(wf.get("work_package"))
+            xl = entry.get("cross_language") if isinstance(entry, dict) else None
+            if not isinstance(xl, dict) or xl.get("status") != "CERTIFIED_CLOSED":
+                errors.append(
+                    f"{path.name}: a product WP closes only when the registry says CERTIFIED_CLOSED"
+                )
+    return errors
+
+
+def _state_only_chain(label: str, repo: Path, sha: str, ref: str) -> list[str]:
+    """Every commit after the docs candidate on `ref` touches only state-only paths.
+
+    Checked per commit, not on the endpoint diff: a content change followed by its revert must not
+    pass (coordination-state.md §2).
+    """
+    errors: list[str] = []
+    status, commits = _git(repo, "rev-list", "--reverse", f"{sha}..{ref}")
+    if status != 0:
+        return [f"{label}: cannot list commits {sha[:12]}..{ref}"]
+    for commit in commits.split():
+        _, changed = _git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "-m", commit)
+        extra = sorted({f for f in changed.splitlines() if f and not f.startswith(STATE_ONLY_PATHS)})
+        if extra:
+            errors.append(
+                f"{label}: commit {commit[:12]} after docs candidate {sha[:12]} on {ref} changes "
+                f"non-state paths {extra} (state-only descendant rule)"
+            )
     return errors
 
 
@@ -586,6 +631,16 @@ def check_findings(ctx: Context) -> list[str]:
             errors.append(f"{fid}: status {item.get('status')!r} invalid")
         if not isinstance(item.get("owner_decision_required"), bool):
             errors.append(f"{fid}: owner_decision_required must be a boolean")
+        condition = item.get("escalation_condition")
+        if condition is not None and (not isinstance(condition, str) or not condition.strip()):
+            errors.append(f"{fid}: escalation_condition must be a non-empty string when present")
+        if item.get("classification") == "REQUIREMENT_UNCERTAIN" and not (
+            item.get("owner_decision_required") is True or isinstance(condition, str)
+        ):
+            errors.append(
+                f"{fid}: REQUIREMENT_UNCERTAIN needs owner_decision_required: true or an "
+                "escalation_condition (finding-taxonomy §1.1)"
+            )
         for key in ("title", "summary", "recommendation"):
             if not isinstance(item.get(key), str) or not item[key].strip():
                 errors.append(f"{fid}: {key} must be a non-empty string")

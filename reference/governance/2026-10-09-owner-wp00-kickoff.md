@@ -57,6 +57,20 @@ embedding provider, AI evaluator, Flutter migration or cloud sync).
 
 > Do not begin WP-01 before that review is resolved.
 
+## G-007 — Contract manifest (kickoff §15)
+
+> Create: minion-memory/mneme-contract-manifest.yaml
+>
+> This is TRACEABILITY, not semantic authority.
+>
+> Map: upstream source -> requirement ID -> normative spec anchor -> canonical scenario(s) ->
+> Python location/status -> Rust location/status -> assurance evidence -> disposition
+>
+> Python and Rust consume the same rows.
+
+(Recorded verbatim in remediation 1 because WP00 Codex review 1 could not verify the
+"location/status" wording cited by NF-021 from the excerpts alone.)
+
 ## G-006 — Phase distance (kickoff §20)
 
 > Preferred phase distance: Python = N, Rust = N or N-1. Do not let Python run several layers ahead

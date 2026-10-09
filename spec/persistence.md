@@ -81,16 +81,22 @@ derived artifact (checkpoint, derived state) was computed.
 
 ### PERS-009 — ReplayCheckpoint is an accelerator, never authority
 <a id="pers-009"></a>
-- **Profile:** core · **Source status:** NORMATIVE · **Sources:** [FND §foundation-level-clarifications] [R02 §11] [R04 §28] [R04 §33] [IAA §A10] [IAA §A15] [IAA §5]
+- **Profile:** core · **Source status:** NORMATIVE · **Sources:** [FND §foundation-level-clarifications] [R04 §28] [R04 §41.1] [R05 §12] [IAA §A10] [IAA §A15] [IAA §5]
 
-A ReplayCheckpoint records at least: checkpoint ID; history-through boundary; model definition/
-version; fitted-parameter identity/version; state snapshot; the schema/artifact/interpretation
-boundaries (semantic dependencies) needed to interpret the snapshot; creation provenance/checksum.
-It is never authoritative history; it is compatible only with the assumptions it declares; an
-incompatible or stale checkpoint is ignored (never migrated by inventing meaning) and replay
-continues from an earlier boundary or full history; deleting it cannot lose history; restore may
-ignore it. The MVP need not create checkpoints, but storage and repository design must not
-preclude them.
+A ReplayCheckpoint is a rebuild accelerator for one declared derived family. It records at least:
+checkpoint ID; the history-through boundary it summarizes; the declared profile and the derived
+model/projection/index family (with its definition version) it belongs to; the derived-state
+snapshot; the semantic dependencies required to interpret that snapshot; creation
+provenance/checksum. It is never authoritative history; it is compatible only with the
+dependencies it declares; an incompatible or stale checkpoint is ignored (never migrated by
+inventing meaning) and replay continues from an earlier boundary or full history; deleting it
+cannot lose history; restore may ignore it. The MVP need not create checkpoints, but storage and
+repository design must not preclude them.
+
+*Note:* the dependencies are family-specific. The learner-model specialization (model
+definition, fitted parameters, Knowledge/event/evidence boundaries) is LMEM-015; a deterministic
+agent projection/index family has no fitted learner parameters and must not be required to invent
+them (WP00-CR-006).
 
 ### PERS-010 — Checkpoint replay equivalence
 <a id="pers-010"></a>

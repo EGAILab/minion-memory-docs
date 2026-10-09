@@ -107,7 +107,7 @@ coordination signals belong to a separate runtime event domain and are not autom
 
 ### ARCH-011 — Simplify behavior, not semantics
 <a id="arch-011"></a>
-- **Profile:** core · **Source status:** FROZEN · **Sources:** [MVP §1.1] [MVP §15] [FND §1] [R03 §26]
+- **Profile:** core · **Source status:** NORMATIVE · **Sources:** [MVP §1.1] [MVP §15] [FND §1] [R03 §26]
 
 A feature may be deferred, but an implementation must not encode assumptions that contradict or
 block the Foundation. If an MVP shortcut conflicts with a FROZEN Foundation principle, the
@@ -171,7 +171,7 @@ artifact (e.g. MemoryRecord) is not stated (NF-012). The content-hash normalizat
 
 ### CORE-004 — Edits version; replacement, split and merge create identities with lineage
 <a id="core-004"></a>
-- **Profile:** core · **Source status:** FROZEN · **Sources:** [FND §4.6] [FND §14] [MVP §3] [R00 §10] [R01 §11]
+- **Profile:** core · **Source status:** NORMATIVE · **Sources:** [FND §4.6] [FND §14] [MVP §3] [R00 §10] [R01 §11]
 
 Ordinary corrections/edits retain the ID and increment the version while semantic identity is
 unchanged. Semantic replacement, split and merge create new IDs with lineage rather than
@@ -273,13 +273,19 @@ history.
 The core provides typed canonical history primitives (`CanonicalHistory<T profile record>`); each
 profile owns its history record types and payloads, which remain namespaced.
 
-### HIST-003 — Deterministic semantic order
+### HIST-003 — Deterministic episode event order
 <a id="hist-003"></a>
-- **Profile:** core · **Source status:** FROZEN · **Sources:** [FND §6] [MVP §5.1] [IAA §A12] [R04 §9] [R04 §26] [R03 §5]
+- **Profile:** learning · **Source status:** FROZEN · **Sources:** [FND §6] [MVP §5.1] [IAA §A12] [R04 §9] [R04 §26] [R03 §5]
 
-Order inside a history container (e.g. events inside an Episode) is a deterministic semantic
-sequence assigned independently of wall-clock timestamps. Wall-clock completion order or
-asynchronous evaluator completion order must not silently define meaning.
+Events inside a LearningEpisode have a deterministic semantic sequence, assigned independently of
+wall-clock timestamps. Semantic event order is explicit: wall-clock completion order or
+asynchronous evaluator completion order must not silently define event meaning.
+
+*Note:* the sources state this for episode events; its profile is therefore learning (kept in HIST
+because the history envelope that carries it is core). They define no semantic order for other
+history containers such as agent source observations, and none is implied here. A durable
+per-store append order used for bounded reads is a separate, non-semantic concept (NF-016,
+WP00-CR-007).
 
 ### HIST-004 — `occurred_at` and `recorded_at` are distinct
 <a id="hist-004"></a>
@@ -295,7 +301,7 @@ later synchronization.
 <a id="hist-005"></a>
 - **Profile:** core · **Source status:** NORMATIVE · **Sources:** [FND §App-E] [MVP §5.1] [R00 §6] [R04 §9]
 
-No total global order across devices or containers (episodes) is assumed or required.
+No total global order across devices or episodes is assumed or required.
 
 *Note:* bounded "since boundary" reads ([R04 §34]) need some durable ordering; how that coexists
 with this rule is unspecified (NF-016).

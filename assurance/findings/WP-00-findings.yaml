@@ -29,7 +29,7 @@ findings:
 
   - id: NF-002
     title: Requirement 04 numbers two different sections "31."
-    classification: CONTRACT_ASSURANCE_DEFECT
+    classification: SEMANTICS_NEUTRAL_HARDENING
     owner_decision_required: false
     blocking: [none]
     status: OPEN
@@ -42,12 +42,14 @@ findings:
       citations stay mechanical.
     recommendation: Upstream editorial fix at the next bundle revision; no semantic impact.
     resolution_layer: "00"
+    review_note: >
+      Reclassified per WP00 Codex review 1: numbering alone is not a semantic contract defect once anchors are disambiguated.
 
   - id: NF-003
     title: Requirement-family taxonomy differs between the Owner kickoff and the bundle bootstrap prompt
-    classification: CONTRACT_ASSURANCE_DEFECT
+    classification: SEMANTICS_NEUTRAL_HARDENING
     owner_decision_required: false
-    blocking: [WP-00]
+    blocking: [none]
     status: OPEN
     raised_by: Claude
     sources: ["[BOOT §contract-model]"]
@@ -59,10 +61,12 @@ findings:
       Adopt the WP-00 proposal in process/requirement-id-convention.md §2 (kickoff names, plus
       ARCH, PRIV, PKG). Independent review must accept or reject it before IDs freeze.
     resolution_layer: "00"
+    review_note: >
+      Reclassified per WP00 Codex review 1: the family taxonomy was accepted as a proposal (organizational, not a defect). IDs freeze only after the repaired normalization is approved.
 
   - id: NF-004
     title: Stale self-references in current authority documents
-    classification: CONTRACT_ASSURANCE_DEFECT
+    classification: SEMANTICS_NEUTRAL_HARDENING
     owner_decision_required: false
     blocking: [none]
     status: OPEN
@@ -79,6 +83,8 @@ findings:
       dual-profile scope. Upstream editorial fix at the next revision. No semantic decision depends
       on them.
     resolution_layer: "00"
+    review_note: >
+      Reclassified per WP00 Codex review 1: operative text is unambiguous; no conflicting rule demonstrated.
 
   - id: NF-005
     title: Three different candidate layer orders; agent profile does not depend on learning layers
@@ -142,11 +148,13 @@ findings:
       Minion-Agent extension (preferred: it matches the master design and Mneme's
       reconstructability requirement) or to accept prompt-section injection.
     resolution_layer: "16"
+    review_note: >
+      Qualified per WP00 Codex review 1: combined system_base content stays reconstructable, and an adapter could keep separate attribution metadata; what is absent is a distinct, header-level attributable memory component.
 
   - id: NF-008
     title: Two candidate injection seams; assemble_system orders components by name
     classification: REQUIREMENT_UNCERTAIN
-    owner_decision_required: false
+    owner_decision_required: true
     blocking: [Layer-16]
     status: OPEN
     raised_by: Claude
@@ -162,7 +170,7 @@ findings:
 
   - id: NF-009
     title: Integration evidence snapshot drift (bundle d37171d vs current 3de4b75)
-    classification: INTEGRATION_CONTRACT_DEFECT
+    classification: SEMANTICS_NEUTRAL_HARDENING
     owner_decision_required: false
     blocking: [none]
     status: OPEN
@@ -175,11 +183,15 @@ findings:
       the evidence pin is refreshed to 3de4b75 in the WP-00 audit.
     recommendation: Re-pin and re-audit the seam at the start of Layer 16.
     resolution_layer: "16"
+    review_note: >
+      Reclassified per WP00 Codex review 1: evidence maintenance with no demonstrated stale contract.
 
   - id: NF-010
     title: Stable ID lexical domain unspecified
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: false
+    escalation_condition: >
+      Path C (Owner) if the contract would restrict, normalize or case-fold IDs beyond exact comparison of opaque strings, or narrow their character domain; otherwise path A/B.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude
@@ -192,7 +204,9 @@ findings:
   - id: NF-011
     title: '"Semantic version" versus integer editions'
     classification: REQUIREMENT_UNCERTAIN
-    owner_decision_required: false
+    owner_decision_required: true
+    escalation_condition: >
+      Path A only if the Layer 01 contract can show from the sources that versions are integer editions compared numerically; any other version semantics is path C.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude
@@ -206,6 +220,8 @@ findings:
     title: Scope of the same-ID-same-version-conflict rule; MemoryRecord derived-yet-canonical
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: false
+    escalation_condition: >
+      Path C if CORE-003 is extended to versioned artifacts the sources do not name (e.g. MemoryRecord) or if MemoryRecord authority is changed; otherwise path A.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude
@@ -217,11 +233,15 @@ findings:
       lineage "canonical".
     recommendation: Layer 01 decides whether CORE-003 is core-wide; Layer 13 reconciles MemoryRecord versions with it.
     resolution_layer: "01"
+    review_note: >
+      Qualified per WP00 Codex review 1: a derived durable artifact can have canonical committed lineage and still be rebuildable as an index/projection; the open question is only CORE-003's scope and MemoryRecord versioning.
 
   - id: NF-013
     title: Content-hash algorithm and canonical byte form unspecified
     classification: REQUIREMENT_UNCERTAIN
-    owner_decision_required: false
+    owner_decision_required: true
+    escalation_condition: >
+      Path C for any hash that crosses an interchange boundary or decides conflicts (observable); path B only for purely internal integrity with no observable outcome.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude
@@ -234,7 +254,9 @@ findings:
   - id: NF-014
     title: Operation identity domain and conflicting retries unspecified
     classification: REQUIREMENT_UNCERTAIN
-    owner_decision_required: false
+    owner_decision_required: true
+    escalation_condition: >
+      Always path C for the conflicting-retry outcome (reject vs return prior result) and the uniqueness domain; path B for its encoding.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude
@@ -252,6 +274,8 @@ findings:
     title: Timestamp representation unspecified
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: false
+    escalation_condition: >
+      Path C for precision, timezone/offset policy, unknown-time encoding and any lossy restriction; path B for a lossless representation of an agreed domain.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude
@@ -265,6 +289,8 @@ findings:
     title: No global order versus since-boundary reads and HistoryBoundary
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: false
+    escalation_condition: >
+      Path C only if a semantic order for non-episode containers (e.g. agent observations) is required; a durable per-store append cursor that asserts no semantic order is path B.
     blocking: [Layer-02]
     status: OPEN
     raised_by: Claude
@@ -276,11 +302,15 @@ findings:
       order) would reconcile them, but no source says so.
     recommendation: Layer 02 contract defines HistoryBoundary without asserting a semantic global order.
     resolution_layer: "02"
+    review_note: >
+      Qualified per WP00 Codex review 1: an append cursor and episode semantic order coexist; no source contradiction is claimed. HIST-003 is now episode-scoped (WP00-CR-007).
 
   - id: NF-017
     title: Projection cost units are consumer/model-specific
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: false
+    escalation_condition: >
+      Path C if the core prescribes a cost unit or tokenizer; path B if the consumer supplies the cost function and the core only enforces it.
     blocking: [Layer-06]
     status: OPEN
     raised_by: Claude
@@ -314,7 +344,9 @@ findings:
   - id: NF-019
     title: Cross-language value domain unspecified
     classification: REQUIREMENT_UNCERTAIN
-    owner_decision_required: false
+    owner_decision_required: true
+    escalation_condition: >
+      Always path C for restricting the value domain (e.g. rejecting lone surrogates or non-finite numbers in payloads); path B for lossless encoding of the agreed domain.
     blocking: [Layer-01]
     status: OPEN
     raised_by: Claude

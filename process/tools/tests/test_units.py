@@ -31,8 +31,12 @@ def test_core_yaml_accepts_portable_documents(text: str, expected: object) -> No
         ("a: 0x1F\n", "readings differ"),
         ("on: 1\n", "readings differ"),
         ("a: 1\na: 2\n", "duplicate key"),
-        ("a: &x 1\nb: *x\n", "anchors/aliases"),
-        ("a: !!binary aGk=\n", "tag"),
+        ("a: &x 1\nb: *x\n", "anchor syntax"),
+        ("a: !!binary aGk=\n", "tag syntax"),
+        # WP00-CR-005: explicit-but-redundant syntax that composition would erase
+        ("a: !!str plain\n", "tag syntax"),
+        ("a: &unused plain\n", "anchor syntax"),
+        ("a: !local plain\n", "tag syntax"),
         ("a: .inf\n", "readings differ"),
         ("{a: [\n", "parse error"),
         ("", "empty"),
@@ -43,6 +47,26 @@ def test_core_yaml_rejects_nonportable_documents(text: str, fragment: str) -> No
     result = load_core(text)
     assert not result.ok
     assert any(fragment in e for e in result.errors), result.errors
+
+
+@pytest.mark.parametrize("text", ['a: "\\uD800"\n', 'a: "\\uDFFF x"\n', '"\\uD83D": 1\n'])
+def test_core_yaml_rejects_lone_surrogates(text: str) -> None:
+    assert not load_core(text).ok
+
+
+@pytest.mark.parametrize("value", [{"a": "\ud800"}, {"\udfff": 1}, {"a": ["ok", "x\ud83d"]}])
+def test_domain_check_rejects_surrogates_explicitly(value: object) -> None:
+    """Not left to PyYAML's reader: the profile rule itself rejects surrogate code points."""
+    from mneme_process.yamlcore import _check_domain
+
+    errors: list[str] = []
+    _check_domain(value, errors)
+    assert any("surrogate" in e for e in errors), errors
+
+
+def test_core_yaml_accepts_astral_scalar() -> None:
+    result = load_core('a: "\\U0001F600"\n')
+    assert result.ok and result.value == {"a": "\U0001f600"}
 
 
 def test_core_yaml_rejects_excessive_depth() -> None:

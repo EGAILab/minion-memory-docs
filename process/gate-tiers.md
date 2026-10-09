@@ -43,7 +43,7 @@ review. Certification needs G3 evidence **and** an independent complete review o
 | Targeted convergence closure | G1 + relevant G2 |
 | First IMPLEMENTATION_REVIEW (complete) | G3 |
 | FINAL_CONTRACT_REVIEW (complete) | G3 |
-| Accepting (merging) an approved candidate | G3 already recorded at the exact approved SHAs + independent approval |
+| Accepting (merging) an approved candidate | G3 already recorded at the exact approved SHAs + independent approval + recorded acceptance authority (coordination-state §6) |
 | Rust CLOSURE_REVIEW (complete) | G3 (Rust) |
 | Documentary/status-only change | G0 + `mneme-process check` |
 

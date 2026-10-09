@@ -11,12 +11,16 @@ the conflict rule), NF-013 (hash algorithm + canonical bytes), NF-014 (operation
 conflicting retry), NF-015 (timestamps), NF-019 (portable value domain).
 
 Deliverables:
-1. Contract deltas in `spec/core.md` / `spec/serialization.md` that settle the findings above **from
-   the sources where they speak**, and as explicit options for the Owner where they are silent and
-   the choice is product semantics (expected: few — most are engineering-domain choices consistent
-   with "opaque"/"versioned"/"hash").
+1. Contract deltas in `spec/core.md` / `spec/serialization.md` resolving each finding above by
+   `process/finding-taxonomy.md` §1.1: path A (authority reading) or path B (lossless
+   representation mechanics) where they apply, each independently reviewed; and an **Owner options
+   packet** (interpretations, consequences, recommendation → `BLOCKED_FOR_OWNER` for that decision)
+   for every path-C observable choice. NF-011, NF-013, NF-014 and NF-019 are flagged for the Owner
+   now; NF-010, NF-012 and NF-015 carry explicit escalation conditions. Agents select no
+   observable semantics.
 2. Cross-language feasibility matrix (template) with executed probes on the pinned toolchain for
-   H1, H2, H3 (normalization only), H4, H6, H7, H11.
+   H1, H2, H3 (normalization only), H4, H5 (canonical key order, ordering inside hashed/canonical
+   bytes), H6, H7, H11.
 3. Canonical scenarios (`conformance/core/`) promoting
    `core.identity.same-version-different-content-conflicts` from PLACEHOLDER to DRAFT and adding:
    ID round-trip/opacity, version comparison, content-hash fixtures (byte-exact, with ≥2 entries

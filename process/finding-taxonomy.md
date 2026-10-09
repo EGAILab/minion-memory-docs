@@ -24,6 +24,26 @@ Class 8 is a WP-00 refinement beyond the kickoff's seven: without it, "the contr
 risky" has no honest home, and Minion-Agent's experience is that such items otherwise get
 mislabeled as hardening.
 
+### 1.1 Resolving `REQUIREMENT_UNCERTAIN` — who may decide (WP00-CR-002)
+
+A layer number never supplies authority. Each uncertainty is resolved by exactly one of:
+
+| Path | When | Who decides | Record |
+|---|---|---|---|
+| **A. Authority reading** | The bundle, read as a whole, determines the answer (e.g. a more specific requirement governs, or the sources agree once read together) | Contract author, independently reviewed | Contract delta citing the deciding sources |
+| **B. Representation mechanics** | The choice only encodes an already-defined semantic domain losslessly and changes no observable outcome (field names, an internal encoding with exact round-trip) | Contract author, independently reviewed | Contract delta + feasibility evidence that it is lossless |
+| **C. Observable semantic choice** | The sources are silent or conflicting and the options differ in an observable outcome, identity, acceptance/rejection, ordering, precision, loss, or privacy | **Owner only** | Options packet (interpretations, consequences, recommendation) → `BLOCKED_FOR_OWNER` for that decision → recorded governance source |
+
+Rules:
+- A finding states which path applies. If path C applies or might apply, it carries
+  `owner_decision_required: true`; if it depends on a contract-time determination, it carries an
+  `escalation_condition` stating exactly which outcome would make it path C. The validator rejects a
+  `REQUIREMENT_UNCERTAIN` finding with neither.
+- "The Layer NN contract defines X" means "the Layer NN contract resolves X by path A or B, or
+  presents the path-C options to the Owner" — never that agents select observable semantics.
+- Restricting a domain to what both languages can represent (e.g. rejecting a value at a seam) is
+  itself an observable choice (path C) unless an authority already requires it.
+
 ## 2. Classification order
 
 ```text
@@ -47,6 +67,7 @@ Machine-readable registers live in `assurance/findings/*.yaml` and are validated
   title: ...
   classification: REQUIREMENT_UNCERTAIN
   owner_decision_required: true|false
+  escalation_condition: ...       # optional; when Owner escalation depends on what the contract finds (§1.1)
   blocking: [WP-00 | WP-01 | Layer-NN | none]   # what it blocks; "none" when it blocks nothing now
   status: OPEN | PROVISIONALLY_CLOSED | CLOSED | WITHDRAWN
   raised_by: Claude | Codex | Owner
