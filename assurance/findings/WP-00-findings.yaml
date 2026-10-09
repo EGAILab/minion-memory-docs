@@ -1,0 +1,366 @@
+# WP-00 findings register (normalization, process adaptation, integration seam).
+# Shape and taxonomy: process/finding-taxonomy.md. Raised by Claude in WP-00 SCOPING; none is
+# accepted truth until independently reviewed. "blocking" names what the finding blocks NOW.
+
+register_version: 1
+work_package: WP-00
+findings:
+  - id: NF-001
+    title: Knowledge Package unit-file directory is units/ in R01 but memories/ in R00 and MVP
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: true
+    blocking: [Layer-12]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R01 §3]", "[R00 §11]", "[MVP §8]"]
+    requirements: [PKG-001]
+    summary: >
+      R01 §3 (owner of interchange semantics) states "manifest.yaml + units/*.md + assets/*".
+      R00 §11 (normative for R01) and MVP §8 (rank 2) show "memories/*.md" with "serializer name
+      retained/may remain for MVP compatibility".
+    interpretations:
+      - "memories/ is the MVP canonical name; units/ in R01 is an editorial drift."
+      - "units/ is the intended new canonical name; memories/ is accepted only as a legacy alias."
+      - "Both are accepted on import; one is written."
+    recommendation: >
+      Authority rank favors memories/ (R00, MVP). Recommend the Owner confirm one canonical
+      directory and whether the other is a read-only alias. Not needed before Layer 12.
+    resolution_layer: "12"
+
+  - id: NF-002
+    title: Requirement 04 numbers two different sections "31."
+    classification: CONTRACT_ASSURANCE_DEFECT
+    owner_decision_required: false
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §31]", "[R04 §31~2]"]
+    requirements: [PROJ-001]
+    summary: >
+      "31. Pi 1.0 + claude-mem Persistence Amendments (v1.2)" and "31. Canonical HistoryProjector /
+      normalizer" share the number 31. The derived index disambiguates them as 31 and 31~2 so
+      citations stay mechanical.
+    recommendation: Upstream editorial fix at the next bundle revision; no semantic impact.
+    resolution_layer: "00"
+
+  - id: NF-003
+    title: Requirement-family taxonomy differs between the Owner kickoff and the bundle bootstrap prompt
+    classification: CONTRACT_ASSURANCE_DEFECT
+    owner_decision_required: false
+    blocking: [WP-00]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[BOOT §contract-model]"]
+    requirements: []
+    summary: >
+      Kickoff §14 proposes RET/LMEM/ACAP/AMEM/ACON/ARET/ACTX/MINT and no PRIV/PKG; the bundle
+      bootstrap proposes RETR/LMOD/AMEM/ACTX/INT/PKG/PRIV. Both say "validate in WP-00".
+    recommendation: >
+      Adopt the WP-00 proposal in process/requirement-id-convention.md §2 (kickoff names, plus
+      ARCH, PRIV, PKG). Independent review must accept or reject it before IDs freeze.
+    resolution_layer: "00"
+
+  - id: NF-004
+    title: Stale self-references in current authority documents
+    classification: CONTRACT_ASSURANCE_DEFECT
+    owner_decision_required: false
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §closing-position]", "[FND §App-E]", "[MVP §15]", "[IAA §1]"]
+    requirements: [ARCH-001, ARCH-011]
+    summary: >
+      FND "Closing Position" is labeled "Foundation v2.2 position"; Appendix E is headed
+      "(v2 -> v2.1)" while describing v2.2; MVP §15 calls itself "the intended smaller
+      implementation surface for the current Flashcard App"; IAA's scope box cites "Foundation
+      v2.1" and "an offline-first Flutter memory application".
+    recommendation: >
+      Read these as historical text; FND Appendix G (v2.3), MVP §18 and IAA §11 govern the
+      dual-profile scope. Upstream editorial fix at the next revision. No semantic decision depends
+      on them.
+    resolution_layer: "00"
+
+  - id: NF-005
+    title: Three different candidate layer orders; agent profile does not depend on learning layers
+    classification: OWNER_DECISION_REQUIRED
+    owner_decision_required: true
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[BOOT §proposed-dependency-aware-layers-validate-do-not-blindly-implement]"]
+    requirements: []
+    summary: >
+      Kickoff §27, the bundle bootstrap and the pack IMPLEMENTATION_PLAN order layers differently
+      (persistence at L04 vs L08; MemoryScope with identity vs separate). Dependency analysis
+      (plans/layer-plan.md) supports the kickoff order with two corrections, and shows Layers 13-16
+      (agent) depend only on Layers 01-06, not on 07-12 (learning).
+    recommendation: >
+      Keep the kickoff order through Layer 06 (no Owner input needed). Before Layer 07 starts, the
+      Owner chooses whether the learning profile (07-12) or the Minion-Agent path (13-16) goes
+      first, or alternates.
+    resolution_layer: "06"
+
+  - id: NF-006
+    title: Bundle bootstrap prompt v1.1 conflicts with the Owner kickoff on process
+    classification: CONTRACT_ASSURANCE_DEFECT
+    owner_decision_required: false
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[BOOT §output-of-this-invocation]", "[BOOT §first-work-package-wp-00-only]"]
+    requirements: []
+    summary: >
+      The bundle bootstrap/pack expect Codex to run the bootstrap, a "human review gate", and the
+      outcome token BOOTSTRAP_READY_FOR_CONTRACT_DRAFT. The Owner kickoff assigns WP-00 to Claude,
+      requires an independent Codex review, and defines BOOTSTRAP_READY_FOR_CODEX_REVIEW.
+    recommendation: >
+      The bundle bootstrap and pack are guidance (rank 10); the later, explicit Owner kickoff
+      governs process (reference/governance G-001, G-005). Review to confirm.
+    resolution_layer: "00"
+
+  - id: NF-007
+    title: Minion-Agent records only a system_base header component; no memory component is wired
+    classification: INTEGRATION_CONTRACT_DEFECT
+    owner_decision_required: true
+    blocking: [Layer-16]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §G.5]", "[FND §G.8]", "[R05 §3]", "[R05 §10]", "[IAA §12]"]
+    requirements: [MINT-004, MINT-006, MINT-009]
+    summary: >
+      The bundle states Minion-Agent "already exposes ... a documented memory component". At
+      minion-agent 3de4b75 (and at the bundle's snapshot d37171d) the record_header/assemble_system
+      mechanism accepts any component names, and the master design lists a `memory` component, but
+      the agent loop driver hard-codes components = {"system_base": ...}
+      (agent_loop/driver.py:1095). An adapter cannot add a separate `memory` component without a
+      Minion-Agent-side change. Evidence: assurance/layers/00-minion-agent-seam-audit.md.
+    interpretations:
+      - "Inject via PromptComposer contributed sections (exists today): memory becomes part of system_base, so the header records it only inside one combined component and loses component-level reuse/attribution."
+      - "Request an additive Minion-Agent extension letting a provider contribute named header components (e.g. memory), through Minion-Agent's own process."
+    recommendation: >
+      Not a WP-00/WP-01 blocker. Before Layer 16 the Owner decides whether to request the
+      Minion-Agent extension (preferred: it matches the master design and Mneme's
+      reconstructability requirement) or to accept prompt-section injection.
+    resolution_layer: "16"
+
+  - id: NF-008
+    title: Two candidate injection seams; assemble_system orders components by name
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-16]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[IAA §12]", "[R05 §10]", "[R05 §16]"]
+    requirements: [MINT-009]
+    summary: >
+      IAA §12 lists both the request-header memory component and PromptComposer contributed
+      sections as Mneme seams. Using both would create a second, hidden injection path (kickoff
+      §19 forbids that). Separately, assemble_system joins components sorted by name in both
+      Python and Rust, so a `memory` component would precede `system_base` in the dispatched prompt.
+    recommendation: Layer 16 contract names exactly one canonical injection path and its placement.
+    resolution_layer: "16"
+
+  - id: NF-009
+    title: Integration evidence snapshot drift (bundle d37171d vs current 3de4b75)
+    classification: INTEGRATION_CONTRACT_DEFECT
+    owner_decision_required: false
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §G.8]", "[R05 §3]", "[IAA §12]"]
+    requirements: [MINT-001]
+    summary: >
+      Since d37171d, session/request_header.py (+44/-3) and agent_loop/driver.py (+13/-2) changed
+      (L08-D002 tool-schema snapshot at header publication). The seam conclusions are unchanged;
+      the evidence pin is refreshed to 3de4b75 in the WP-00 audit.
+    recommendation: Re-pin and re-audit the seam at the start of Layer 16.
+    resolution_layer: "16"
+
+  - id: NF-010
+    title: Stable ID lexical domain unspecified
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §16]", "[R00 §10]", "[R04 §7]"]
+    requirements: [CORE-001]
+    summary: IDs are "opaque, immutable, producer-generated"; alphabet, length, case sensitivity and Unicode are not specified (hazard H11).
+    recommendation: Layer 01 contract defines a portable lexical domain consistent with "opaque".
+    resolution_layer: "01"
+
+  - id: NF-011
+    title: '"Semantic version" versus integer editions'
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[MVP §18.1]", "[FND §16]", "[R00 §4.1]"]
+    requirements: [CORE-002]
+    summary: MVP §18.1 says "semantic versions"; FND/R00 examples use integer editions (version 4). Ordering/comparison is required by reconciliation (PKG-004).
+    recommendation: Layer 01 contract fixes the version domain and comparison; reading "semantic version" as "version of semantic content" is consistent with all examples.
+    resolution_layer: "01"
+
+  - id: NF-012
+    title: Scope of the same-ID-same-version-conflict rule; MemoryRecord derived-yet-canonical
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §8]", "[R04 §7]", "[R05 §5.2]", "[R05 §12]"]
+    requirements: [CORE-003, AMEM-001, AMEM-005]
+    summary: >
+      Every source states the conflict rule for Knowledge entities. Whether it is a core rule for
+      every versioned artifact is unstated. R05 calls MemoryRecord "derived" yet its committed
+      lineage "canonical".
+    recommendation: Layer 01 decides whether CORE-003 is core-wide; Layer 13 reconciles MemoryRecord versions with it.
+    resolution_layer: "01"
+
+  - id: NF-013
+    title: Content-hash algorithm and canonical byte form unspecified
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §7]", "[MVP §18.1]", "[R01 §8]"]
+    requirements: [CORE-003, CORE-011]
+    summary: "\"normalized content hash\" requires a normalization (key order, number form, text normalization, line endings) and an algorithm both languages reproduce byte-for-byte (hazards H3, H7)."
+    recommendation: Layer 01 defines canonical bytes and algorithm with cross-language fixtures.
+    resolution_layer: "01"
+
+  - id: NF-014
+    title: Operation identity domain and conflicting retries unspecified
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §32]", "[R05 §6]", "[R00 §20.2]"]
+    requirements: [CORE-012, PERS-006]
+    summary: >
+      Sources fix "same operation identity -> one committed mutation, retry returns existing
+      result". Unspecified: uniqueness scope (global, per profile, per scope), whether a source
+      identity and an operation_id are the same concept, and the outcome when the same identity
+      arrives with different content (reject as conflict vs return prior result).
+    recommendation: Layer 01 defines the identity; Layer 04 the persistence behavior.
+    resolution_layer: "01"
+
+  - id: NF-015
+    title: Timestamp representation unspecified
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §6]", "[R04 §9]", "[R05 §5.1]"]
+    requirements: [HIST-004]
+    summary: occurred_at/recorded_at are distinct, but representation, timezone/offset, precision and unknown encoding are not specified (hazard H4).
+    recommendation: Layer 01 serialization contract fixes them.
+    resolution_layer: "01"
+
+  - id: NF-016
+    title: No global order versus since-boundary reads and HistoryBoundary
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-02]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §App-E]", "[R04 §34]", "[R04 §28]", "[R04 §41.1]"]
+    requirements: [HIST-005, PERS-007, PERS-008]
+    summary: >
+      "No total global order across devices/episodes" coexists with since-boundary reads and a
+      checkpoint's history_through_event. A per-store durable append order (distinct from semantic
+      order) would reconcile them, but no source says so.
+    recommendation: Layer 02 contract defines HistoryBoundary without asserting a semantic global order.
+    resolution_layer: "02"
+
+  - id: NF-017
+    title: Projection cost units are consumer/model-specific
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-06]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §38]", "[R05 §9]"]
+    requirements: [PROJ-003, ACTX-002]
+    summary: Token budgets depend on a tokenizer the core must not depend on; character units depend on hazard H2 length units.
+    recommendation: Layer 06 defines measured-cost units and how a consumer supplies a cost function.
+    resolution_layer: "06"
+
+  - id: NF-018
+    title: MemoryScope semantics are unspecified beyond existence and enforcement
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: true
+    blocking: [Layer-02]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §G.3]", "[R05 §5.3]", "[R04 §41.1]", "[IAA §A28]"]
+    requirements: [SCOPE-001, SCOPE-002, SCOPE-004, SCOPE-005, SCOPE-006]
+    summary: >
+      Sources fix: core concept, structured/extensible, profile-owned vocabulary, agent dimensions,
+      enforcement before ranking. Not fixed: scope identity and equality, containment/hierarchy,
+      inheritance, intersection of facets, retrieval visibility (e.g. is a user-level memory
+      visible in a session of that user?), persistence/encoding, privacy defaults, and whether
+      learning retrieval is bound like agent retrieval. The kickoff's candidate learning facets
+      "knowledge unit/component" do not appear in the sources.
+    recommendation: >
+      Layer 02 runs a contract-first checkpoint with an options packet; visibility/inheritance
+      defaults are product semantics and need Owner decisions.
+    resolution_layer: "02"
+
+  - id: NF-019
+    title: Cross-language value domain unspecified
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: false
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §6]", "[R03 §6]", "[R05 §5.1]"]
+    requirements: [SER-001, OBS-002, ACAP-001]
+    summary: >
+      Payloads are "versioned JSON"/"structured observations", but integer width, float specials,
+      Unicode scalar domain (Python str holds lone surrogates; Rust String cannot) and canonical
+      JSON form are unspecified (hazards H1, H2, H6).
+    recommendation: Layer 01 fixes the portable value domain and rejects values outside it at the seam.
+    resolution_layer: "01"
+
+  - id: NF-020
+    title: No standing delegation of routine governance exists for Minion-Memory
+    classification: OWNER_DECISION_REQUIRED
+    owner_decision_required: true
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: []
+    requirements: []
+    summary: >
+      Minion-Agent's minion-agent#75 delegates routine transitions (exact-SHA acceptance after
+      independent approval, status declarations, ordinary hand-offs) to Claude. It does not
+      transfer. Without an equivalent, every acceptance of an approved candidate onto `main` would
+      need an Owner act.
+    recommendation: >
+      Owner decides whether to grant Claude the same routine delegation for Minion-Memory. Until
+      then Claude accepts nothing onto `main` without a recorded Owner decision or delegation.
+    resolution_layer: "00"
+
+  - id: NF-021
+    title: Implementation status kept in the certification registry, not in manifest rows
+    classification: OWNER_DECISION_REQUIRED
+    owner_decision_required: true
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: []
+    requirements: []
+    summary: >
+      Kickoff §15 asks the manifest to map "Python location/status" and "Rust location/status".
+      WP-00 keeps locations in the manifest and status in process/certification-registry.yaml,
+      adopting Minion-Agent's certification-registry design to avoid the status-only PR churn it
+      documents.
+    recommendation: >
+      Owner accepts the split, or Claude adds status fields to the manifest (mechanical change).
+      Non-blocking.
+    resolution_layer: "00"

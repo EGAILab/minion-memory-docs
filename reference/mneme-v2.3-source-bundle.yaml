@@ -1,0 +1,225 @@
+# Project Mneme v2.3 dual-profile source bundle — provenance inventory (WP-00).
+#
+# The bundle is READ-ONLY upstream authority. Nothing here edits it. Hashes are SHA-256 of the
+# exact bytes at `bundle_root/<file>`. `mneme-process check sources` re-verifies every hash.
+#
+# authority_rank follows the Owner kickoff (reference/governance/2026-10-09-owner-wp00-kickoff.md
+# §8) and the bundle's own Bootstrap Prompt v1.1 order, which agree:
+#   1 Foundation > 2 MVP Contract > 3 normative Requirements (R00 normative for R01-R04;
+#   R05 for the Agent profile) > 4 Implementation Architecture Amendments > guidance.
+# The normalized Markdown contract (spec/**) and canonical conformance rank below all of these
+# and never override them.
+
+bundle_format: 1
+bundle_id: mneme-v2.3-dual-profile
+# All paths below are relative to workspace_root (the Minion-Memory project root).
+workspace_root: E:/AI/Projects/OpenMinds/Minions/Minion-Memory
+bundle_root: artifacts/20261009/Project_Mneme_Documentation_Bundle_2026-10_v2_3_Dual_Profile
+bundle_zip:
+  path: artifacts/20261009/Project_Mneme_Documentation_Bundle_2026-10_v2_3_Dual_Profile.zip
+  sha256: 9d999c1934e33b70100e884ed5cb60d0cbdb71150af59a8b2334604b4220251e
+  relation: every member is byte-identical to the loose file of the same name (verified WP-00)
+inventoried_at: "2026-10-09"
+inventoried_by: Claude
+
+documents:
+  - key: FND
+    file: Project_Mneme_Foundation_v2_3_Dual_Profile_Architecture.docx
+    sha256: f3352b902e7c6b5654c379254d464d55f519a7f933b823faf2576cf6f081b5d6
+    bytes: 59208
+    title: Project Mneme Foundation v2.3 — Dual-Profile Architecture
+    declared_version: "2.3"
+    authority_rank: 1
+    authority_role: highest conceptual / architectural authority
+    normalization_target: [spec/README.md, spec/core.md, spec/scope.md, spec/learning, spec/agent]
+    status: CURRENT_AUTHORITY
+    notes: Retains stale v2.1/v2.2 self-labels in Appendix E header and Closing Position (NF-004).
+
+  - key: MVP
+    file: Project_Mneme_MVP_Contract_v1_2_Dual_Profile.docx
+    sha256: 5a28d40a0c3b859a5e81854d03a2480636c1833c9f5aa97cbac8bb393a650e2a
+    bytes: 46248
+    title: Project Mneme MVP Contract v1.2 — Dual Profile
+    declared_version: "1.2"
+    authority_rank: 2
+    authority_role: MVP implementation authority (shared core + profile split, §18)
+    normalization_target: [spec/core.md, spec/persistence.md, spec/learning, spec/agent]
+    status: CURRENT_AUTHORITY
+    notes: §15 still describes itself as the Flashcard-only surface (NF-004).
+
+  - key: R00
+    file: Flashcard_App_Requirement_00_Mneme_Domain_Foundation_v2_3_Aligned.docx
+    sha256: 50a0fc28fca0a2e8fc4b42932a7388eb9e150b1e429ba110e95420c0a32d18d1
+    bytes: 46840
+    title: Requirement 00 — Mneme Domain Foundation (Learning Profile MVP projection)
+    declared_version: "2.3"
+    authority_rank: 3
+    authority_role: normative Learning Profile domain; normative for R01-R04
+    normalization_target: [spec/learning]
+    status: CURRENT_AUTHORITY
+
+  - key: R01
+    file: Flashcard_App_Requirement_01_Knowledge_Package_Import_and_Local_Storage_v2_3_Aligned.docx
+    sha256: 51c6a31f987d3ebe8fd4170d54508197d54e742150bb5966637a9faf47bbea51
+    bytes: 40920
+    title: Requirement 01 — Knowledge Package, Import, Reconciliation & Local Knowledge Storage
+    declared_version: "2.3"
+    authority_rank: 3
+    authority_role: normative Learning Profile interchange/reconciliation semantics
+    normalization_target: [spec/learning/package.md, spec/learning/knowledge.md]
+    status: CURRENT_AUTHORITY
+
+  - key: R02
+    file: Flashcard_App_Requirement_02_Learner_Memory_Scheduling_and_Recall_Selection_v2_3_Aligned.docx
+    sha256: 6b6fbed00034b25e4440092684244425518572a05a736f4c7568ca42305407ec
+    bytes: 40556
+    title: Requirement 02 — Learner Memory, Scheduling & Recall Selection
+    declared_version: "2.3"
+    authority_rank: 3
+    authority_role: normative Learning Profile inference/scheduling semantics
+    normalization_target: [spec/learning/inference.md, spec/learning/scheduling.md]
+    status: CURRENT_AUTHORITY
+
+  - key: R03
+    file: Flashcard_App_Requirement_03_Learning_Evidence_Historical_Interpretation_and_Diagnostics_v2_3_Aligned.docx
+    sha256: 651cacc5992d5da22f0d3ed10dde9f2bcb3b66e3fd4549bc1a4bf9050b83a797
+    bytes: 46318
+    title: Requirement 03 — Learning Evidence, Historical Interpretation & Diagnostics
+    declared_version: "2.3"
+    authority_rank: 3
+    authority_role: normative Learning Profile history/evidence semantics
+    normalization_target: [spec/learning/interaction.md, spec/learning/evidence.md]
+    status: CURRENT_AUTHORITY
+
+  - key: R04
+    file: Flashcard_App_Requirement_04_Local_Domain_Model_and_Persistence_Contract_v1_3.docx
+    sha256: b4c25d006e7db998feb5f955b55a9fcdc58ef589e72eae6cff742b9c0b92755f
+    bytes: 50919
+    title: Requirement 04 — Local Domain Model & Persistence Contract
+    declared_version: "1.3"
+    authority_rank: 3
+    authority_role: normative learning persistence + shared-core persistence compatibility (§41-42)
+    normalization_target: [spec/persistence.md, spec/serialization.md, spec/backup.md, spec/learning]
+    status: CURRENT_AUTHORITY
+    notes: Section number 31 is used twice (NF-002); the index disambiguates as 31 / 31~2.
+
+  - key: R05
+    file: Project_Mneme_Requirement_05_Agent_Memory_Profile_and_Minion_Agent_Integration_v1_0.docx
+    sha256: a6c5dee570a5673a34fcd4a33057b2b3faeb1330847b2060235d903a99a4f240
+    bytes: 43126
+    title: Requirement 05 — Agent Memory Profile & Minion-Agent Integration
+    declared_version: "1.0"
+    authority_rank: 3
+    authority_role: normative Agent Memory Profile + Minion-Agent integration semantics
+    normalization_target: [spec/agent, spec/scope.md]
+    status: CURRENT_AUTHORITY
+
+  - key: IAA
+    file: Project_Mneme_Implementation_Architecture_Amendments_v1_3.docx
+    sha256: 436ea1a3a5ffa126d70a1c3cb8e1a8cc1e3d8baf1d50740df3a9098240daba33
+    bytes: 44835
+    title: Implementation Architecture Amendments v1.3
+    declared_version: "1.3"
+    authority_rank: 4
+    authority_role: adopted implementation guardrails (A1-A34)
+    normalization_target: [spec/core.md, spec/persistence.md, spec/agent]
+    status: CURRENT_AUTHORITY
+    notes: Scope box still cites "Foundation v2.1" and a "Flutter memory application" (NF-004).
+
+  - key: BOOT
+    file: Project_Mneme_Minion_Memory_Bootstrap_Prompt_v1_1.md
+    sha256: bbf988e8558d170966601828286ae03fec3839e3bb2a8bf68af094d8de3253c4
+    bytes: 9624
+    title: Minion-Memory bootstrap prompt v1.1
+    declared_version: "1.1"
+    authority_rank: 10
+    authority_role: guidance only (process/bootstrap); superseded for execution by the Owner WP-00 kickoff where they differ (NF-006)
+    normalization_target: []
+    status: GUIDANCE
+
+  - key: SUMMARY
+    file: UPDATE_SUMMARY.md
+    sha256: eff957c5109cdb04ed8da9210383450537dc09da7efb0efbf77ac0d0f7ecb989
+    bytes: 1890
+    title: Project Mneme dual-profile documentation update — 2026-10
+    declared_version: "2026-10"
+    authority_rank: 11
+    authority_role: informative change summary
+    normalization_target: []
+    status: INFORMATIVE
+
+  - key: PACK
+    file: Project_Mneme_Codex_Implementation_Pack_v1_3.zip
+    sha256: 21ec7b8403ba5fdda201f5c0746fca4732e22a7cb6b797bfdc0eb1659472488b
+    bytes: 418769
+    title: Codex Implementation Pack v1.3
+    declared_version: "1.3"
+    authority_rank: 10
+    authority_role: implementation guidance only; never semantic authority
+    normalization_target: []
+    status: GUIDANCE
+    notes: >
+      docs/mneme/reference/*.docx are byte-identical to the loose bundle DOCX (verified WP-00);
+      AGENTS/README/BOOTSTRAP_PROMPT and docs/mneme/*.md are guidance. BOOTSTRAP_PROMPT.md (both
+      copies) is byte-identical to Project_Mneme_Minion_Memory_Bootstrap_Prompt_v1_1.md.
+
+# Earlier artifact sets present in the workspace. Not authority; recorded so that nobody
+# mistakes them for current inputs.
+superseded:
+  - path: artifacts/20261007/Project_Mneme_Foundation_v2_2_Implementation_Informed.docx
+    sha256: 77a99faa9a2ce60c67ccec6c6f5b64036e80f0a1902c40fae9cb9b763324908b
+    superseded_by: FND
+  - path: artifacts/20261007/Project_Mneme_MVP_Contract_v1_1.docx
+    sha256: a97b19bc1be52b1e9f6b1f3ed40030de06e99c54cd33e30786d23eca356300a7
+    superseded_by: MVP
+  - path: artifacts/20261007/Flashcard_App_Requirement_00_Mneme_Domain_Foundation_v2_2_Aligned.docx
+    sha256: f35231b668c5f01ea58756e6d10f8ba13e0af05fd5185e9ad877e11a86171170
+    superseded_by: R00
+  - path: artifacts/20261007/Flashcard_App_Requirement_01_Knowledge_Package_Import_and_Local_Storage_v2_2_Aligned.docx
+    sha256: fa950dbe6091dc2f601a7ab14f832786fa043d1fafc41815f68bba75c629a017
+    superseded_by: R01
+  - path: artifacts/20261007/Flashcard_App_Requirement_02_Learner_Memory_Scheduling_and_Recall_Selection_v2_2_Aligned.docx
+    sha256: 56b8e6818ed68c4d8392915343b1d3a6b7c71754bb93695a2c5f60277e0dca4c
+    superseded_by: R02
+  - path: artifacts/20261007/Flashcard_App_Requirement_03_Learning_Evidence_Historical_Interpretation_and_Diagnostics_v2_2_Aligned.docx
+    sha256: a82b9122451587818f70a4ed8ca82bf20452f7acca0a5336392ca5dbea75f935
+    superseded_by: R03
+  - path: artifacts/20261007/Flashcard_App_Requirement_04_Local_Domain_Model_and_Persistence_Contract_v1_2.docx
+    sha256: 6600eac9b4161d2872f1dc7283d413b515b9dca6dbdef6666398c1392a95879f
+    superseded_by: R04
+  - path: artifacts/20261007/Project_Mneme_Implementation_Architecture_Amendments_v1_2.docx
+    sha256: 925665582e20adccfaa8b39392341b62ec9c9ceaf839c7bff3d0014e9f13bc18
+    superseded_by: IAA
+  - path: artifacts/20261007/Project_Mneme_Codex_Implementation_Pack_v1_2.zip
+    sha256: b853627c78ee1930f3b67041fd15d6c646f4a24b1034d24ea4ce58890568eb60
+    superseded_by: PACK
+  - path: artifacts/20261007/Project_Mneme_Documentation_Bundle_2026-10_v2_2.zip
+    sha256: 0861823481f95357178ec528f5f0c6aa474c96f5800d1962d1a0fffc02a4e9de
+    superseded_by: bundle_zip
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/AGENTS.md
+    sha256: c25f9c324ab399d90690efe8d963929cf7fd1ed784a864c066254fb587d21cf1
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/README.md
+    sha256: ecee131d24df1ba51f0ea625b8c9fb1023195cb4507b2bdc1fe4ec80f1c96955
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/ARCHITECTURE_GUARDRAILS.md
+    sha256: 3f4978ed9cf0f8ad76eaccf3beada3436664e9ff78ea118ff5e847e8d3182655
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/CODEX_TASKS.md
+    sha256: f6e3e8bf228fb5f23ff2825f1ae26c3135761a0af704c2e3855d89151ab02e04
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/DOMAIN_MODEL.md
+    sha256: e8e49d94a1dcea24006ca5b8eb8dbb8b8d97d3bb49ed94cdf8112dd908ecf935
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/IMPLEMENTATION_CHECKLIST.md
+    sha256: b3102c74ec423dcfdfd3abeeac591b69eb538a61706a5f4112f143cdd0082743
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/IMPLEMENTATION_PLAN.md
+    sha256: 9f0452942a24abbc72615a1eef262bcbe416ff19711feefa84882b2a8fa76ae1
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/MIGRATION_PLAN.md
+    sha256: e731315a63aa9c700f8d89d48ee7db01da27fa63c13f6d2c86403ceffcd9544b
+    superseded_by: PACK
+  - path: artifacts/20260810/Project_Mneme_Codex_Implementation_Pack_v1/docs/mneme/TEST_PLAN.md
+    sha256: 3b2cb87cefa481d738747a2854bec7c5332d6bd0df612c78a3095bc78ab80de8
+    superseded_by: PACK

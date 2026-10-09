@@ -1,0 +1,7 @@
+# OWN-001: caches/venvs live under the project-root .tmp, never here. Safety net only.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

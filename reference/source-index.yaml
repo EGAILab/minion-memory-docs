@@ -1,0 +1,1403 @@
+# DERIVED, NON-AUTHORITATIVE section-anchor index. Regenerate with `mneme-process sources build`.
+index_version: 1
+documents:
+  BOOT:
+    source_sha256: bbf988e8558d170966601828286ae03fec3839e3bb2a8bf68af094d8de3253c4
+    derived_text_sha256: bbf988e8558d170966601828286ae03fec3839e3bb2a8bf68af094d8de3253c4
+    anchors:
+    - anchor: minion-memory-bootstrap-prompt-v1-1-dual-profile-project
+      heading: Minion-Memory bootstrap prompt v1.1 — dual-profile project
+      level: 1
+      line: 1
+    - anchor: process
+      heading: Process
+      level: 2
+      line: 14
+    - anchor: semantic-authority-order
+      heading: Semantic authority order
+      level: 2
+      line: 29
+    - anchor: integration-target
+      heading: Integration target
+      level: 2
+      line: 44
+    - anchor: proposed-repo-topology
+      heading: Proposed repo topology
+      level: 2
+      line: 50
+    - anchor: contract-model
+      heading: Contract model
+      level: 2
+      line: 72
+    - anchor: core-admission-rule
+      heading: Core admission rule
+      level: 2
+      line: 97
+    - anchor: minion-agent-integration-invariants
+      heading: Minion-Agent integration invariants
+      level: 2
+      line: 132
+    - anchor: workflow
+      heading: Workflow
+      level: 2
+      line: 144
+    - anchor: proposed-dependency-aware-layers-validate-do-not-blindly-implement
+      heading: Proposed dependency-aware layers (validate, do not blindly implement)
+      level: 2
+      line: 154
+    - anchor: first-work-package-wp-00-only
+      heading: First work package — WP-00 only
+      level: 2
+      line: 174
+    - anchor: output-of-this-invocation
+      heading: Output of this invocation
+      level: 2
+      line: 195
+  FND:
+    source_sha256: f3352b902e7c6b5654c379254d464d55f519a7f933b823faf2576cf6f081b5d6
+    derived_text_sha256: 7e45655bcace8f90687b4c629eb4e56278e03b7a4ca80e4d208cbd5b37ae2e2a
+    anchors:
+    - anchor: document-status-legend
+      heading: Document Status Legend
+      level: 2
+      line: 11
+    - anchor: executive-summary
+      heading: Executive Summary
+      level: 2
+      line: 29
+    - anchor: '1'
+      heading: 1. Vision and Scope
+      level: 2
+      line: 53
+    - anchor: '1.1'
+      heading: 1.1 Explicit non-goals
+      level: 3
+      line: 68
+    - anchor: '2'
+      heading: 2. Research Methodology
+      level: 2
+      line: 75
+    - anchor: '3'
+      heading: '3. Scientific Boundary: Knowledge Is Not Memory Is Not Performance'
+      level: 2
+      line: 86
+    - anchor: '4'
+      heading: 4. Knowledge Model
+      level: 2
+      line: 108
+    - anchor: '4.1'
+      heading: 4.1 KnowledgeUnit
+      level: 3
+      line: 110
+    - anchor: '4.2'
+      heading: 4.2 KnowledgeComponent
+      level: 3
+      line: 117
+    - anchor: '4.3'
+      heading: 4.3 KnowledgePoint
+      level: 3
+      line: 131
+    - anchor: '4.4'
+      heading: 4.4 KnowledgeStructure
+      level: 3
+      line: 134
+    - anchor: '4.5'
+      heading: 4.5 KnowledgeProcedure
+      level: 3
+      line: 141
+    - anchor: '4.6'
+      heading: 4.6 Component granularity and evolution
+      level: 3
+      line: 148
+    - anchor: '4.7'
+      heading: 4.7 Component relations
+      level: 3
+      line: 159
+    - anchor: '5'
+      heading: 5. RecallForm / Probe Model
+      level: 2
+      line: 182
+    - anchor: '5.1'
+      heading: 5.1 Retrieval and exposure
+      level: 3
+      line: 204
+    - anchor: '5.2'
+      heading: 5.2 Sibling / contamination protection
+      level: 3
+      line: 215
+    - anchor: '6'
+      heading: 6. LearningEpisode and LearningEvent
+      level: 2
+      line: 222
+    - anchor: '7'
+      heading: 7. Observation, EvaluationOutcome, and Evidence
+      level: 2
+      line: 251
+    - anchor: '7.1'
+      heading: 7.1 RawObservation
+      level: 3
+      line: 267
+    - anchor: '7.2'
+      heading: 7.2 EvaluationOutcome
+      level: 3
+      line: 282
+    - anchor: '7.3'
+      heading: 7.3 Evidence
+      level: 3
+      line: 295
+    - anchor: '8'
+      heading: 8. Historical Integrity and Provenance
+      level: 2
+      line: 310
+    - anchor: '9'
+      heading: 9. Learner Memory Model Interface
+      level: 2
+      line: 326
+    - anchor: '9.1'
+      heading: 9.1 Context-conditioned accessibility
+      level: 3
+      line: 352
+    - anchor: '10'
+      heading: 10. Learning Phase, Priors, and Cold Start
+      level: 2
+      line: 368
+    - anchor: '11'
+      heading: 11. Scheduling and Activity Selection
+      level: 2
+      line: 386
+    - anchor: '12'
+      heading: 12. Diagnostics and Pathology
+      level: 2
+      line: 414
+    - anchor: '13'
+      heading: 13. Knowledge Packages, Interchange, and Backup
+      level: 2
+      line: 431
+    - anchor: '13.1'
+      heading: 13.1 Package representation
+      level: 3
+      line: 458
+    - anchor: '14'
+      heading: 14. Longitudinal Evolution
+      level: 2
+      line: 468
+    - anchor: '15'
+      heading: 15. Validation Framework
+      level: 2
+      line: 497
+    - anchor: '15.1'
+      heading: 15.1 Evaluation protocol discipline
+      level: 3
+      line: 518
+    - anchor: '16'
+      heading: 16. Identity, Versioning, and Schema
+      level: 2
+      line: 525
+    - anchor: '17'
+      heading: 17. Durability Hierarchy
+      level: 2
+      line: 557
+    - anchor: '18'
+      heading: 18. Flashcard MVP Projection
+      level: 2
+      line: 580
+    - anchor: '19'
+      heading: 19. Status Register - Foundation v2.3
+      level: 2
+      line: 607
+    - anchor: '20'
+      heading: 20. Research Questions for Phase II
+      level: 2
+      line: 634
+    - anchor: App-A
+      heading: Appendix A - Research-to-Architecture Traceability
+      level: 2
+      line: 643
+    - anchor: App-B
+      heading: Appendix B - Source-Code Evidence
+      level: 2
+      line: 660
+    - anchor: App-C
+      heading: Appendix C - Scientific Literature
+      level: 2
+      line: 678
+    - anchor: App-D
+      heading: Appendix D - Design Invariants (Compact)
+      level: 2
+      line: 685
+    - anchor: closing-position
+      heading: Closing Position
+      level: 2
+      line: 703
+    - anchor: App-E
+      heading: Appendix E - Architecture Review Changes (v2 -> v2.1)
+      level: 2
+      line: 709
+    - anchor: E.1
+      heading: E.1 Revised Freeze Policy
+      level: 3
+      line: 726
+    - anchor: v2-2-historical-closing-position
+      heading: v2.2 Historical Closing Position
+      level: 2
+      line: 732
+    - anchor: App-F
+      heading: Appendix F - Implementation-Informed Constraints (Pi 1.0 / claude-mem / Harness / Hermes)
+      level: 2
+      line: 735
+    - anchor: cross-implementation-evidence
+      heading: Cross-implementation evidence
+      level: 3
+      line: 738
+    - anchor: foundation-level-clarifications
+      heading: Foundation-level clarifications
+      level: 3
+      line: 747
+    - anchor: deliberately-not-frozen
+      heading: Deliberately not frozen
+      level: 3
+      line: 755
+    - anchor: App-G
+      heading: Appendix G - Dual-Profile Generalization (v2.3)
+      level: 2
+      line: 762
+    - anchor: G.1
+      heading: G.1 Shared-core rule
+      level: 3
+      line: 765
+    - anchor: G.2
+      heading: G.2 Core architecture
+      level: 3
+      line: 772
+    - anchor: G.3
+      heading: G.3 MemoryScope
+      level: 3
+      line: 792
+    - anchor: G.4
+      heading: G.4 Agent Memory Profile
+      level: 3
+      line: 801
+    - anchor: G.5
+      heading: G.5 Minion-Agent integration boundary
+      level: 3
+      line: 809
+    - anchor: G.6
+      heading: G.6 Renaming and namespace clarification
+      level: 3
+      line: 826
+    - anchor: G.7
+      heading: G.7 v2.3 status
+      level: 3
+      line: 829
+    - anchor: G.8
+      heading: G.8 Implementation-reference snapshot
+      level: 3
+      line: 844
+    - anchor: v2-3-closing-position
+      heading: v2.3 Closing Position
+      level: 2
+      line: 848
+  IAA:
+    source_sha256: 436ea1a3a5ffa126d70a1c3cb8e1a8cc1e3d8baf1d50740df3a9098240daba33
+    derived_text_sha256: 5f6a00582960c5a3d71b3790eddaadf4e88c853973ec0a7f5805fe828e51bc30
+    anchors:
+    - anchor: '1'
+      heading: 1. Why this amendment exists
+      level: 2
+      line: 9
+    - anchor: A1
+      heading: A1 — Canonical history vs projections
+      level: 3
+      line: 12
+    - anchor: A2
+      heading: A2 — Durable domain events vs runtime events
+      level: 3
+      line: 15
+    - anchor: A3
+      heading: A3 — Historical reconstructability
+      level: 3
+      line: 18
+    - anchor: A4
+      heading: A4 — Required vs ignorable event compatibility
+      level: 3
+      line: 21
+    - anchor: A5
+      heading: A5 — Persisted does not imply active
+      level: 3
+      line: 24
+    - anchor: A6
+      heading: A6 — Capability seams, not universal plugins
+      level: 3
+      line: 27
+    - anchor: A7
+      heading: A7 — System exposure provenance / anti-feedback contamination
+      level: 3
+      line: 30
+    - anchor: A8
+      heading: A8 — Progressive-resolution knowledge presentation
+      level: 3
+      line: 33
+    - anchor: A9
+      heading: A9 — Retrieval is multi-modal, not semantic-search-only
+      level: 3
+      line: 36
+    - anchor: A10
+      heading: A10 — Replay checkpoints
+      level: 3
+      line: 39
+    - anchor: A11
+      heading: A11 — Purpose-specific projections
+      level: 3
+      line: 42
+    - anchor: A12
+      heading: A12 — Semantic order is explicit
+      level: 3
+      line: 45
+    - anchor: A13
+      heading: A13 — Durability barrier before lossy compaction
+      level: 3
+      line: 48
+    - anchor: A14
+      heading: A14 — Optional remote/AI processing fails open
+      level: 3
+      line: 51
+    - anchor: '2'
+      heading: 2. Recommended implementation vocabulary
+      level: 2
+      line: 54
+    - anchor: '3'
+      heading: 3. Event compatibility envelope
+      level: 2
+      line: 79
+    - anchor: '4'
+      heading: 4. Exposure contamination contract
+      level: 2
+      line: 95
+    - anchor: '5'
+      heading: 5. Replay checkpoint contract
+      level: 2
+      line: 111
+    - anchor: '6'
+      heading: 6. Capability seam discipline
+      level: 2
+      line: 118
+    - anchor: '7'
+      heading: 7. Patterns deliberately not copied
+      level: 2
+      line: 135
+    - anchor: '8'
+      heading: 8. Traceability to reviewed implementations
+      level: 2
+      line: 144
+    - anchor: '9'
+      heading: 9. Implementation adoption status
+      level: 2
+      line: 152
+    - anchor: '10'
+      heading: 10. Pi 1.0 and claude-mem Amendments (v1.2)
+      level: 2
+      line: 158
+    - anchor: A15
+      heading: A15 — ReplayCheckpoint semantic dependency boundary
+      level: 3
+      line: 161
+    - anchor: A16
+      heading: A16 — Append-only interpretation overlays
+      level: 3
+      line: 164
+    - anchor: A17
+      heading: A17 — One canonical history projection path
+      level: 3
+      line: 167
+    - anchor: A18
+      heading: A18 — Durable operation idempotency
+      level: 3
+      line: 170
+    - anchor: A19
+      heading: A19 — Bounded replay and heap discipline
+      level: 3
+      line: 173
+    - anchor: A20
+      heading: A20 — Artifact-class-specific consolidation
+      level: 3
+      line: 176
+    - anchor: A21
+      heading: A21 — Progressive disclosure read architecture
+      level: 3
+      line: 179
+    - anchor: A22
+      heading: A22 — Budgeted purpose-specific projections
+      level: 3
+      line: 182
+    - anchor: A23
+      heading: A23 — Hybrid retrieval is discovery, not authority
+      level: 3
+      line: 185
+    - anchor: A24
+      heading: A24 — Capture-first, enrich-later
+      level: 3
+      line: 188
+    - anchor: A25
+      heading: A25 — Policy should not be one universal score
+      level: 3
+      line: 191
+    - anchor: patterns-still-deliberately-not-copied
+      heading: Patterns still deliberately not copied
+      level: 3
+      line: 194
+    - anchor: '11'
+      heading: 11. Minion-Agent Primary-Use-Case Amendments (v1.3)
+      level: 2
+      line: 202
+    - anchor: A26
+      heading: A26 — Dual-profile core
+      level: 3
+      line: 204
+    - anchor: A27
+      heading: A27 — Profile namespaces
+      level: 3
+      line: 207
+    - anchor: A28
+      heading: A28 — MemoryScope
+      level: 3
+      line: 210
+    - anchor: A29
+      heading: A29 — Session history is not long-term memory
+      level: 3
+      line: 213
+    - anchor: A30
+      heading: A30 — Context fencing across agent turns
+      level: 3
+      line: 216
+    - anchor: A31
+      heading: A31 — Capture vs consolidation
+      level: 3
+      line: 219
+    - anchor: A32
+      heading: A32 — Request projection reconstructability
+      level: 3
+      line: 222
+    - anchor: A33
+      heading: A33 — Adapter, not framework coupling
+      level: 3
+      line: 225
+    - anchor: A34
+      heading: A34 — Profile-specific policy
+      level: 3
+      line: 228
+    - anchor: '12'
+      heading: 12. Verified Minion-Agent Integration Seams
+      level: 2
+      line: 231
+    - anchor: '13'
+      heading: 13. Patterns deliberately not copied (v1.3)
+      level: 2
+      line: 243
+  MVP:
+    source_sha256: 5a28d40a0c3b859a5e81854d03a2480636c1833c9f5aa97cbac8bb393a650e2a
+    derived_text_sha256: 359c8593fc083563e046e3ada1ecf921480239f3b863770f62357824947a39b0
+    anchors:
+    - anchor: '1'
+      heading: 1. Contract Position
+      level: 2
+      line: 10
+    - anchor: '1.1'
+      heading: 1.1 Governing rule
+      level: 3
+      line: 22
+    - anchor: '2'
+      heading: 2. MVP Product Goal
+      level: 2
+      line: 28
+    - anchor: '3'
+      heading: 3. Foundation Concepts the MVP MUST Implement
+      level: 2
+      line: 35
+    - anchor: '4'
+      heading: 4. MVP Knowledge Model
+      level: 2
+      line: 51
+    - anchor: '4.1'
+      heading: 4.1 Required now
+      level: 3
+      line: 61
+    - anchor: '4.2'
+      heading: 4.2 Reserved but not fully implemented
+      level: 3
+      line: 68
+    - anchor: '5'
+      heading: 5. MVP Recall and Episode Model
+      level: 2
+      line: 73
+    - anchor: '5.1'
+      heading: 5.1 Minimum event vocabulary
+      level: 3
+      line: 88
+    - anchor: '6'
+      heading: 6. Evidence Contract
+      level: 2
+      line: 98
+    - anchor: '7'
+      heading: 7. Learner Memory and Scheduling Contract
+      level: 2
+      line: 107
+    - anchor: '7.1'
+      heading: 7.1 MVP learner model
+      level: 3
+      line: 118
+    - anchor: '8'
+      heading: 8. Import, Reconciliation, and Durability
+      level: 2
+      line: 128
+    - anchor: '9'
+      heading: 9. Privacy and Data-Minimization Boundary
+      level: 2
+      line: 147
+    - anchor: '10'
+      heading: 10. Explicitly Deferred Foundation Capabilities
+      level: 2
+      line: 154
+    - anchor: '11'
+      heading: 11. Legacy Flashcard Mapping
+      level: 2
+      line: 170
+    - anchor: '12'
+      heading: 12. Implementation Sequence
+      level: 2
+      line: 188
+    - anchor: '13'
+      heading: 13. MVP Acceptance Gate
+      level: 2
+      line: 199
+    - anchor: '14'
+      heading: 14. Status Matrix
+      level: 2
+      line: 211
+    - anchor: '15'
+      heading: 15. Relationship to Foundation v2.3
+      level: 2
+      line: 221
+    - anchor: '16'
+      heading: 16. Next Specifications
+      level: 2
+      line: 228
+    - anchor: '17'
+      heading: 17. Source-Code-Informed MVP Amendments (v1.1)
+      level: 2
+      line: 235
+    - anchor: M1
+      heading: M1 — Durable commit before enrichment
+      level: 3
+      line: 238
+    - anchor: M2
+      heading: M2 — Artifact-specific consolidation
+      level: 3
+      line: 241
+    - anchor: M3
+      heading: M3 — Shared history projection path
+      level: 3
+      line: 244
+    - anchor: M4
+      heading: M4 — Exposure provenance
+      level: 3
+      line: 247
+    - anchor: M5
+      heading: M5 — Replay scalability reservation
+      level: 3
+      line: 250
+    - anchor: '18'
+      heading: 18. Dual-Profile MVP Amendment (v1.2)
+      level: 2
+      line: 253
+    - anchor: '18.1'
+      heading: 18.1 Shared core MUST implement
+      level: 3
+      line: 255
+    - anchor: '18.2'
+      heading: 18.2 Learning Profile MUST implement
+      level: 3
+      line: 264
+    - anchor: '18.3'
+      heading: 18.3 Agent Memory Profile MUST implement
+      level: 3
+      line: 267
+    - anchor: '18.4'
+      heading: 18.4 Explicit non-goals
+      level: 3
+      line: 275
+    - anchor: '18.5'
+      heading: 18.5 Dual-language certification target
+      level: 3
+      line: 281
+  R00:
+    source_sha256: 50a0fc28fca0a2e8fc4b42932a7388eb9e150b1e429ba110e95420c0a32d18d1
+    derived_text_sha256: 59d488ae36221d368c27634f082f76eb466f1786ab21bcefd607d54915b30733
+    anchors:
+    - anchor: '1'
+      heading: 1. Normative Dependencies
+      level: 2
+      line: 9
+    - anchor: '2'
+      heading: 2. Scope and Non-Goals
+      level: 2
+      line: 19
+    - anchor: '2.1'
+      heading: 2.1 Explicit non-goals for the MVP
+      level: 3
+      line: 27
+    - anchor: '3'
+      heading: 3. Foundation Separation
+      level: 2
+      line: 35
+    - anchor: '4'
+      heading: 4. Knowledge Model – MVP Projection
+      level: 2
+      line: 55
+    - anchor: '4.1'
+      heading: 4.1 KnowledgeUnit
+      level: 3
+      line: 57
+    - anchor: '4.2'
+      heading: 4.2 KnowledgeComponent and KnowledgePoint
+      level: 3
+      line: 72
+    - anchor: '4.3'
+      heading: 4.3 Reserved component kinds
+      level: 3
+      line: 84
+    - anchor: '4.4'
+      heading: 4.4 ComponentRelation
+      level: 3
+      line: 93
+    - anchor: '4.5'
+      heading: 4.5 Collection
+      level: 3
+      line: 96
+    - anchor: '4.6'
+      heading: 4.6 Asset and LearningSupport
+      level: 3
+      line: 103
+    - anchor: '5'
+      heading: 5. RecallForm
+      level: 2
+      line: 109
+    - anchor: '6'
+      heading: 6. LearningEpisode and LearningEvent
+      level: 2
+      line: 126
+    - anchor: '7'
+      heading: 7. Observation, Evaluation, and Evidence
+      level: 2
+      line: 147
+    - anchor: '7.1'
+      heading: 7.1 RawObservation
+      level: 3
+      line: 158
+    - anchor: '7.2'
+      heading: 7.2 EvaluationOutcome
+      level: 3
+      line: 164
+    - anchor: '7.3'
+      heading: 7.3 MemoryEvidence
+      level: 3
+      line: 167
+    - anchor: '8'
+      heading: 8. Learner Memory Model Boundary
+      level: 2
+      line: 174
+    - anchor: '9'
+      heading: 9. Scheduling and Selection Boundary
+      level: 2
+      line: 190
+    - anchor: '10'
+      heading: 10. Identity, Versioning, Provenance, and Lifecycle
+      level: 2
+      line: 198
+    - anchor: '11'
+      heading: 11. Knowledge Package Boundary
+      level: 2
+      line: 207
+    - anchor: '12'
+      heading: 12. Import and Reconciliation
+      level: 2
+      line: 219
+    - anchor: '13'
+      heading: 13. Durability and Backup
+      level: 2
+      line: 240
+    - anchor: '14'
+      heading: 14. Legacy Flashcard Mapping
+      level: 2
+      line: 254
+    - anchor: '15'
+      heading: 15. Schema and Compatibility Principles
+      level: 2
+      line: 272
+    - anchor: '16'
+      heading: 16. MVP Status Matrix
+      level: 2
+      line: 280
+    - anchor: '17'
+      heading: 17. Acceptance Criteria
+      level: 2
+      line: 290
+    - anchor: '18'
+      heading: 18. Requirements Dependency Map
+      level: 2
+      line: 303
+    - anchor: '19'
+      heading: 19. Final Boundary
+      level: 2
+      line: 314
+    - anchor: '20'
+      heading: 20. Implementation-Informed Domain Amendments (v2.2)
+      level: 2
+      line: 320
+    - anchor: '20.1'
+      heading: 20.1 Canonical history and one projection semantics
+      level: 3
+      line: 323
+    - anchor: '20.2'
+      heading: 20.2 Durable operation identity
+      level: 3
+      line: 326
+    - anchor: '20.3'
+      heading: 20.3 Information origin and exposure provenance
+      level: 3
+      line: 329
+    - anchor: '20.4'
+      heading: 20.4 Retrieval and projection boundaries
+      level: 3
+      line: 332
+    - anchor: '20.5'
+      heading: 20.5 Consolidation boundary
+      level: 3
+      line: 335
+    - anchor: '21'
+      heading: 21. Dual-Profile Boundary (v2.3)
+      level: 2
+      line: 338
+  R01:
+    source_sha256: 51c6a31f987d3ebe8fd4170d54508197d54e742150bb5966637a9faf47bbea51
+    derived_text_sha256: 94dfcc9ad5033947428f61d3c2bf95782b7d2fab5bc6a4a13d7fe5265a4624b4
+    anchors:
+    - anchor: '1'
+      heading: 1. Purpose
+      level: 2
+      line: 5
+    - anchor: '2'
+      heading: 2. Normative dependencies
+      level: 2
+      line: 8
+    - anchor: '3'
+      heading: 3. Canonical package shape
+      level: 2
+      line: 11
+    - anchor: '4'
+      heading: 4. Knowledge identity and versions
+      level: 2
+      line: 14
+    - anchor: '5'
+      heading: 5. Unit-local serialization is not identity ownership
+      level: 2
+      line: 17
+    - anchor: '6'
+      heading: 6. RecallForm package semantics
+      level: 2
+      line: 20
+    - anchor: '7'
+      heading: 7. Collections and navigation
+      level: 2
+      line: 23
+    - anchor: '8'
+      heading: 8. Assets
+      level: 2
+      line: 26
+    - anchor: '9'
+      heading: 9. Validation pipeline
+      level: 2
+      line: 29
+    - anchor: '10'
+      heading: 10. Reconciliation
+      level: 2
+      line: 32
+    - anchor: '11'
+      heading: 11. Split, merge and lineage
+      level: 2
+      line: 35
+    - anchor: '12'
+      heading: 12. Provenance
+      level: 2
+      line: 38
+    - anchor: '13'
+      heading: 13. Duplicate detection is advisory unless identity is certain
+      level: 2
+      line: 41
+    - anchor: '14'
+      heading: 14. Retrieval/read model
+      level: 2
+      line: 44
+    - anchor: '15'
+      heading: 15. Local-first behavior
+      level: 2
+      line: 47
+    - anchor: '16'
+      heading: 16. Legacy Markdown adapter
+      level: 2
+      line: 50
+    - anchor: '17'
+      heading: 17. Transaction and history isolation
+      level: 2
+      line: 53
+    - anchor: '18'
+      heading: 18. Compatibility
+      level: 2
+      line: 56
+    - anchor: '19'
+      heading: 19. Acceptance criteria
+      level: 2
+      line: 59
+    - anchor: '20'
+      heading: 20. Handoff to Requirement 04
+      level: 2
+      line: 62
+    - anchor: '21'
+      heading: 21. Dual-Profile / Agent-Memory Boundary (v2.3)
+      level: 2
+      line: 65
+  R02:
+    source_sha256: 6b6fbed00034b25e4440092684244425518572a05a736f4c7568ca42305407ec
+    derived_text_sha256: 4c3be840b62bcc564307abd73d2a839022c66b215a5c64965595bd7fc668bdc5
+    anchors:
+    - anchor: '1'
+      heading: 1. Purpose
+      level: 2
+      line: 5
+    - anchor: '2'
+      heading: 2. Canonical decision pipeline
+      level: 2
+      line: 8
+    - anchor: '3'
+      heading: 3. Learner state
+      level: 2
+      line: 11
+    - anchor: '4'
+      heading: 4. MVP strategies
+      level: 2
+      line: 14
+    - anchor: '5'
+      heading: 5. Scheduling policy
+      level: 2
+      line: 17
+    - anchor: '6'
+      heading: 6. Resource budgets
+      level: 2
+      line: 20
+    - anchor: '7'
+      heading: 7. RecallForm selection
+      level: 2
+      line: 23
+    - anchor: '8'
+      heading: 8. Exposure contamination
+      level: 2
+      line: 26
+    - anchor: '9'
+      heading: 9. Response time, hints and self-rating
+      level: 2
+      line: 29
+    - anchor: '10'
+      heading: 10. History projection and incremental replay
+      level: 2
+      line: 32
+    - anchor: '11'
+      heading: 11. ReplayCheckpoint reservation
+      level: 2
+      line: 35
+    - anchor: '12'
+      heading: 12. Re-inference versus rescheduling
+      level: 2
+      line: 38
+    - anchor: '13'
+      heading: 13. Local-first and async enrichment
+      level: 2
+      line: 41
+    - anchor: '14'
+      heading: 14. Diagnostics boundary
+      level: 2
+      line: 44
+    - anchor: '15'
+      heading: 15. Legacy migration
+      level: 2
+      line: 47
+    - anchor: '16'
+      heading: 16. Acceptance criteria
+      level: 2
+      line: 50
+    - anchor: '17'
+      heading: 17. Dual-Profile Boundary (v2.3)
+      level: 2
+      line: 53
+  R03:
+    source_sha256: 651cacc5992d5da22f0d3ed10dde9f2bcb3b66e3fd4549bc1a4bf9050b83a797
+    derived_text_sha256: 86d4e6e4788234e8cb027b01cbd43edf87cfb44137d6795949a7f95a5d27f289
+    anchors:
+    - anchor: '1'
+      heading: 1. Purpose
+      level: 2
+      line: 9
+    - anchor: '2'
+      heading: 2. Upstream dependencies
+      level: 2
+      line: 17
+    - anchor: '3'
+      heading: 3. Canonical pipeline
+      level: 2
+      line: 28
+    - anchor: '4'
+      heading: 4. LearningEpisode
+      level: 2
+      line: 53
+    - anchor: '5'
+      heading: 5. LearningEvent
+      level: 2
+      line: 70
+    - anchor: '6'
+      heading: 6. RawObservation
+      level: 2
+      line: 83
+    - anchor: '6.1'
+      heading: 6.1 Observation principles
+      level: 3
+      line: 95
+    - anchor: '7'
+      heading: 7. EvaluationOutcome
+      level: 2
+      line: 102
+    - anchor: '8'
+      heading: 8. MemoryEvidence
+      level: 2
+      line: 119
+    - anchor: '8.1'
+      heading: 8.1 Evidence constraints
+      level: 3
+      line: 133
+    - anchor: '9'
+      heading: 9. Retrieval versus exposure
+      level: 2
+      line: 140
+    - anchor: '10'
+      heading: 10. Hint progression and assistance
+      level: 2
+      line: 155
+    - anchor: '11'
+      heading: 11. Historical execution snapshot
+      level: 2
+      line: 164
+    - anchor: '12'
+      heading: 12. Provenance chain
+      level: 2
+      line: 176
+    - anchor: '13'
+      heading: 13. Historical reinterpretation
+      level: 2
+      line: 190
+    - anchor: '14'
+      heading: 14. Corrections
+      level: 2
+      line: 202
+    - anchor: '15'
+      heading: 15. Diagnostics
+      level: 2
+      line: 210
+    - anchor: '15.1'
+      heading: 15.1 Initial MVP/near-term diagnostics
+      level: 3
+      line: 213
+    - anchor: '15.2'
+      heading: 15.2 Diagnostic uncertainty
+      level: 3
+      line: 222
+    - anchor: '16'
+      heading: 16. Learner-state boundary
+      level: 2
+      line: 225
+    - anchor: '17'
+      heading: 17. Durability hierarchy
+      level: 2
+      line: 241
+    - anchor: '18'
+      heading: 18. Privacy and retention
+      level: 2
+      line: 253
+    - anchor: '19'
+      heading: 19. Schema evolution
+      level: 2
+      line: 260
+    - anchor: '20'
+      heading: 20. Flashcard MVP behavior
+      level: 2
+      line: 268
+    - anchor: '21'
+      heading: 21. Legacy migration
+      level: 2
+      line: 285
+    - anchor: '22'
+      heading: 22. Implementation sequence
+      level: 2
+      line: 303
+    - anchor: '23'
+      heading: 23. Acceptance criteria
+      level: 2
+      line: 314
+    - anchor: '24'
+      heading: 24. Non-goals for MVP
+      level: 2
+      line: 326
+    - anchor: '25'
+      heading: 25. Relationship to Requirement 04
+      level: 2
+      line: 335
+    - anchor: '26'
+      heading: 26. Final invariants
+      level: 2
+      line: 338
+    - anchor: '27'
+      heading: 27. Source-Code-Informed Evidence Amendments (v2.2)
+      level: 2
+      line: 348
+    - anchor: '27.1'
+      heading: 27.1 Raw capture durability barrier
+      level: 3
+      line: 351
+    - anchor: '27.2'
+      heading: 27.2 Information origin / system exposure context
+      level: 3
+      line: 354
+    - anchor: '27.3'
+      heading: 27.3 No semantic deduplication of learner history
+      level: 3
+      line: 357
+    - anchor: '27.4'
+      heading: 27.4 Interpretation overlays
+      level: 3
+      line: 360
+    - anchor: '27.5'
+      heading: 27.5 Progressive diagnostic reads
+      level: 3
+      line: 363
+    - anchor: '28'
+      heading: 28. Dual-Profile Evidence Boundary (v2.3)
+      level: 2
+      line: 366
+  R04:
+    source_sha256: b4c25d006e7db998feb5f955b55a9fcdc58ef589e72eae6cff742b9c0b92755f
+    derived_text_sha256: cccb14455bf4936109aa8c482060429cec7a075fa23cc06ab3089b2006878a4b
+    anchors:
+    - anchor: '1'
+      heading: 1. Purpose
+      level: 2
+      line: 9
+    - anchor: '2'
+      heading: 2. Normative upstream dependencies
+      level: 2
+      line: 18
+    - anchor: '3'
+      heading: 3. Persistence tiers
+      level: 2
+      line: 29
+    - anchor: '4'
+      heading: 4. Logical domain records
+      level: 2
+      line: 57
+    - anchor: '5'
+      heading: 5. Recommended MVP relational shape
+      level: 2
+      line: 75
+    - anchor: '6'
+      heading: 6. Hybrid relational + semantic payload strategy
+      level: 2
+      line: 99
+    - anchor: '7'
+      heading: 7. Knowledge identity, version and content integrity
+      level: 2
+      line: 113
+    - anchor: '8'
+      heading: 8. Knowledge lifecycle and current-version storage
+      level: 2
+      line: 122
+    - anchor: '9'
+      heading: 9. LearningEpisode and LearningEvent persistence
+      level: 2
+      line: 138
+    - anchor: '10'
+      heading: 10. Observation, evaluation and evidence payload contract
+      level: 2
+      line: 163
+    - anchor: '11'
+      heading: 11. Append-only history enforcement
+      level: 2
+      line: 193
+    - anchor: '12'
+      heading: 12. Derived learner state contract
+      level: 2
+      line: 200
+    - anchor: '13'
+      heading: 13. Schedule-state contract
+      level: 2
+      line: 218
+    - anchor: '14'
+      heading: 14. Import transaction and reconciliation persistence
+      level: 2
+      line: 226
+    - anchor: '15'
+      heading: 15. Legacy migration
+      level: 2
+      line: 247
+    - anchor: '16'
+      heading: 16. Schema migration policy
+      level: 2
+      line: 267
+    - anchor: '17'
+      heading: 17. Backup and restore persistence contract
+      level: 2
+      line: 275
+    - anchor: '18'
+      heading: 18. Concurrency, transactions and crash safety
+      level: 2
+      line: 294
+    - anchor: '19'
+      heading: 19. Repository/API boundaries
+      level: 2
+      line: 301
+    - anchor: '20'
+      heading: 20. Data privacy and retention
+      level: 2
+      line: 331
+    - anchor: '21'
+      heading: 21. MVP implementation sequence
+      level: 2
+      line: 338
+    - anchor: '22'
+      heading: 22. Acceptance criteria
+      level: 2
+      line: 350
+    - anchor: '23'
+      heading: 23. Non-goals for Requirement 04
+      level: 2
+      line: 366
+    - anchor: '24'
+      heading: 24. Persistence invariants
+      level: 2
+      line: 374
+    - anchor: '25'
+      heading: 25. Handoff to implementation
+      level: 2
+      line: 387
+    - anchor: '26'
+      heading: 26. Implementation architecture amendments (v1.1)
+      level: 2
+      line: 390
+    - anchor: '27'
+      heading: 27. LearningEvent compatibility contract
+      level: 2
+      line: 403
+    - anchor: '28'
+      heading: 28. ReplayCheckpoint contract
+      level: 2
+      line: 416
+    - anchor: '29'
+      heading: 29. Runtime vs durable review state
+      level: 2
+      line: 431
+    - anchor: '30'
+      heading: 30. Additional v1.1 persistence invariants
+      level: 2
+      line: 447
+    - anchor: '31'
+      heading: 31. Pi 1.0 + claude-mem Persistence Amendments (v1.2)
+      level: 2
+      line: 455
+    - anchor: 31~2
+      heading: 31. Canonical HistoryProjector / normalizer
+      level: 3
+      line: 458
+    - anchor: '32'
+      heading: 32. Durable operation identity and idempotency
+      level: 3
+      line: 461
+    - anchor: '33'
+      heading: 33. ReplayCheckpoint v1.2 contract
+      level: 3
+      line: 464
+    - anchor: '34'
+      heading: 34. Bounded and incremental history APIs
+      level: 3
+      line: 467
+    - anchor: '35'
+      heading: 35. Interpretation overlay / supersession
+      level: 3
+      line: 470
+    - anchor: '36'
+      heading: 36. Artifact-specific consolidation policy
+      level: 3
+      line: 473
+    - anchor: '37'
+      heading: 37. Retrieval indexes and progressive read models
+      level: 3
+      line: 476
+    - anchor: '38'
+      heading: 38. Purpose-specific ProjectionBudget
+      level: 3
+      line: 479
+    - anchor: '39'
+      heading: 39. Local-first sync and enrichment
+      level: 3
+      line: 482
+    - anchor: '40'
+      heading: 40. v1.2 persistence acceptance additions
+      level: 3
+      line: 485
+    - anchor: '41'
+      heading: 41. Dual-Profile Persistence Boundary (v1.3)
+      level: 2
+      line: 494
+    - anchor: '41.1'
+      heading: 41.1 Shared-core persistence primitives
+      level: 3
+      line: 496
+    - anchor: '41.2'
+      heading: 41.2 Agent Memory storage is not Minion-Agent SessionStorage
+      level: 3
+      line: 503
+    - anchor: '41.3'
+      heading: 41.3 Agent Memory durability rule
+      level: 3
+      line: 506
+    - anchor: '42'
+      heading: 42. v1.3 Acceptance Additions
+      level: 2
+      line: 509
+  R05:
+    source_sha256: a6c5dee570a5673a34fcd4a33057b2b3faeb1330847b2060235d903a99a4f240
+    derived_text_sha256: 4925df8a8413d7dd7771fa37709ab5215d140a7a74e0f49ccf1f3b9705b14490
+    anchors:
+    - anchor: '1'
+      heading: 1. Purpose
+      level: 2
+      line: 6
+    - anchor: '2'
+      heading: 2. Normative Dependencies and Authority
+      level: 2
+      line: 9
+    - anchor: '3'
+      heading: 3. Integration Reference Snapshot
+      level: 2
+      line: 16
+    - anchor: '4'
+      heading: '4. Boundary: Session History vs Long-Term Memory'
+      level: 2
+      line: 20
+    - anchor: '5'
+      heading: 5. Agent Memory Domain Model
+      level: 2
+      line: 35
+    - anchor: '5.1'
+      heading: 5.1 AgentMemoryObservation
+      level: 3
+      line: 37
+    - anchor: '5.2'
+      heading: 5.2 MemoryRecord
+      level: 3
+      line: 51
+    - anchor: '5.3'
+      heading: 5.3 MemoryScope
+      level: 3
+      line: 54
+    - anchor: '5.4'
+      heading: 5.4 ConsolidationOutcome
+      level: 3
+      line: 57
+    - anchor: '5.5'
+      heading: 5.5 RetrievalQuery and RetrievalCandidate
+      level: 3
+      line: 60
+    - anchor: '5.6'
+      heading: 5.6 AgentContextProjection
+      level: 3
+      line: 63
+    - anchor: '6'
+      heading: 6. Capture Pipeline
+      level: 2
+      line: 66
+    - anchor: '7'
+      heading: 7. Context Fencing / Anti-Feedback Contract
+      level: 2
+      line: 81
+    - anchor: '8'
+      heading: 8. Retrieval and Progressive Disclosure
+      level: 2
+      line: 93
+    - anchor: '9'
+      heading: 9. Projection Budget
+      level: 2
+      line: 99
+    - anchor: '10'
+      heading: 10. Minion-Agent Adapter Contract
+      level: 2
+      line: 102
+    - anchor: '11'
+      heading: 11. Request Reconstruction and Audit
+      level: 2
+      line: 114
+    - anchor: '12'
+      heading: 12. Persistence and Indexing
+      level: 2
+      line: 117
+    - anchor: '13'
+      heading: 13. Relationship to Learning Profile
+      level: 2
+      line: 123
+    - anchor: '14'
+      heading: 14. Failure and Recovery
+      level: 2
+      line: 135
+    - anchor: '15'
+      heading: 15. Privacy and Retention
+      level: 2
+      line: 142
+    - anchor: '16'
+      heading: 16. MVP Acceptance Criteria
+      level: 2
+      line: 145
+    - anchor: '17'
+      heading: 17. Deferred / Provisional
+      level: 2
+      line: 156
+    - anchor: '18'
+      heading: 18. Final Invariants
+      level: 2
+      line: 165
+  SUMMARY:
+    source_sha256: eff957c5109cdb04ed8da9210383450537dc09da7efb0efbf77ac0d0f7ecb989
+    derived_text_sha256: eff957c5109cdb04ed8da9210383450537dc09da7efb0efbf77ac0d0f7ecb989
+    anchors:
+    - anchor: project-mneme-dual-profile-documentation-update-2026-10
+      heading: Project Mneme dual-profile documentation update — 2026-10
+      level: 1
+      line: 1
+    - anchor: version-set
+      heading: Version set
+      level: 2
+      line: 5
+    - anchor: core-architecture-change
+      heading: Core architecture change
+      level: 2
+      line: 16
+    - anchor: minion-agent-boundary
+      heading: Minion-Agent boundary
+      level: 2
+      line: 22
+    - anchor: implementation-program
+      heading: Implementation program
+      level: 2
+      line: 26

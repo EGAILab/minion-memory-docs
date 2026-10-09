@@ -1,0 +1,20 @@
+# Certification registry — the single source of truth for implementation/certification status.
+# Adopted from Minion-Agent process/certification-registry-design.md @ 8744bd0 (Phase B design)
+# from day one, so status never lives in spec prose or manifest rows.
+#
+# Per-language status: NOT_IMPLEMENTED | IN_PROGRESS | APPROVED | CERTIFIED | REVALIDATE_REQUIRED
+# Cross-language:      NOT_CLOSED | CERTIFIED_CLOSED
+# Contract status:     DRAFT | IN_REVIEW | AGREED | ACCEPTED
+# Changes only as part of the workflow transition that causes them.
+
+registry_version: 1
+work_packages:
+  WP-00:
+    title: Project / process / authority / contract bootstrap
+    layer: "00"
+    requirements: []
+    contract: {status: DRAFT}
+    python: {status: NOT_IMPLEMENTED}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
+    evidence: plans/WP-00.md
