@@ -1,0 +1,48 @@
+workflow:
+  schema_version: 2
+  work_package: WP-00
+  title: Project / process / authority / contract bootstrap
+  layer: "00"
+  status: SCOPING
+  requirements: []
+  current_candidate:
+    code:
+      repo: minion-memory
+      ref: wp00/bootstrap
+      sha: a91db170b5e7827caf1a6ffd02546ec23a1d51fa
+    docs:
+      repo: minion-memory-docs
+      ref: wp00/bootstrap
+      sha: 42f5193dda74b6d5134eab27f7038661c4e583f3
+  authority:
+    source_bundle:
+      id: mneme-v2.3-dual-profile
+      manifest: reference/mneme-v2.3-source-bundle.yaml
+    process_reference:
+      minion_agent_docs: 8744bd019066f9c18d000c1a0ad19b435775300a
+      minion_agent: 3de4b75d0119b6c413dae651a3cba039873756c7
+  dependencies: {}
+  open_findings: [NF-001, NF-002, NF-003, NF-004, NF-005, NF-006, NF-007, NF-008, NF-009, NF-010,
+                  NF-011, NF-012, NF-013, NF-014, NF-015, NF-016, NF-017, NF-018, NF-019, NF-020,
+                  NF-021]
+  provisionally_closed: []
+  convergence: null
+  scoping_review: null
+  governance_source:
+    artifact: reference/governance/2026-10-09-owner-wp00-kickoff.md
+    decision: >
+      WP-00 is executed by Claude; it stops at the first independent-review boundary with a Codex
+      hand-off; local repositories only; WP-01 does not start before the review is resolved.
+    scope: [WP-00]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Codex
+  next_action: >
+    Execute process/handoffs/WP-00-codex-scoping-review.md: independent SCOPING_REVIEW of code
+    a91db170 / docs 42f5193d; record the review under assurance/reviews/ on branch
+    review/wp00-codex-1 and return a verdict (APPROVED | CHANGES_REQUIRED | HANDOFF_BLOCKED).
+  updated_by: Claude
+  updated_reason: WP-00 bootstrap candidate complete and gated; handing off for independent review.
+  history:
+    assurance_index: plans/WP-00.md
