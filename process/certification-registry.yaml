@@ -13,8 +13,9 @@ work_packages:
     title: Project / process / authority / contract bootstrap
     layer: "00"
     requirements: []
-    contract: {status: DRAFT}
+    contract: {status: ACCEPTED, accepted_code_sha: bb05e3953a044ea8abd9d796675290ad9fe80941, accepted_docs_sha: 237948fee550b691d0e83defb6c49186a27af3b8}
     python: {status: NOT_IMPLEMENTED}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-00.md
+    governance: reference/governance/2026-10-10-owner-wp00-acceptance.md

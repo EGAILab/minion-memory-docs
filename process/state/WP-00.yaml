@@ -3,16 +3,16 @@ workflow:
   work_package: WP-00
   title: Project / process / authority / contract bootstrap
   layer: "00"
-  status: BLOCKED_FOR_OWNER
+  status: SCOPING
   requirements: []
   current_candidate:
     code:
       repo: minion-memory
-      ref: wp00/bootstrap
+      ref: main
       sha: bb05e3953a044ea8abd9d796675290ad9fe80941
     docs:
       repo: minion-memory-docs
-      ref: wp00/bootstrap
+      ref: main
       sha: 237948fee550b691d0e83defb6c49186a27af3b8
   authority:
     source_bundle:
@@ -22,9 +22,8 @@ workflow:
       minion_agent_docs: 8744bd019066f9c18d000c1a0ad19b435775300a
       minion_agent: 3de4b75d0119b6c413dae651a3cba039873756c7
   dependencies: {}
-  open_findings: [WP00-CR-014, NF-001, NF-002, NF-003, NF-004, NF-005, NF-006, NF-007, NF-008, NF-009,
-                  NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-016, NF-017, NF-018, NF-019, NF-020,
-                  NF-021]
+  open_findings: [WP00-CR-014, NF-001, NF-002, NF-004, NF-005, NF-007, NF-008, NF-009,
+                  NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-016, NF-017, NF-018, NF-019]
   provisionally_closed: [WP00-CR-001, WP00-CR-002, WP00-CR-003, WP00-CR-004, WP00-CR-005, WP00-CR-006,
                          WP00-CR-007, WP00-CR-008, WP00-CR-009, WP00-CR-010, WP00-CR-011, WP00-CR-012,
                          WP00-CR-013]
@@ -34,22 +33,20 @@ workflow:
     verdict: "APPROVED — all WP00-CR-001–013 are provisionally closed at C/D; no new blocker remains. This exact pair is the approved WP-00 scoping artifact."
     source: review/wp00-codex-3 @ 4293b797da7f3334bf4f630b46f19bb55f89efa8 (assurance/reviews/WP-00-targeted-closure-codex-2.md), approving code bb05e395 / docs 237948fe
   governance_source:
-    artifact: reference/governance/2026-10-09-owner-wp00-kickoff.md
+    artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
     decision: >
-      WP-00 is executed by Claude; it stops at the first independent-review boundary with a Codex
-      hand-off; local repositories only; WP-01 does not start before the review is resolved.
+      G-008 accept the approved pair onto main (done: code main = bb05e395, docs main = 237948fe);
+      G-011 close WP-00 now, carrying WP00-CR-014 and process items into a process-hardening WP and
+      NF findings to their resolving layers.
     scope: [WP-00]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Owner
+  next_owner: Claude
   next_action: >
-    Owner decision on acceptance of the independently approved WP-00 pair (code
-    bb05e3953a044ea8abd9d796675290ad9fe80941 / docs 237948fee550b691d0e83defb6c49186a27af3b8)
-    onto main, and on NF-020 (acceptance delegation), NF-021 (status registry split) and the
-    closure route for WP00-CR-014 and the carried-forward NF findings. Claude does not advance main
-    without a recorded decision (coordination-state §6).
+    Close WP-00 per G-011: move WP00-CR-014 to WP-P01 and the remaining NF findings to their
+    resolution layers, then record CLOSED.
   updated_by: Claude
-  updated_reason: Codex targeted closure review 2 APPROVED the exact pair; acceptance routed to the Owner.
+  updated_reason: Owner decisions G-008..G-011 recorded; pair accepted onto main; resuming SCOPING for closure.
   history:
     assurance_index: plans/WP-00.md

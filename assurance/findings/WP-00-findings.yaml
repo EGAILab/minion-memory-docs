@@ -50,7 +50,7 @@ findings:
     classification: SEMANTICS_NEUTRAL_HARDENING
     owner_decision_required: false
     blocking: [none]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[BOOT §contract-model]"]
     requirements: []
@@ -63,6 +63,8 @@ findings:
     resolution_layer: "00"
     review_note: >
       Reclassified per WP00 Codex review 1: the family taxonomy was accepted as a proposal (organizational, not a defect). IDs freeze only after the repaired normalization is approved.
+    resolution: >
+      Resolved: family taxonomy accepted as a proposal by WP00 Codex review 1 and frozen with the accepted WP-00 pair (docs 237948fe, G-008).
 
   - id: NF-004
     title: Stale self-references in current authority documents
@@ -111,7 +113,7 @@ findings:
     classification: CONTRACT_ASSURANCE_DEFECT
     owner_decision_required: false
     blocking: [none]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[BOOT §output-of-this-invocation]", "[BOOT §first-work-package-wp-00-only]"]
     requirements: []
@@ -123,6 +125,8 @@ findings:
       The bundle bootstrap and pack are guidance (rank 10); the later, explicit Owner kickoff
       governs process (reference/governance G-001, G-005). Review to confirm.
     resolution_layer: "00"
+    resolution: >
+      Resolved: Owner kickoff governs process over bundle guidance (G-001..G-005); agreed in WP00 Codex review 1; WP-00 accepted (G-008).
 
   - id: NF-007
     title: Minion-Agent records only a system_base header component; no memory component is wired
@@ -364,7 +368,7 @@ findings:
     classification: OWNER_DECISION_REQUIRED
     owner_decision_required: true
     blocking: [none]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: []
     requirements: []
@@ -377,13 +381,15 @@ findings:
       Owner decides whether to grant Claude the same routine delegation for Minion-Memory. Until
       then Claude accepts nothing onto `main` without a recorded Owner decision or delegation.
     resolution_layer: "00"
+    resolution: >
+      Resolved by Owner decision G-009 (reference/governance/2026-10-10-owner-wp00-acceptance.md): standing routine delegation granted.
 
   - id: NF-021
     title: Implementation status kept in the certification registry, not in manifest rows
     classification: OWNER_DECISION_REQUIRED
     owner_decision_required: true
     blocking: [none]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: []
     requirements: []
@@ -396,3 +402,6 @@ findings:
       Owner accepts the split, or Claude adds status fields to the manifest (mechanical change).
       Non-blocking.
     resolution_layer: "00"
+    resolution: >
+      Resolved by Owner decision G-010: status in process/certification-registry.yaml; manifest holds locations.
+
