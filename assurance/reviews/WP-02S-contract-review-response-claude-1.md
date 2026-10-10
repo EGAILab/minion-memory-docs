@@ -11,3 +11,10 @@ accepted.
 
 **Corpus.** 73 steps, still DRAFT. The only expectation that changed is the dropped `argument` on the
 eleven single-argument `validate_scope` errors.
+
+## Round 2 (Codex `f3b86200`)
+
+CR-001 and CR-002 are closed by Codex. The new finding **WP02S-CR-003** is accepted: the
+feasibility matrix still described facet names as CORE-001 tokens. Its facet-name and H11 rows now
+state the G-064 segment grammar, with no device-name exclusion, as distinct from the CORE-001 rule
+for facet values. There is no spec or corpus change.
