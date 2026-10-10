@@ -18,7 +18,8 @@ workflow:
     trigger: A (WP01-PY-004 survived reviews 716d7218 and 2f50acc0)
     finding_aliases: {WP01-CR-007: WP01-PY-004, WP01-CR-008: WP01-PY-008}
     checkpoint:
-      status: PROPOSED FOR IMPLEMENTATION
+      status: AGREED FOR IMPLEMENTATION
+      approval: review/wp01-ce1-checkpoint-3 @ 1d99bc2c5f19f399abe22cdf43921b7377552dd7 (Codex APPROVED)
       revision: 3
       artifact: assurance/convergence/CE-01-01-classification.md
       sha: 8e8d30a824dee743782db6b5a5179515bcd36819
@@ -34,11 +35,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-01-CE-01-01-codex-checkpoint-3.md: re-review checkpoint revision 3 (8e8d30a8),
-    whose only change is Owner G-043; record APPROVED or CHANGES_REQUIRED on review/wp01-ce1-checkpoint-3.
+    Implement the AGREED CE-01-01 checkpoint (8e8d30a8) once in minion-memory-python: genuine-ancestry
+    native extraction to exact built-ins (G-037..G-043), controls failing on eb47635c first, then
+    re-execute the characterization driver; hand targeted closure to Codex.
   updated_by: Claude
-  updated_reason: Owner G-043 decided CE01-CP-004; CE-01-01 checkpoint revision 3 proposed.
+  updated_reason: Codex APPROVED CE-01-01 checkpoint revision 3 (1d99bc2c); AGREED FOR IMPLEMENTATION.
   history:
     assurance_index: plans/WP-01.md
