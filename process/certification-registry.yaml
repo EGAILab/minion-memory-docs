@@ -29,6 +29,16 @@ work_packages:
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-P01.md
     governance: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
+  WP-P02:
+    title: Process hardening 2 — OWN-001 environment (NF-023)
+    layer: "00"
+    requirements: []
+    contract: {status: IN_REVIEW}
+    python: {status: NOT_IMPLEMENTED}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
+    evidence: plans/WP-P02.md
+    governance: reference/governance/2026-10-11-owner-wpp02-environment.md
   WP-01:
     title: Layer 01 — core identity, versions, canonical bytes, value domain
     layer: "01"

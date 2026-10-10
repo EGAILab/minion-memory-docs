@@ -1,0 +1,32 @@
+workflow:
+  schema_version: 2
+  work_package: WP-P02
+  title: Process hardening 2 — OWN-001 environment (NF-023)
+  layer: "00"
+  status: CONTRACT_REVIEW
+  requirements: []
+  current_candidate:
+    code: {repo: minion-memory, ref: main, sha: cc3c5d549a43f166bfa1d990d3363887d5e63774}
+    docs: {repo: minion-memory-docs, ref: wpP02/environment, sha: 34c1b752d8d6d54a1181219eada48d07f792730f}
+  dependencies:
+    WP-01: {relation: blocked_by, status: CLOSED}
+  open_findings: [NF-023]
+  provisionally_closed: []
+  governance_source:
+    artifact: reference/governance/2026-10-11-owner-wpp02-environment.md
+    decision: >
+      G-045 (Owner "Fix two items"): fix NF-023 as a process-only WP; scope fixed by the finding
+      (CARGO_HOME, project-local Python pin). Opened directly at CONTRACT_REVIEW (SCOPING and
+      CONTRACT_DRAFT recorded in this one pass: no open scoping question).
+    scope: [WP-P02]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Codex
+  next_action: >
+    Execute process/handoffs/WP-P02-codex-review.md: independent review of the WP-P02 environment
+    change at docs 34c1b752; record APPROVED or CHANGES_REQUIRED on review/wpP02-env.
+  updated_by: Claude
+  updated_reason: WP-P02 opened under G-045; NF-023 candidate 34c1b752 handed to Codex.
+  history:
+    assurance_index: plans/WP-P02.md
