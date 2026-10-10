@@ -13,7 +13,7 @@ workflow:
     docs:
       repo: minion-memory-docs
       ref: wpP01/hardening
-      sha: 1422423e8fd7b163f498466d6596e3ef5741c53d
+      sha: db672edc05d15f1f2981928c86e2bb9d4224966e
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
   open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
@@ -23,6 +23,7 @@ workflow:
     root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
     checkpoint:
       status: AGREED FOR IMPLEMENTATION
+      implementation: db672edc05d15f1f2981928c86e2bb9d4224966e (assurance/reviews/WP-P01-remediation-claude-3.md)
       revision: 2
       artifact: assurance/convergence/CE-P01-01-classification.md
       branch: review/wpP01-ce1-claude
@@ -42,11 +43,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Implement the AGREED CE-P01-01 checkpoint (D1-D16) once on wpP01/hardening, with every FIX/POLICY row
-    as an executed control and KEEP/OPAQUE rows as regression controls; then hand targeted closure to Codex.
+    Execute process/handoffs/WP-P01-CE-P01-01-codex-targeted-closure.md: targeted closure of
+    WPP01-CR-001..006 against the agreed CE-P01-01 matrix at docs db672edc / code bb05e395.
   updated_by: Claude
-  updated_reason: Codex APPROVED checkpoint revision 2 (1845aa9b); CE-P01-01 checkpoint AGREED FOR IMPLEMENTATION.
+  updated_reason: Agreed checkpoint implemented once (db672edc); targeted closure handed to Codex.
   history:
     assurance_index: plans/WP-P01.md
