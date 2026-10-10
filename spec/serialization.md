@@ -130,8 +130,12 @@ are never aggregated.
 | 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` / `artifact.revision_invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules / CORE-003 record shape (G-035) |
 
 - **Order within a stage (Owner G-034).**
-  - **Stage 1** reports the violation that occurs first in the source text; a duplicate is located
-    at its second occurrence. Representation defects such as duplicate keys exist only there.
+  - **Stage 1, JSON text.** Reports the violation that occurs first in the source text; a
+    duplicate is located at its second occurrence.
+  - **Stage 1, native values.** Follows canonical traversal (G-034). A map's duplicate base names
+    are found while ordering that map's members, and an unsupported kind found earlier in that
+    traversal wins (G-039). A cycle is reported where traversal re-enters an open container
+    (G-040).
   - **Stages 2 and 3** operate on the decoded canonical value and use one shared traversal:
     depth-first; object members in SER-009 canonical order (names by UTF-16 code units); for each
     member, its name before its value; arrays by ascending index; a primitive's arguments in
