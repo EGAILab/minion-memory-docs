@@ -3,7 +3,7 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: CONTRACT_REVIEW
+  status: PYTHON_IMPLEMENTATION
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
@@ -24,11 +24,13 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-01-codex-contract-review-3.md: round-3 targeted contract review of
-    docs 62adec5f / code 860e91c1; record APPROVED or CHANGES_REQUIRED on review/wp01-contract-3.
+    Implement Layer 01 in minion-memory-python against the agreed contract checkpoint (docs 62adec5f /
+    code 860e91c1; Codex APPROVED 154b4164): decode/validate stages, canonical bytes and hash, version,
+    stable-ID, timestamp, operation-identity and revision comparison; promote the Layer 01 scenarios
+    to ACTIVE and run them through the real seams; then hand IMPLEMENTATION_REVIEW to Codex.
   updated_by: Claude
-  updated_reason: Review 2 repaired (G-034 order; typed timestamp errors); CONTRACT_DRAFT -> CONTRACT_REVIEW round 3.
+  updated_reason: Codex APPROVED the Layer 01 contract checkpoint (154b4164); CONTRACT_REVIEW -> PYTHON_IMPLEMENTATION.
   history:
     assurance_index: plans/WP-01.md

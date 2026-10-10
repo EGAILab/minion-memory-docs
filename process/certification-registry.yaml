@@ -29,3 +29,13 @@ work_packages:
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-P01.md
     governance: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
+  WP-01:
+    title: Layer 01 — core identity, versions, canonical bytes, value domain
+    layer: "01"
+    requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008, CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004, SER-007, SER-008, SER-009]
+    contract: {status: AGREED, agreed_code_sha: 860e91c1bfb08e834c1a62b0f1fc32dd4bfd7efd, agreed_docs_sha: 62adec5fde8575818aa19f3c4025acc78a7240a5}
+    python: {status: IN_PROGRESS}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
+    evidence: plans/WP-01.md
+    governance: reference/governance/2026-10-10-owner-layer01-decisions.md
