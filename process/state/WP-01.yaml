@@ -3,22 +3,24 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: REMEDIATION
+  status: CLOSURE_REVIEW
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp01/rust, sha: b07f33752fbc19b02c8de00e9ebbaa75d0a2f8ea}
+    docs: {repo: minion-memory-docs, ref: wp01/rust-state, sha: 97ab81bfa80377a16124e6d1aba3d6de531fd6b3}
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
-  provisionally_closed: [WP01-CR-007, WP01-CR-008]
+  provisionally_closed: [WP01-CR-007, WP01-CR-008, WP01-CR-009, WP01-CR-010]
   convergence:
     episode: CE-01-01
     surface: Python native binding of built-in-kind subclasses (normalization, diagnostics, serialization)
     trigger: A (WP01-PY-004 survived reviews 716d7218 and 2f50acc0)
     finding_aliases: {WP01-CR-007: WP01-PY-004, WP01-CR-008: WP01-PY-008}
     checkpoint:
-      status: AGREED FOR IMPLEMENTATION
+      status: CLOSED
       approval: review/wp01-ce1-checkpoint-3 @ 1d99bc2c5f19f399abe22cdf43921b7377552dd7 (Codex APPROVED)
       implementation: 4fe3ed34c29a6868a3f5050ecee95885b73bead0 (assurance/reviews/WP-01-CE-01-01-implementation-claude.md)
       closure: review/wp01-ce1-closure @ dc9f9aaaf1bf9849cac8c177d76b1035cf20624f (Codex APPROVED; WP01-CR-007/008 closed)
@@ -27,21 +29,24 @@ workflow:
       sha: 8e8d30a824dee743782db6b5a5179515bcd36819
       characterization: 2cf2b21b6caa25079b28d31594dd6878cfc06258
       prior_reviews: [65775db3a744f5b4912eeb0d9fe60cb86616d799, ae8751029dedbc442598ca5a24446201c735a250]
-    open_findings: [WP01-CR-007, WP01-CR-008]
+    open_findings: []
   governance_source:
-    artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
+    artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
     decision: >
-      G-019 parallel authoring, serial governance: CONTRACT_DRAFT only; no CONTRACT_REVIEW and no
-      Codex hand-off while WP-P01 convergence is active; validator results are development feedback.
+      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact pair
+      (final review e340e439, remediation re-review 2a4a4c69): docs main = 83c66c25, code main =
+      bac6594e. Layer 01 semantics: G-012..G-043 (reference/governance/2026-10-10-owner-layer01-decisions.md).
+    standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-01]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Claude
   next_action: >
-    Remediate Codex final review e340e439: refresh the readiness records to the final contract (WP01-CR-009)
-    and record author-run G3 coverage evidence (WP01-CR-010); then hand the repaired pair back to Codex.
+    Claude CLOSURE_REVIEW of the Rust Layer 01 candidate (code b07f3375 / docs 97ab81bf; record
+    assurance/reviews/WP-01-rust-implementation-codex.md) against the accepted contract and corpus;
+    record APPROVED or CHANGES_REQUIRED on review/wp01-rust-closure.
   updated_by: Claude
-  updated_reason: Codex final review CHANGES_REQUIRED (e340e439, WP01-CR-009/010); FINAL_CONTRACT_REVIEW -> REMEDIATION.
+  updated_reason: Codex Rust candidate ready (code b07f3375, docs 97ab81bf); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
   history:
     assurance_index: plans/WP-01.md
