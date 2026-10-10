@@ -17,6 +17,11 @@ workflow:
     surface: Python native binding of built-in-kind subclasses (normalization, diagnostics, serialization)
     trigger: A (WP01-PY-004 survived reviews 716d7218 and 2f50acc0)
     finding_aliases: {WP01-CR-007: WP01-PY-004, WP01-CR-008: WP01-PY-008}
+    checkpoint:
+      status: PROPOSED FOR IMPLEMENTATION
+      artifact: assurance/convergence/CE-01-01-classification.md
+      sha: d46dfa1ca378d1e2c97ea0137053f8b86f5afc9b
+      characterization: 2cf2b21b6caa25079b28d31594dd6878cfc06258
     open_findings: [WP01-CR-007, WP01-CR-008]
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
@@ -29,9 +34,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-01-CE-01-01-codex-characterization.md: characterize the Python native
-    binding surface (G-037) as an executed matrix; Claude then challenges and classifies it.
+    Execute process/handoffs/WP-01-CE-01-01-codex-checkpoint.md: challenge the proposed CE-01-01 checkpoint
+    (d46dfa1c); record APPROVED or CHANGES_REQUIRED on review/wp01-ce1-checkpoint.
   updated_by: Claude
-  updated_reason: Codex targeted closure CHANGES_REQUIRED (2f50acc0); trigger A fired; Owner G-037 (subclass binding) and G-038 (narrow convergence); IMPLEMENTATION_REVIEW -> CONTRACT_CONVERGENCE CE-01-01.
+  updated_reason: CE-01-01 characterization challenged and classified; Owner G-039..G-042; checkpoint PROPOSED FOR IMPLEMENTATION.
   history:
     assurance_index: plans/WP-01.md
