@@ -121,7 +121,9 @@ are never aggregated.
 | 1 — decoding | JSON text | `value.invalid_json` | text that is not UTF-8, or not one RFC 8259 JSON value: `NaN`/`Infinity` literals, comments, trailing commas, leading zeros, trailing content, empty text |
 | 1 | JSON text | `value.lone_surrogate` | a `\u` escape, in a string or a member name, that yields an unpaired surrogate (raw surrogate bytes are invalid UTF-8, so `value.invalid_json`) |
 | 1 | JSON text | `value.duplicate_key` | an object member whose name, **after escape decoding**, equals an earlier member's name in the same object (`{"a":1,"a":2}`); detected before any map discards it |
-| 1 | native values | `value.unsupported_type` | a value or member name of a kind outside the JSON data model, e.g. byte strings, sets, date-time objects, non-string map keys |
+| 1 | native values | `value.unsupported_type` | a value or member name of a kind outside the JSON data model, e.g. byte strings, sets, date-time objects, non-string map keys, objects only spoofing an admitted `__class__` |
+| 1 | native values | `value.duplicate_key` | two member names of one native map with equal base strings (G-039) |
+| 1 | native values | `value.cyclic` | a native container that contains itself, directly or indirectly (G-040) |
 | 2 — value domain | every decoded or native value | `value.number_not_finite` | a numeral whose binary64 value overflows (`1e400`), and a native NaN or ±Infinity |
 | 2 | ″ | `value.integer_out_of_range` | an integral value outside ±(2^53−1), after the number interpretation below (G-025) |
 | 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
@@ -167,6 +169,21 @@ are never aggregated.
     underlying integer.
   - **Typed meaning.** Typed domain meaning requires an explicit typed adapter, never inference from
     the Python subclass.
+- **Native binding completion (Owner G-039–G-042).**
+  - **Not a subclass.** Only a genuine subclass is admitted. An object that merely reports an
+    admitted `__class__` is `value.unsupported_type` (CE-01-01 challenge, authority reading of
+    G-037).
+  - **Duplicate names.** Two member names of one native map whose base strings are equal are
+    `value.duplicate_key`, at native stage 1, found while ordering that map's members in canonical
+    traversal (G-039).
+  - **Cycles.** A native container that contains itself, directly or indirectly, is `value.cyclic`, at
+    native stage 1, reported where traversal re-enters an open container. Shared non-cyclic
+    references remain legal (G-040).
+  - **Byte buffers and control objects.** The no-hook rule also covers byte-buffer subclasses at the
+    raw-hash and JSON-bytes seams (their underlying bytes), `JsonText` (its stored text) and argument
+    maps (base entries, declared order) (G-041).
+  - **Returned values.** They are always exact built-ins (`None`, `bool`, `int`, `float`, `str`,
+    `list`, `dict`) without subclass identity or added state (G-042).
 - **Precedence example.** An over-large version `9007199254740992` fails stage 2
   (`value.integer_out_of_range`), so it is never interpreted as a version. `0`, `-1`, `1.5` and
   `true` pass stage 2 and fail stage 3 (`version.invalid`).

@@ -336,3 +336,46 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > limited to the native binding surface (built-in kinds × exact/subclass × overridden hooks, for
 > normalization, diagnostics and serialization). Codex characterizes it, I classify, Codex approves
 > the checkpoint, I implement once, Codex closes. Other WP-01 findings stay closed."
+
+## G-039 — Native duplicate base member names (CE-01-01 C01)
+
+> **Q:** CE-01-01 C01: A native dict can hold two str-subclass keys whose base strings are equal
+> (e.g. both 'a'). SER-008 already requires rejection (no silent last-key-wins). Which code and
+> stage?
+>
+> **A:** "value.duplicate_key, stage 1 (Recommended)" — the selected option read: "Same code as the
+> JSON-text duplicate. Native stage 1 detects it while ordering a map's members by base string in
+> canonical traversal; a stage-1 unsupported kind found earlier in that traversal wins. One code
+> for one defect whatever the seam."
+
+## G-040 — Cyclic native containers (CE-01-01 C04)
+
+> **Q:** CE-01-01 C04: Cyclic native containers (a list containing itself, dict↔list cycles)
+> currently hang. Portable values are finite JSON trees. How are they handled?
+>
+> **A:** "Reject with a new code" — the selected option read: "Same detection, but a dedicated code
+> (e.g. value.cyclic) so callers can distinguish a cycle from an unsupported type." The "same
+> detection" is the recommended option's: a stage-1 native rejection, reported where the traversal
+> first re-enters an open container; shared non-cyclic references remain legal values. Code name
+> `value.cyclic` (the option's own example; naming is representation, path B).
+
+## G-041 — Base-protocol rule for byte buffers and control objects (CE-01-01 C02/C03)
+
+> **Q:** CE-01-01 C02/C03: Should G-037's 'base protocol only, no user hooks' rule also cover (a)
+> bytes/bytearray subclasses at the raw-hash and JSON-bytes seams, and (b) the framework control
+> objects (JsonText and the argument mapping passed to validate_arguments)?
+>
+> **A:** "Yes, cover both (Recommended)" — the selected option read: "Byte-buffer subclasses are
+> read as their underlying bytes, JsonText subclasses as their stored text, argument maps as base
+> dict entries in declared order — never via __bytes__, decode, __getattribute__, items, etc. One
+> invariant for every input the library reads."
+
+## G-042 — Returned native values are exact built-ins (CE-01-01 C05)
+
+> **Q:** CE-01-01 C05: What does the public API return for a validated native value? Today
+> int/float subclasses come back unchanged (with their added attributes and methods) while
+> str/containers come back as plain built-ins.
+>
+> **A:** "Exact built-ins always (Recommended)" — the selected option read: "Every returned value is
+> a plain built-in (int, float, str, bool, None, list, dict) with no subclass identity or added
+> state, so later code can never call a caller's hook on Mneme output."
