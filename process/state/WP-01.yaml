@@ -3,7 +3,7 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: CONTRACT_CONVERGENCE
+  status: FINAL_CONTRACT_REVIEW
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
@@ -13,7 +13,7 @@ workflow:
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
-  provisionally_closed: []
+  provisionally_closed: [WP01-CR-007, WP01-CR-008]
   convergence:
     episode: CE-01-01
     surface: Python native binding of built-in-kind subclasses (normalization, diagnostics, serialization)
@@ -23,6 +23,7 @@ workflow:
       status: AGREED FOR IMPLEMENTATION
       approval: review/wp01-ce1-checkpoint-3 @ 1d99bc2c5f19f399abe22cdf43921b7377552dd7 (Codex APPROVED)
       implementation: 4fe3ed34c29a6868a3f5050ecee95885b73bead0 (assurance/reviews/WP-01-CE-01-01-implementation-claude.md)
+      closure: review/wp01-ce1-closure @ dc9f9aaaf1bf9849cac8c177d76b1035cf20624f (Codex APPROVED; WP01-CR-007/008 closed)
       revision: 3
       artifact: assurance/convergence/CE-01-01-classification.md
       sha: 8e8d30a824dee743782db6b5a5179515bcd36819
@@ -40,10 +41,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-01-CE-01-01-codex-targeted-closure.md: targeted closure of WP01-CR-007/008
-    against the agreed CE-01-01 checkpoint at docs 18bc390c / code 4fe3ed34; record APPROVED or
-    CHANGES_REQUIRED on review/wp01-ce1-closure.
+    Execute process/handoffs/WP-01-codex-final-review.md: one final complete review of WP-01 (Layer 01
+    contract and Python implementation) at docs 18bc390c / code 4fe3ed34; record APPROVED or
+    CHANGES_REQUIRED on review/wp01-final.
   updated_by: Claude
-  updated_reason: Agreed CE-01-01 checkpoint implemented once (4fe3ed34); targeted closure handed to Codex.
+  updated_reason: CE-01-01 closed by Codex targeted closure (dc9f9aaa); CONTRACT_CONVERGENCE -> FINAL_CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-01.md
