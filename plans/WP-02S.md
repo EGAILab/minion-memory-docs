@@ -1,6 +1,6 @@
 # WP-02S — Layer 02: MemoryScope
 
-**Status:** `IMPLEMENTATION_REVIEW` (Python). **Governance:** G-046, G-047 (`reference/governance/2026-10-11-owner-layer02-start.md`); G-056…G-063 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`).
+**Status:** `RUST_IMPLEMENTATION`, queued after WP-02's Rust work. The contract and Python were accepted onto `main` under G-009. **Governance:** G-046, G-047 (`reference/governance/2026-10-11-owner-layer02-start.md`); G-056…G-063 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`).
 **State:** `process/state/WP-02S.yaml`.
 
 ## Scope
@@ -40,3 +40,6 @@ WP-02S never blocks WP-02. Work that consumes scope semantics declares `blocked_
 | Contract reviews (Codex) | `2c2e1d08` (CHANGES_REQUIRED: CR-001, CR-002), `f3b86200` (CHANGES_REQUIRED: CR-003), `697e372c` (**APPROVED**) |
 | Owner decisions | G-056…G-063 (packet), G-064 (facet names) |
 | Python implementation | code `5d1a74a5`; `assurance/reviews/WP-02S-python-implementation-claude.md` |
+| Python review (Codex) | `b24c9b8e` (APPROVED; S03 equivalence proven) |
+| Rebase onto the accepted WP-02 mains | code `609dad7b`, docs `36d02298`; Codex confirmation `e45efdee` (APPROVED) |
+| Acceptance | `main` = code `609dad7b` / docs `36d02298` (G-009); NF-018 closed |

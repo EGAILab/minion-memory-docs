@@ -353,7 +353,7 @@ findings:
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: true
     blocking: [Layer-02]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[FND §G.3]", "[R05 §5.3]", "[R04 §41.1]", "[IAA §A28]"]
     requirements: [SCOPE-001, SCOPE-002, SCOPE-004, SCOPE-005, SCOPE-006]
@@ -368,6 +368,10 @@ findings:
       Layer 02 runs a contract-first checkpoint with an options packet; visibility/inheritance
       defaults are product semantics and need Owner decisions.
     resolution_layer: "02"
+    resolution: >
+      Resolved by Owner decisions G-056..G-064 on the consolidated WP-02S packet (reference/governance/2026-10-11-owner-wp02s-memoryscope.md);
+      MemoryScope contract accepted at code 609dad7b / docs 36d02298 (G-009). Learning adoption deferred to Layers 07-12 (G-062).
+
 
   - id: NF-019
     title: Cross-language value domain unspecified
