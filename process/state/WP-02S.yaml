@@ -6,12 +6,12 @@ workflow:
   status: CONTRACT_REVIEW
   requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
   current_candidate:
-    code: {repo: minion-memory, ref: wp02s/contract, sha: 95d1df6022aac1e203e4b677652fb2a885d20185}
-    docs: {repo: minion-memory-docs, ref: wp02s/scoping, sha: bc362b9ff4139826c9ed5984ddc474d34afbc1ff}
+    code: {repo: minion-memory, ref: wp02s/contract, sha: 0c569afba20477e0687a1de837b70e4b8996fa1e}
+    docs: {repo: minion-memory-docs, ref: wp02s/scoping, sha: acb572513c016ef7bd6bfccda9437568d8012b3d}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-018]
-  provisionally_closed: []
+  provisionally_closed: [WP02S-CR-001, WP02S-CR-002]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-wp02s-memoryscope.md
     decision: >
@@ -25,10 +25,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-02S-codex-contract-review.md: independent CONTRACT_REVIEW of the Layer 02
-    MemoryScope contract at docs bc362b9f / code 95d1df60; record APPROVED or CHANGES_REQUIRED on
-    review/wp02s-contract-1.
+    Execute process/handoffs/WP-02S-codex-contract-review-2.md: CONTRACT_REVIEW round 2 of WP-02S at
+    docs acb57251 / code 0c569afb; record APPROVED or CHANGES_REQUIRED on review/wp02s-contract-2.
   updated_by: Claude
-  updated_reason: Owner decided NF-018 (G-056..G-063); contract drafted; SCOPING -> CONTRACT_DRAFT -> CONTRACT_REVIEW.
+  updated_reason: Codex review 1 (2c2e1d08) CHANGES_REQUIRED; Owner G-064; CR-002 repaired; CONTRACT_REVIEW -> CONTRACT_DRAFT -> CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-02S.md
