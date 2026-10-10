@@ -6,7 +6,7 @@
 
 ## Exact candidate
 
-- **docs:** `2c8647fd9ad4b0553552bce05ea629c32803f1da` on `wp02/contract`, followed by state-only descendants.
+- **docs:** `7afbffffbe09357b7493188df34bcd2bfde4ac1f` on `wp02/contract`, followed by state-only descendants.
 - **code:** `a2178c955ffff1bd3bd604a628648463774f1b0e` on `wp02/contract`. Its parent is code `main` `cc3c5d54`; the delta is corpus and
   manifest only.
 
