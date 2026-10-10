@@ -408,20 +408,26 @@ def _has_placeholder(value: Any) -> bool:
 # --------------------------------------------------------------------------- checks
 
 
-def _nested_markers(repo: Path) -> list[Path]:
-    """Directories below `repo` holding an entry named exactly `.git` (D16, CL-001).
+def _nested_markers(repo: Path) -> tuple[list[Path], list[str]]:
+    """Directories below `repo` holding an entry named exactly `.git` (D16, CL-001), plus errors.
 
     An exact-name and location domain, identical on every host: `.GIT` is not a marker, the root's
     own `.git` (file or directory) is the administrative marker, and symlinked directories are not
-    followed.
+    followed. A directory that cannot be read is a named error: an incomplete scan never reports
+    the absence of a nested repository (D13, R1).
     """
     found: list[Path] = []
-    for current, dirs, files in os.walk(repo):
+    unreadable: list[str] = []
+
+    def failed(error: OSError) -> None:
+        unreadable.append(f"cannot scan {error.filename or repo} for nested repositories ({error})")
+
+    for current, dirs, files in os.walk(repo, onerror=failed):
         here = Path(current)
         if here != repo and (".git" in dirs or ".git" in files):
             found.append(here)
         dirs[:] = sorted(d for d in dirs if d != ".git")
-    return sorted(found)
+    return sorted(found), unreadable
 
 
 def check_repos(ctx: Context) -> list[str]:
@@ -434,9 +440,9 @@ def check_repos(ctx: Context) -> list[str]:
         status, top = _git(repo, "rev-parse", "--show-toplevel")
         if status != 0 or Path(top).resolve() != repo:
             errors.append(f"{name} repo toplevel is {top!r}, expected {repo}")
-        errors.extend(
-            f"nested git repository inside {name} repo: {nested}" for nested in _nested_markers(repo)
-        )
+        markers, scan_errors = _nested_markers(repo)
+        errors.extend(f"nested git repository inside {name} repo: {nested}" for nested in markers)
+        errors.extend(f"{name} repo: {error}" for error in scan_errors)
     if docs == code or docs in code.parents or code in docs.parents:
         errors.append("docs and code repositories must be disjoint siblings")
     parent = docs.parent

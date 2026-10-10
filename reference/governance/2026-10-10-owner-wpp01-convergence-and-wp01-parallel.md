@@ -59,3 +59,14 @@ implementation pass, then Codex targeted closure (§11.8.7) against the agreed m
 > deciding previously unspecified semantics, stop that item and reopen contract convergence rather
 > than making an implementation-local decision.The current candidate is not closure-eligible while
 > the two High findings remain, particularly the out-of-folder write defect."
+
+## G-027 — Route after the CE-P01-01 targeted closure recheck (R1)
+
+> **Q:** WP-P01: Codex's recheck resolved CL-002..005 and closed CR-002/003/004. One regression
+> remains (R1): my new nested-.git scan silently skips a folder it can't read, so a real nested
+> repository can pass unseen. G-024 allowed one fix pass. How should I proceed?
+>
+> **A:** "One more narrow fix (Recommended)" — the selected option read: "Fix only R1: an
+> unreadable folder during the nested-.git scan becomes a named error. Add Codex's witness as a
+> test proven to fail on the current candidate first. Codex then rechecks only R1/CR-001 and its
+> direct regressions."

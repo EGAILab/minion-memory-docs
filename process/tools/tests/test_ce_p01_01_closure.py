@@ -154,7 +154,9 @@ def test_CL004_symlinked_output_directory_is_refused(world: World) -> None:
     assert {p.name: p.read_bytes() for p in elsewhere.iterdir()} == before
 
 
-def test_CL002_failed_containment_query_never_authorizes(world: World, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_CL002_failed_containment_query_never_authorizes(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """CL-002 neighborhood: a fatal workspace-containment query is an error, not 'not inside a repo'."""
     real_run = subprocess.run
     workspace = str(world.docs.parent)
@@ -166,3 +168,32 @@ def test_CL002_failed_containment_query_never_authorizes(world: World, monkeypat
 
     monkeypatch.setattr(checks.subprocess, "run", failing)
     assert any("cannot determine whether it is inside a git repository" in e for e in world.run("repos"))
+
+
+# ------------------------------------------------------------- R1 (CR-001, D16 with D13; G-027)
+
+
+def test_R1_unreadable_directory_in_nested_marker_scan_is_a_named_error(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Codex recheck R1: an incomplete nested-.git scan never reports success."""
+    nested = world.docs / "nested"
+    nested.mkdir()
+    (nested / ".git").write_text("gitdir: ../elsewhere\n", encoding="utf-8")
+    assert any("nested git repository" in e for e in world.run("repos"))  # baseline refusal
+    real_scandir = os.scandir
+
+    def failing(path: Any = ".") -> Any:
+        if Path(path) == nested:
+            raise PermissionError("injected unreadable nested directory")
+        return real_scandir(path)
+
+    monkeypatch.setattr(os, "scandir", failing)
+    errors = checks.check_repos(world.ctx)
+    assert any("cannot scan" in e and "nested" in e for e in errors), errors
+
+
+def test_R1_complete_scan_without_marker_still_passes(world: World) -> None:
+    (world.docs / "plain").mkdir()
+    (world.docs / "plain" / "file.txt").write_text("x\n", encoding="utf-8")
+    assert world.run("repos") == []
