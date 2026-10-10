@@ -100,11 +100,20 @@ coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-w
 - **Other numeric domains.** A domain that genuinely needs one (arbitrary-precision integers, typed
   decimals) uses an explicit schema encoding, not an invisible JSON-number subtype.
 
-*Note:* resolves NF-019 (G-015 as amended by G-016; G-017) and NF-022 (G-023). **Open (NF-024,
-path C):** with one numeric kind, the integer bound ±(2^53−1) (G-016) and "finite binary64"
-overlap. Whole-number values beyond 2^53−1 written in a float spelling need one rule: `1e21` or
-`9007199254740992.0` must be either valid floats or out-of-range integers, never both. The
-canonical scenario case `1e21` is pending that decision. Stable error codes are proposed in the
+**Whole-number values (Owner G-025, DRAFT).**
+- **Spelling-independent bound.** The safe-integer bound applies after numeric normalization,
+  whatever the token's integer, decimal or exponent spelling. Any numeric value that is integral
+  must satisfy −(2^53−1) ≤ *v* ≤ 2^53−1. So `9007199254740992`, `9007199254740992.0`,
+  `9.007199254740992e15` and `1e21` are all rejected.
+- **Non-integral values.** They keep the finite binary64 domain. This is not a promise of
+  arbitrarily large fractional magnitudes: above the safe-integer region every representable
+  binary64 value is itself integral, so it falls under the bound.
+- **Larger exact values.** Exact values outside this generic domain need an explicit schema type,
+  never an alternate JSON-number spelling.
+
+*Note:* resolves NF-019 (G-015 as amended by G-016; G-017), NF-022 (G-023) and NF-024 (G-025).
+The canonical case `1e21` therefore moves from the canonicalization scenario to the rejection
+scenario. Stable error codes are proposed in the
 canonical scenarios
 (`value.integer_out_of_range`, `value.lone_surrogate`, `value.duplicate_key`, `value.invalid_json`)
 for review.

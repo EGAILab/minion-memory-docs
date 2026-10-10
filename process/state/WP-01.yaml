@@ -24,11 +24,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Claude
   next_action: >
-    Ask the Owner NF-024 (large whole numbers under one numeric kind) and NF-025 (timestamp seam
-    handling) while Codex is idle; then add G-020..G-023 canonical scenarios. After WP-P01 closes,
-    rebase on the final process candidate, re-validate, bind exact SHAs and hand CONTRACT_REVIEW to
-    Codex (G-019).
+    Layer 01 DRAFT complete for G-012..G-026 (no open path-C decision). After WP-P01 closes, rebase
+    on the final process candidate, re-validate under the corrected validator, bind exact SHAs and
+    hand CONTRACT_REVIEW to Codex (G-019).
   updated_by: Claude
-  updated_reason: Owner decisions G-020..G-023 transcribed as DRAFT contract; NF-024 and NF-025 raised.
+  updated_reason: Owner decisions G-025/G-026 transcribed (NF-024, NF-025); scenarios for CORE-001 and HIST-004 added.
   history:
     assurance_index: plans/WP-01.md

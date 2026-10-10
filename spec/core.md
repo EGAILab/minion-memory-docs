@@ -350,9 +350,21 @@ timestamp is RFC 3339 UTC with exactly six fractional digits: `YYYY-MM-DDTHH:MM:
 - **Storage.** Physical storage may use integer microseconds internally if and only if the
   canonical round trip is lossless.
 
-*Note:* resolves NF-015 by Owner decision G-022. Whether a non-canonical spelling received at a
-seam is rejected or normalized is a seam rule that Layer 01 does not yet state; see the canonical
-scenario proposal.
+**Seam input (Owner G-026, DRAFT):** accepted input is distinct from the canonical
+representation.
+- **Accepted input.** Public APIs accept RFC 3339 timestamps with an explicit `Z` or `±HH:MM`
+  offset and zero to six fractional-second digits.
+- **Normalization.** The instant is normalized to UTC and emitted/stored exactly as
+  `YYYY-MM-DDTHH:MM:SS.ffffffZ`; shorter fractions are right-padded with zeros.
+- **Rejected input.** Timezone-less timestamps, leap-second `:60`, invalid calendar values and
+  any input with more than six fractional digits are rejected.
+- **Grammar.** The shared contract defines the accepted grammar; whatever a host-language
+  datetime parser happens to accept is not relied on.
+- **Semantics.** Equality, hashing, persistence, conflict detection and cross-language
+  conformance operate only on the normalized canonical value. The original offset or spelling is
+  not part of timestamp semantics; local-time context, if needed, is separate metadata.
+
+*Note:* resolves NF-015 (G-022) and NF-025 (G-026).
 
 ### HIST-005 — No global total order is assumed
 <a id="hist-005"></a>
