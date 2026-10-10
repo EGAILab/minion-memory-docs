@@ -146,3 +146,36 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > domain/schema encoding rather than an invisible JSON-number subtype.Pin the interoperable numeric
 > domain and its precision limits separately, including finite-only behavior and the handling of
 > -0."
+
+## G-025 — Whole-number values under one numeric kind (NF-024)
+
+> **Q:** NF-024: You chose one numeric kind (G-023), and integers are capped at ±(2^53−1) (G-016).
+> Is a whole number above that cap valid when written as a float, e.g. 1e21 or
+> 9007199254740992.0? Both spellings now mean the same value, so they need one answer.
+>
+> **A:** "Choose 1 — Cap every whole numeric value, independent of spelling.Apply the safe-integer
+> constraint after numeric normalization, not based on whether the source token used integer,
+> decimal, or exponent syntax. Any canonical numeric value that is integral MUST lie within
+> ±(2^53−1). Therefore 9007199254740992, 9007199254740992.0, 9.007199254740992e15, and 1e21 are all
+> rejected.Non-integral finite values remain governed by the adopted canonical binary64 numeric
+> domain. Do not claim that this preserves arbitrary large fractional magnitudes: above the binary64
+> safe-integer region, representable values are themselves integral-valued and therefore fall under
+> this rule.Exact numeric values outside the generic number domain require an explicit schema type
+> rather than an alternate JSON-number spelling."
+
+## G-026 — Timestamp input at the public seam (NF-025)
+
+> **Q:** NF-025: Your timestamp rule (G-022) makes RFC 3339 UTC with exactly 6 fractional digits
+> the only canonical form. What happens when a public API receives a non-canonical one, e.g.
+> '2026-10-10T16:30:00+11:00' or '...05:30:00.5Z'?
+>
+> **A:** "Choose 2 — Normalize lossless forms at the public seam.Distinguish accepted timestamp
+> input from canonical timestamp representation. Public APIs MAY accept RFC 3339 timestamps with an
+> explicit Z or ±HH:MM offset and zero through six fractional-second digits. They MUST normalize the
+> instant to UTC and emit/store exactly YYYY-MM-DDTHH:MM:SS.ffffffZ; shorter fractions are
+> right-padded with zeroes.Reject timezone-less timestamps, leap-second :60, invalid calendar
+> values, and any input with more than six fractional digits. Do not rely on whatever forms a
+> host-language datetime parser happens to accept; the shared contract defines the accepted
+> grammar.Equality, hashing, persistence, conflict detection and cross-language conformance operate
+> only on the normalized canonical value. Original offset/spelling is not part of timestamp
+> semantics; local-time context, if needed, is separate metadata."
