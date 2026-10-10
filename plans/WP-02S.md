@@ -1,6 +1,6 @@
 # WP-02S — Layer 02: MemoryScope
 
-**Status:** `RUST_IMPLEMENTATION`, queued after WP-02's Rust work. The contract and Python were accepted onto `main` under G-009. **Governance:** G-046, G-047 (`reference/governance/2026-10-11-owner-layer02-start.md`); G-056…G-063 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`).
+**Status:** `CLOSED`. Certified for Python and Rust, CERTIFIED_CLOSED, by Owner G-065 at code `a5506d0d` / docs `620c512c`.
 **State:** `process/state/WP-02S.yaml`.
 
 ## Scope
@@ -43,3 +43,6 @@ WP-02S never blocks WP-02. Work that consumes scope semantics declares `blocked_
 | Python review (Codex) | `b24c9b8e` (APPROVED; S03 equivalence proven) |
 | Rebase onto the accepted WP-02 mains | code `609dad7b`, docs `36d02298`; Codex confirmation `e45efdee` (APPROVED) |
 | Acceptance | `main` = code `609dad7b` / docs `36d02298` (G-009); NF-018 closed |
+| Rust Layer 02 (Codex) | code `a5506d0d`; `assurance/reviews/WP-02-rust-implementation-codex.md` |
+| Rust CLOSURE_REVIEW (Claude) | `7283141d` (**APPROVED**); combined WP-02 + WP-02S |
+| Acceptance and certification | `main` = code `a5506d0d` / docs `620c512c` (G-009); certified (G-065) after exact-tree containment checks |
