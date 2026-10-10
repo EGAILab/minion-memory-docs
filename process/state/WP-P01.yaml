@@ -13,17 +13,19 @@ workflow:
     docs:
       repo: minion-memory-docs
       ref: wpP01/hardening
-      sha: db672edc05d15f1f2981928c86e2bb9d4224966e
+      sha: c9be60e833d42c3981fb271e6882b0017b55c781
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
-  open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
-  provisionally_closed: [WP00-CR-014]
+  open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004]
+  provisionally_closed: [WP00-CR-014, WPP01-CR-005, WPP01-CR-006]
   convergence:
     episode: CE-P01-01
     root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
     checkpoint:
       status: AGREED FOR IMPLEMENTATION
       implementation: db672edc05d15f1f2981928c86e2bb9d4224966e (assurance/reviews/WP-P01-remediation-claude-3.md)
+      closure_review_1: review/wpP01-ce1-closure @ c7dadc07bacb1d273a9ecadd261a10b1036bd02e (CHANGES_REQUIRED CL-001..005; CR-005/006 closed)
+      remediation: c9be60e833d42c3981fb271e6882b0017b55c781 (assurance/reviews/WP-P01-remediation-claude-4.md, Owner G-024)
       revision: 2
       artifact: assurance/convergence/CE-P01-01-classification.md
       branch: review/wpP01-ce1-claude
@@ -31,7 +33,7 @@ workflow:
       approval: review/wpP01-ce1-checkpoint-2 @ 1845aa9b9ecec72d60be42817975ef7d5b21e516 (Codex APPROVED)
       prior_review: review/wpP01-ce1-checkpoint @ 842076061caa4a0820d7a38993b750caf3f28103 (CHANGES_REQUIRED, CE1-CP-001..007)
       characterization: 281b81a3281ede7dc41a3f2913ae3a4b0b199625
-    open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
+    open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004]
   scoping_review:
     outcome: CHANGES_REQUIRED
     verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 surviving a third review (refined Windows-inventory and branch/tag witnesses); route decision escalated.
@@ -45,9 +47,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-P01-CE-P01-01-codex-targeted-closure.md: targeted closure of
-    WPP01-CR-001..006 against the agreed CE-P01-01 matrix at docs db672edc / code bb05e395.
+    Execute process/handoffs/WP-P01-CE-P01-01-codex-targeted-closure-2.md: targeted closure recheck
+    (G-024) of CL-001..005, still-open WPP01-CR-001..004 and direct regressions, at docs c9be60e8 / code bb05e395.
   updated_by: Claude
-  updated_reason: Agreed checkpoint implemented once (db672edc); targeted closure handed to Codex.
+  updated_reason: Owner G-024 fix pass for CL-001..005 committed; CR-005/006 closed by Codex; targeted recheck handed to Codex.
   history:
     assurance_index: plans/WP-P01.md
