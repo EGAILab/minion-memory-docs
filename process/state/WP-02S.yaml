@@ -3,11 +3,11 @@ workflow:
   work_package: WP-02S
   title: Layer 02 — MemoryScope
   layer: "02"
-  status: RUST_IMPLEMENTATION
+  status: CLOSURE_REVIEW
   requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
   current_candidate:
-    code: {repo: minion-memory, ref: main, sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49}
-    docs: {repo: minion-memory-docs, ref: main, sha: 36d02298d6c1f479e9b4ce370531fccdd88f6a58}
+    code: {repo: minion-memory, ref: wp02/rust, sha: a5506d0ddd98af33be4d9ec87305b10000febf4d}
+    docs: {repo: minion-memory-docs, ref: wp02/rust-state, sha: 620c512c5d19cb3e3ff73037d6016b50a1a605cc}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -23,11 +23,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Rust Layer 02 MemoryScope (validate_scope, scopes_equal, scope_visible, Agent registry) against the
-    accepted contract and the 3 ACTIVE scope scenarios, after WP-02's Rust candidate; hand-off to follow.
+    Claude CLOSURE_REVIEW of the combined Rust Layer 02 candidate (history + MemoryScope; code a5506d0d /
+    docs 620c512c) against the accepted contracts and corpus; record on review/l02-rust-closure.
   updated_by: Claude
-  updated_reason: WP-02S accepted onto main under G-009 (Codex APPROVED e45efdee; docs main 36d02298, code main 609dad7b); IMPLEMENTATION_REVIEW -> RUST_IMPLEMENTATION.
+  updated_reason: Codex Rust Layer 02 candidate ready (code a5506d0d, docs 620c512c; history and MemoryScope together); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
   history:
     assurance_index: plans/WP-02S.md

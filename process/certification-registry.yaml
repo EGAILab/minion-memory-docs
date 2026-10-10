@@ -45,7 +45,7 @@ work_packages:
     requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
     contract: {status: ACCEPTED, accepted_code_sha: ff9d132ada35a604c6f4bc7f11504b229afece6e, accepted_docs_sha: 6541f33a989da531cc2f21c6b3169b962c45d808}
     python: {status: APPROVED, approved_code_sha: ff9d132ada35a604c6f4bc7f11504b229afece6e, review: review/wp02-final-2@80d011238fb71247f6bf639fdc6690c69c468533}
-    rust: {status: NOT_IMPLEMENTED}
+    rust: {status: IN_PROGRESS}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-02.md
     governance: reference/governance/2026-10-11-owner-layer02-start.md
@@ -55,7 +55,7 @@ work_packages:
     requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
     contract: {status: ACCEPTED, accepted_code_sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49, accepted_docs_sha: 36d02298d6c1f479e9b4ce370531fccdd88f6a58}
     python: {status: APPROVED, approved_code_sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49, review: review/wp02s-rebase@e45efdeee607f3c57c116c669f847519363c5dc0}
-    rust: {status: NOT_IMPLEMENTED}
+    rust: {status: IN_PROGRESS}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-02S.md
     governance: reference/governance/2026-10-11-owner-layer02-start.md
