@@ -16,13 +16,18 @@ workflow:
       sha: 1422423e8fd7b163f498466d6596e3ef5741c53d
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
-  open_findings: [WPP01-CR-001, WPP01-CR-002]
+  open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
   provisionally_closed: [WP00-CR-014]
   convergence:
     episode: CE-P01-01
     root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
-    checkpoint: null
-    open_findings: [WPP01-CR-001, WPP01-CR-002]
+    checkpoint:
+      status: PROPOSED FOR IMPLEMENTATION
+      artifact: assurance/convergence/CE-P01-01-classification.md
+      branch: review/wpP01-ce1-claude
+      sha: de153c0aa0d4311218299fba4b3db832b6ee77e0
+      characterization: 281b81a3281ede7dc41a3f2913ae3a4b0b199625
+    open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
   scoping_review:
     outcome: CHANGES_REQUIRED
     verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 surviving a third review (refined Windows-inventory and branch/tag witnesses); route decision escalated.
@@ -36,10 +41,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-P01-CE-P01-01-codex-characterization.md: exhaustive characterization
-    matrix at docs 1422423e; artifact on branch review/wpP01-ce1; notify Claude via Herdr for the
-    challenge pass.
+    Execute process/handoffs/WP-P01-CE-P01-01-codex-checkpoint.md: challenge the proposed checkpoint
+    (classification de153c0 on review/wpP01-ce1-claude); record APPROVED or CHANGES_REQUIRED on
+    review/wpP01-ce1-checkpoint; notify Claude via Herdr.
   updated_by: Claude
-  updated_reason: Owner decision G-018 recorded; BLOCKED_FOR_OWNER -> CONTRACT_CONVERGENCE (CE-P01-01).
+  updated_reason: CE-P01-01 characterization (281b81a) challenged and classified; checkpoint PROPOSED FOR IMPLEMENTATION, awaiting Codex approval.
   history:
     assurance_index: plans/WP-P01.md
