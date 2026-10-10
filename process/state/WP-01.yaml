@@ -19,11 +19,11 @@ workflow:
     finding_aliases: {WP01-CR-007: WP01-PY-004, WP01-CR-008: WP01-PY-008}
     checkpoint:
       status: PROPOSED FOR IMPLEMENTATION
-      revision: 2
+      revision: 3
       artifact: assurance/convergence/CE-01-01-classification.md
-      sha: 3d4e83398a4cd0cc3f96b61d0967b9b1cdf63853
-      prior_review: review/wp01-ce1-checkpoint @ 65775db3a744f5b4912eeb0d9fe60cb86616d799 (CHANGES_REQUIRED CE01-CP-001..003)
+      sha: 8e8d30a824dee743782db6b5a5179515bcd36819
       characterization: 2cf2b21b6caa25079b28d31594dd6878cfc06258
+      prior_reviews: [65775db3a744f5b4912eeb0d9fe60cb86616d799, ae8751029dedbc442598ca5a24446201c735a250]
     open_findings: [WP01-CR-007, WP01-CR-008]
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
@@ -36,9 +36,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-01-CE-01-01-codex-checkpoint-2.md: targeted re-review of checkpoint revision 2
-    (3d4e8339) against CE01-CP-001..003; record APPROVED or CHANGES_REQUIRED on review/wp01-ce1-checkpoint-2.
+    Execute process/handoffs/WP-01-CE-01-01-codex-checkpoint-3.md: re-review checkpoint revision 3 (8e8d30a8),
+    whose only change is Owner G-043; record APPROVED or CHANGES_REQUIRED on review/wp01-ce1-checkpoint-3.
   updated_by: Claude
-  updated_reason: CE-01-01 checkpoint revision 2 resolves Codex CHANGES_REQUIRED (65775db3).
+  updated_reason: Owner G-043 decided CE01-CP-004; CE-01-01 checkpoint revision 3 proposed.
   history:
     assurance_index: plans/WP-01.md
