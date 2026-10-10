@@ -197,13 +197,17 @@ findings:
     escalation_condition: >
       Path C (Owner) if the contract would restrict, normalize or case-fold IDs beyond exact comparison of opaque strings, or narrow their character domain; otherwise path A/B.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[FND §16]", "[R00 §10]", "[R04 §7]"]
     requirements: [CORE-001]
     summary: IDs are "opaque, immutable, producer-generated"; alphabet, length, case sensitivity and Unicode are not specified (hazard H11).
     recommendation: Layer 01 contract resolves the ID domain by authority reading where "opaque" decides it, and presents any restriction, normalization or case-folding option to the Owner (taxonomy §1.1 path C).
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-020 (CORE-001 stable-ID lexical domain), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-011
     title: '"Semantic version" versus integer editions'
@@ -212,13 +216,17 @@ findings:
     escalation_condition: >
       Path A only if the Layer 01 contract can show from the sources that versions are integer editions compared numerically; any other version semantics is path C.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[MVP §18.1]", "[FND §16]", "[R00 §4.1]"]
     requirements: [CORE-002]
     summary: MVP §18.1 says "semantic versions"; FND/R00 examples use integer editions (version 4). Ordering/comparison is required by reconciliation (PKG-004).
     recommendation: Layer 01 contract shows whether the sources settle versions as integer editions compared numerically (path A); otherwise it presents version-semantics options to the Owner. Reading "semantic version" as "version of semantic content" is consistent with all examples but is not itself a decision.
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-012 (CORE-002 positive integer editions), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-012
     title: Scope of the same-ID-same-version-conflict rule; MemoryRecord derived-yet-canonical
@@ -227,7 +235,7 @@ findings:
     escalation_condition: >
       Path C if CORE-003 is extended to versioned artifacts the sources do not name (e.g. MemoryRecord) or if MemoryRecord authority is changed; otherwise path A.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[FND §8]", "[R04 §7]", "[R05 §5.2]", "[R05 §12]"]
     requirements: [CORE-003, AMEM-001, AMEM-005]
@@ -239,6 +247,10 @@ findings:
     resolution_layer: "01"
     review_note: >
       Qualified per WP00 Codex review 1: a derived durable artifact can have canonical committed lineage and still be rebuildable as an index/projection; the open question is only CORE-003's scope and MemoryRecord versioning.
+    resolution: >
+      Resolved by Owner decision G-021 and G-035 (CORE-003 revision conflict rule and closed record), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-013
     title: Content-hash algorithm and canonical byte form unspecified
@@ -247,13 +259,17 @@ findings:
     escalation_condition: >
       Path C for any hash that crosses an interchange boundary or decides conflicts (observable); path B only for purely internal integrity with no observable outcome.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[R04 §7]", "[MVP §18.1]", "[R01 §8]"]
     requirements: [CORE-003, CORE-011]
     summary: "\"normalized content hash\" requires a normalization (key order, number form, text normalization, line endings) and an algorithm both languages reproduce byte-for-byte (hazards H3, H7)."
     recommendation: Layer 01 contract presents hash algorithm and canonical-byte options to the Owner where hashes are observable (interchange, conflict detection); purely internal integrity is path B. Cross-language fixtures follow the decision.
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-014 (CORE-011/SER-009 SHA-256 over RFC 8785), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-014
     title: Operation identity domain and conflicting retries unspecified
@@ -262,7 +278,7 @@ findings:
     escalation_condition: >
       Always path C for the conflicting-retry outcome (reject vs return prior result) and the uniqueness domain; path B for its encoding.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[R04 §32]", "[R05 §6]", "[R00 §20.2]"]
     requirements: [CORE-012, PERS-006]
@@ -273,6 +289,10 @@ findings:
       arrives with different content (reject as conflict vs return prior result).
     recommendation: Layer 01 contract presents the uniqueness-domain and conflicting-retry options (reject vs return prior result) to the Owner (path C); Layer 04 implements the recorded decision in persistence.
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-013, G-032 and G-033 (CORE-012 namespaced operation identity, conflicting retry), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-015
     title: Timestamp representation unspecified
@@ -281,13 +301,17 @@ findings:
     escalation_condition: >
       Path C for precision, timezone/offset policy, unknown-time encoding and any lossy restriction; path B for a lossless representation of an agreed domain.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[FND §6]", "[R04 §9]", "[R05 §5.1]"]
     requirements: [HIST-004]
     summary: occurred_at/recorded_at are distinct, but representation, timezone/offset, precision and unknown encoding are not specified (hazard H4).
     recommendation: Layer 01 serialization contract encodes an agreed time domain losslessly (path B) and presents precision, offset policy and unknown-time options to the Owner (path C).
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-022 (HIST-004 canonical timestamp spelling), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-016
     title: No global order versus since-boundary reads and HistoryBoundary
@@ -352,7 +376,7 @@ findings:
     escalation_condition: >
       Always path C for restricting the value domain (e.g. rejecting lone surrogates or non-finite numbers in payloads); path B for lossless encoding of the agreed domain.
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[R04 §6]", "[R03 §6]", "[R05 §5.1]"]
     requirements: [SER-001, OBS-002, ACAP-001]
@@ -362,6 +386,10 @@ findings:
       JSON form are unspecified (hazards H1, H2, H6).
     recommendation: Layer 01 contract presents value-domain options (integers, floats, Unicode scalars vs surrogates, canonical JSON) to the Owner; only after a recorded decision does the contract define rejection or representation at the seam.
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-015, G-016 and G-017 (SER-008 portable value domain), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-020
     title: No standing delegation of routine governance exists for Minion-Memory
@@ -410,7 +438,7 @@ findings:
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: true
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[R04 §6]", "[MVP §18.1]"]
     requirements: [SER-008, SER-009, CORE-003]
@@ -425,6 +453,10 @@ findings:
       - "Two kinds, but integral floats are rejected or normalized to integers at the seam."
     recommendation: Owner decision (path C) before the WP-01 contract checkpoint.
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-023 (SER-008 one numeric kind), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-023
     title: OWN-001 environment script does not relocate CARGO_HOME
@@ -450,7 +482,7 @@ findings:
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: true
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[R04 §6]", "[MVP §18.1]"]
     requirements: [SER-008, SER-009]
@@ -469,13 +501,17 @@ findings:
       ECMAScript Number.isSafeInteger for integral values; large magnitudes stay expressible as
       non-integral floats or by an explicit schema encoding (G-023).
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-025 (SER-008 whole-number bound independent of spelling), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
 
   - id: NF-025
     title: Whether a non-canonical timestamp spelling is rejected or normalized at a seam
     classification: REQUIREMENT_UNCERTAIN
     owner_decision_required: true
     blocking: [Layer-01]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[FND §6]", "[R04 §9]"]
     requirements: [HIST-004]
@@ -492,3 +528,6 @@ findings:
       Reject at the seam: the strictest rule, the same in both languages, and consistent with SER-008
       (values are rejected, never coerced).
     resolution_layer: "01"
+    resolution: >
+      Resolved by Owner decision G-026 and G-028 to G-030 (HIST-004 seam grammar, case, range), reference/governance/2026-10-10-owner-layer01-decisions.md;
+      contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
