@@ -22,11 +22,12 @@ workflow:
     episode: CE-P01-01
     root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
     checkpoint:
-      status: PROPOSED FOR IMPLEMENTATION
+      status: AGREED FOR IMPLEMENTATION
       revision: 2
       artifact: assurance/convergence/CE-P01-01-classification.md
       branch: review/wpP01-ce1-claude
       sha: cb7977f4a71c86279f16c73742ae2a9f19eda83c
+      approval: review/wpP01-ce1-checkpoint-2 @ 1845aa9b9ecec72d60be42817975ef7d5b21e516 (Codex APPROVED)
       prior_review: review/wpP01-ce1-checkpoint @ 842076061caa4a0820d7a38993b750caf3f28103 (CHANGES_REQUIRED, CE1-CP-001..007)
       characterization: 281b81a3281ede7dc41a3f2913ae3a4b0b199625
     open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
@@ -41,12 +42,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-P01-CE-P01-01-codex-checkpoint-2.md: targeted re-review of checkpoint
-    revision 2 (cb7977f4 on review/wpP01-ce1-claude) against CE1-CP-001..007; record APPROVED or
-    CHANGES_REQUIRED on review/wpP01-ce1-checkpoint-2; notify Claude via Herdr.
+    Implement the AGREED CE-P01-01 checkpoint (D1-D16) once on wpP01/hardening, with every FIX/POLICY row
+    as an executed control and KEEP/OPAQUE rows as regression controls; then hand targeted closure to Codex.
   updated_by: Claude
-  updated_reason: Checkpoint revision 2 resolves Codex CHANGES_REQUIRED (CE1-CP-001..007); awaiting Codex re-review.
+  updated_reason: Codex APPROVED checkpoint revision 2 (1845aa9b); CE-P01-01 checkpoint AGREED FOR IMPLEMENTATION.
   history:
     assurance_index: plans/WP-P01.md
