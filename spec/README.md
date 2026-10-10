@@ -64,6 +64,11 @@ Normative statement.
   IAA amendment with no stronger source). `FROZEN` is used **only** where a cited source places the
   requirement's main statement under an explicit FROZEN label. When a merged requirement has several
   labels, the label of its main statement is shown and any narrower label is stated in the text.
+  An explicit (positive) FROZEN label is a table cell that is or starts with `FROZEN` (e.g.
+  `FROZEN boundary / PROVISIONAL vocabulary`) or a line starting `FROZEN —`; `NOT FROZEN`, a
+  mention inside prose or a cell, and change records with `->` are not labels. `mneme-process check
+  spec` enforces that each FROZEN requirement cites at least one such section — a necessary
+  condition only; whether the label covers the main statement remains a reviewer judgment.
 
 ## 4. Families and files
 

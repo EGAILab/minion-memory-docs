@@ -361,3 +361,116 @@ def test_cr008_positive_control_normative_needs_no_label(world: World) -> None:
     """CORE-002 is NORMATIVE and cites unlabeled DOC section 2 too: no FROZEN-label demand applies."""
     errors = only_failures(world).get("spec", [])
     assert not any("CORE-002" in e for e in errors), errors
+
+
+# ------------------------------------------------------- WP-P01 controls (CR-014, roundtrip, CLOSED)
+
+
+def _relabel_section_1(world: World, label_line: str) -> None:
+    """Replace the fixture source's section-1 label and regenerate hash, derived text and index."""
+    from mneme_process import sources as src
+
+    text = f"# Fixture authority\n\n## 1. Intro\n\n{label_line}\n\n## 2. Rules\n\nMore text.\n"
+    doc = world.bundle / "DOC.md"
+    doc.write_text(text, encoding="utf-8", newline="\n")
+    digest = src.sha256_file(doc)
+    manifest = world.docs / checks.BUNDLE_MANIFEST
+    data = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+    data["documents"][0]["sha256"] = digest
+    dump(manifest, data)
+    (world.docs / checks.SOURCE_TEXT_DIR / "DOC.md").write_text(
+        "<!-- derived -->\n\n" + text, encoding="utf-8", newline="\n"
+    )
+    dump(world.docs / checks.SOURCE_INDEX, src.build_index({"DOC": (digest, text)}))
+
+
+@pytest.mark.parametrize(
+    "label_line",
+    [
+        "| NOT FROZEN | Text. |",
+        "This section discusses a FROZEN decision elsewhere.",
+        "| Taxonomy | FROZEN -> PROVISIONAL | change record |",
+    ],
+)
+def test_cr014_non_label_frozen_mentions_are_caught(world: World, label_line: str) -> None:
+    _relabel_section_1(world, label_line)
+    assert_caught(world, "spec", "CORE-001 is FROZEN but cites no source section carrying a FROZEN label")
+
+
+@pytest.mark.parametrize(
+    "label_line",
+    ["| Scope | FROZEN boundary / PROVISIONAL vocabulary |", "FROZEN — Text with the dash form."],
+)
+def test_cr014_positive_label_forms_pass(world: World, label_line: str) -> None:
+    _relabel_section_1(world, label_line)
+    assert "spec" not in only_failures(world)
+
+
+def test_cr014_normative_citing_only_unlabelled_section_passes(world: World) -> None:
+    spec = world.docs / "spec" / "core.md"
+    spec.write_text(
+        spec.read_text(encoding="utf-8").replace(
+            "**Source status:** NORMATIVE · **Sources:** [DOC §1] [DOC §2]",
+            "**Source status:** NORMATIVE · **Sources:** [DOC §2]",
+        ),
+        encoding="utf-8",
+    )
+    data = _rows(world)
+    data["rows"][1]["sources"] = ["[DOC §2]"]  # type: ignore[index]
+    dump(world.code / checks.MANIFEST, data)
+    assert only_failures(world) == {}, only_failures(world)
+
+
+def test_roundtrip_positive_committed_state_matches(world: World) -> None:
+    assert checks.state_roundtrip(world.docs) == []
+
+
+def test_roundtrip_uncommitted_state_change_is_caught(world: World) -> None:
+    world.write_state(updated_reason="changed but not committed")
+    errors = checks.state_roundtrip(world.docs)
+    assert any("differ from the working tree" in e for e in errors), errors
+
+
+def test_roundtrip_non_ascii_state_is_decoded_as_utf8(world: World) -> None:
+    """The remediation-1 probe failure: an em dash must survive the git round trip."""
+    world.write_state(updated_reason="em dash — and ü survive")
+    world.commit_all(world.docs, "non-ascii state")
+    assert checks.state_roundtrip(world.docs) == []
+    assert "state" not in only_failures(world)
+
+
+def test_closed_state_allows_post_acceptance_records_on_main(world: World) -> None:
+    """A CLOSED candidate is protected by main ancestry; later record commits may follow it."""
+    docs_candidate = git(world.docs, "rev-parse", "HEAD~1")
+    state = world.state(
+        status="CLOSED",
+        open_findings=[],
+        next_owner=None,
+        next_action=None,
+        scoping_review=_approved_review(),
+    )
+    for side in ("code", "docs"):
+        state["workflow"]["current_candidate"][side]["ref"] = "main"
+    state["workflow"]["current_candidate"]["docs"]["sha"] = docs_candidate
+    dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
+    record = world.docs / "assurance" / "reviews" / "record.md"
+    record.parent.mkdir(parents=True, exist_ok=True)
+    record.write_text("post-acceptance review record\n", encoding="utf-8")
+    world.commit_all(world.docs, "post-acceptance records")
+    _accept_on_main(world)
+    assert "state" not in only_failures(world)
+
+
+def test_open_state_still_enforces_chain_after_candidate(world: World) -> None:
+    """The CLOSED exemption must not leak to active states."""
+    record = world.docs / "assurance" / "reviews" / "record.md"
+    record.parent.mkdir(parents=True, exist_ok=True)
+    record.write_text("content after candidate\n", encoding="utf-8")
+    world.commit_all(world.docs, "content")
+    assert_caught(world, "state", "state-only descendant rule")
+
+
+def test_roundtrip_crlf_only_difference_is_not_a_failed_commit(world: World) -> None:
+    path = world.docs / checks.STATE_DIR / "WP-T.yaml"
+    path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+    assert checks.state_roundtrip(world.docs) == []

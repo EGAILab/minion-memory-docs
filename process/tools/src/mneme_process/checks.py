@@ -116,7 +116,13 @@ def _load(path: Path, errors: list[str], label: str | None = None) -> Any:
 def _git(repo: Path, *args: str) -> tuple[int, str]:
     try:
         done = subprocess.run(
-            ["git", "-C", str(repo), *args], capture_output=True, text=True, check=False, timeout=60
+            ["git", "-C", str(repo), *args],
+            capture_output=True,
+            # Never the platform code page: git emits UTF-8 (paths, messages, file contents).
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=60,
         )
     except (OSError, subprocess.TimeoutExpired) as error:
         return 1, str(error)
@@ -344,11 +350,39 @@ def check_sources(ctx: Context) -> list[str]:
     return errors
 
 
-def _frozen_labelled_sections(ctx: Context) -> set[tuple[str, str]]:
-    """(document key, anchor) of every source section whose derived text carries a FROZEN label.
+_TABLE_CELL_SPLIT = re.compile(r"(?<!\\)\|")
+_FROZEN_LINE = re.compile(r"^FROZEN\s+[—-]\s")
 
-    Used as a necessary (not sufficient) condition for a requirement's FROZEN status: whether the
-    box actually covers the requirement's main statement stays a reviewer judgment.
+
+def has_positive_frozen_label(text: str) -> bool:
+    """Whether derived source text carries a *positive* FROZEN status label (WP00-CR-014).
+
+    Positive forms observed in the bundle:
+      * a table cell whose trimmed text is ``FROZEN`` or starts with ``FROZEN `` (e.g. a status box
+        ``| FROZEN | ... |``, a status register ``| decision | FROZEN |``, or a scoped
+        ``FROZEN boundary / PROVISIONAL vocabulary``);
+      * a paragraph line starting ``FROZEN —`` (FND §8, §17).
+    Not labels: ``NOT FROZEN``, a word inside prose or inside a cell (``Added FROZEN invariant``),
+    and change records written with ``->`` (FND Appendix E ``FROZEN -> PROVISIONAL``), which
+    describe a transition rather than a current status.
+    """
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("|"):
+            for cell in _TABLE_CELL_SPLIT.split(stripped.strip("|")):
+                value = cell.strip()
+                if (value == "FROZEN" or value.startswith("FROZEN ")) and "->" not in value:
+                    return True
+        elif _FROZEN_LINE.match(stripped):
+            return True
+    return False
+
+
+def _frozen_labelled_sections(ctx: Context) -> set[tuple[str, str]]:
+    """(document key, anchor) of every source section carrying a positive FROZEN status label.
+
+    A necessary (not sufficient) condition for a requirement's FROZEN status: whether the label
+    actually covers the requirement's main statement stays a reviewer judgment.
     """
     found: set[tuple[str, str]] = set()
     directory = ctx.docs / SOURCE_TEXT_DIR
@@ -361,7 +395,7 @@ def _frozen_labelled_sections(ctx: Context) -> set[tuple[str, str]]:
         anchors = sources.index_text(body)
         for i, anchor in enumerate(anchors):
             end = anchors[i + 1].line - 1 if i + 1 < len(anchors) else len(lines)
-            if re.search(r"\bFROZEN\b", "\n".join(lines[anchor.line - 1 : end])):
+            if has_positive_frozen_label("\n".join(lines[anchor.line : end])):
                 found.add((path.stem, anchor.anchor))
     return found
 
@@ -615,7 +649,10 @@ def check_state(ctx: Context) -> list[str]:
                 and _git(repo, "merge-base", "--is-ancestor", sha, "main")[0] != 0
             ):
                 errors.append(f"{path.name}: CLOSED but {side} candidate {sha[:12]} is not accepted on main")
-            if side == "docs":
+            # An accepted (CLOSED) candidate is protected by the main-ancestry check above, and
+            # post-acceptance record commits may follow it (coordination-state §2). Otherwise every
+            # commit after the docs candidate must be state-only.
+            if side == "docs" and wf.get("status") != "CLOSED":
                 errors.extend(_state_only_chain(path.name, repo, sha, ref))
         if wf.get("status") == "CLOSED" and wf.get("requirements"):
             registry = _load(ctx.docs / REGISTRY, [], REGISTRY)
@@ -747,3 +784,44 @@ def run_all(ctx: Context, only: list[str] | None = None) -> dict[str, list[str]]
         except Exception as error:
             report[name] = [f"internal error: {type(error).__name__}: {error}"]
     return report
+
+
+def state_roundtrip(docs: Path, revision: str = "HEAD") -> list[str]:
+    """Commit rule step 4 (coordination-state §4): every working-tree state file must equal, byte for
+    byte and semantically, the copy stored in `revision`. Reads git blobs as raw bytes and decodes
+    UTF-8 explicitly — never via the platform code page."""
+    errors: list[str] = []
+    directory = docs / STATE_DIR
+    files = sorted(directory.glob("*.yaml")) if directory.is_dir() else []
+    if not files:
+        return [f"{STATE_DIR}: no state files"]
+    for path in files:
+        rel = path.relative_to(docs).as_posix()
+        try:
+            done = subprocess.run(
+                ["git", "-C", str(docs), "show", f"{revision}:{rel}"],
+                capture_output=True,
+                check=False,
+                timeout=60,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            errors.append(f"{rel}: git show failed ({error})")
+            continue
+        if done.returncode != 0:
+            errors.append(f"{rel}: not present in {revision}")
+            continue
+        committed_bytes, working_bytes = done.stdout, path.read_bytes()
+        # Line endings alone are a checkout/transport artifact (hazard H2; .gitattributes eol=lf),
+        # not a different state; any other byte difference is a failed state commit.
+        crlf, lf = b"\r\n", b"\n"
+        if committed_bytes.replace(crlf, lf) != working_bytes.replace(crlf, lf):
+            errors.append(f"{rel}: committed bytes in {revision} differ from the working tree")
+        try:
+            committed = load_core(committed_bytes.decode("utf-8"))
+            working = load_core(working_bytes.decode("utf-8"))
+        except UnicodeDecodeError as error:
+            errors.append(f"{rel}: not valid UTF-8 ({error})")
+            continue
+        if not committed.ok or not working.ok or committed.value != working.value:
+            errors.append(f"{rel}: committed and working states are not semantically equal")
+    return errors

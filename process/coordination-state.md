@@ -48,6 +48,12 @@ diff is empty. `mneme-process check state` enforces this per commit (WP00-CR-011
 Content that must follow a candidate (e.g. an independent review record) is **not** a
 state-only commit: it becomes part of the next content candidate.
 
+**After acceptance (WP-P01).** Once a WP is `CLOSED`, its candidates are protected by acceptance
+instead: each candidate SHA must be an ancestor of `main` (machine-checked), its state names
+`ref: main`, and the state-only descendant rule no longer applies to it. Post-acceptance record
+commits (the approving review record, governance records, the closing state) may therefore follow
+the accepted candidate; they reach `main` with the next accepted candidate that contains them.
+
 ## 3. State file shape (schema v2, adapted)
 
 ```yaml
@@ -114,7 +120,9 @@ A state transition is committed only when, in order:
 2. the transition `FROM → TO` is legal (§5);
 3. the state-only commit `S` is created (§2);
 4. the state is re-read **from the git object** (`git show S:process/state/<WP>.yaml`), parsed with
-   the same loader, and is semantically equal to the intended object;
+   the same loader, and is semantically equal to the intended object — mechanically:
+   `mneme-process state roundtrip --docs <docs> --revision S` (raw git bytes, explicit UTF-8,
+   CRLF/LF differences ignored as a checkout artifact, any other byte difference fails);
 5. only then is any dependent action taken (hand-off, review start, acceptance, closure).
 
 A failed step 4 is a FAILED STATE COMMIT: no dependent action; repair by a new commit from the last

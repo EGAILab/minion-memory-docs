@@ -4,6 +4,8 @@
     mneme-process check         --docs <docs-repo> --code <code-repo> [--workspace <root>]
                                  [--only NAME ...] [--deep-sources]
     mneme-process state validate <state.yaml> [--docs <docs-repo>]
+    mneme-process state roundtrip --docs <docs-repo> [--revision HEAD]
+    mneme-process state transition-check FROM TO
 
 Exit status: 0 when every selected check passes, 1 when any reports an error, 2 on usage error.
 """
@@ -93,6 +95,14 @@ def _cmd_state_validate(args: argparse.Namespace) -> int:
     return 1 if errors else 0
 
 
+def _cmd_state_roundtrip(args: argparse.Namespace) -> int:
+    errors = checks.state_roundtrip(Path(args.docs).resolve(), args.revision)
+    for error in errors:
+        print(f"ERROR {error}")
+    print("state ROUNDTRIP OK" if not errors else "state ROUNDTRIP FAILED (failed state commit)")
+    return 1 if errors else 0
+
+
 def _cmd_transition_check(args: argparse.Namespace) -> int:
     legal = transitions.is_legal(args.source, args.target)
     print(f"{args.source} -> {args.target}: {'LEGAL' if legal else 'ILLEGAL'}")
@@ -122,6 +132,11 @@ def main(argv: list[str] | None = None) -> int:
     validate.add_argument("path")
     validate.add_argument("--docs")
     validate.set_defaults(func=_cmd_state_validate)
+
+    roundtrip = state.add_parser("roundtrip")
+    roundtrip.add_argument("--docs", required=True)
+    roundtrip.add_argument("--revision", default="HEAD")
+    roundtrip.set_defaults(func=_cmd_state_roundtrip)
 
     transition = state.add_parser("transition-check")
     transition.add_argument("source")

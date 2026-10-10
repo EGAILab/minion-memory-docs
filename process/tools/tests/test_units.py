@@ -117,3 +117,26 @@ def test_repeated_anchor_is_disambiguated() -> None:
 )
 def test_transition_table(source: str, target: str, legal: bool) -> None:
     assert transitions.is_legal(source, target) is legal
+
+
+@pytest.mark.parametrize(
+    ("text", "positive"),
+    [
+        ("| FROZEN | Decision text. |", True),
+        ("| Decision | FROZEN |", True),
+        ("| MemoryScope exists in core | FROZEN boundary / PROVISIONAL vocabulary |", True),
+        ("FROZEN — Every durable artifact carries provenance.", True),
+        ("FROZEN - hyphen form", True),
+        ("| Specific embedding/vector backend | NOT FROZEN |", False),
+        ("| Component taxonomy | FROZEN -> PROVISIONAL | rationale |", False),
+        ("| Privacy | Added FROZEN invariant | rationale |", False),
+        ("If a shortcut conflicts with a FROZEN Foundation principle, change it.", False),
+        ("This section discusses a FROZEN decision elsewhere.", False),
+        ("FROZENNESS is not a label", False),
+    ],
+)
+def test_positive_frozen_label_rule(text: str, positive: bool) -> None:
+    """WP00-CR-014: only positive status labels count; negation, mentions and transitions do not."""
+    from mneme_process.checks import has_positive_frozen_label
+
+    assert has_positive_frozen_label(text) is positive
