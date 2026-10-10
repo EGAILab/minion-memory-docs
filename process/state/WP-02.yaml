@@ -3,12 +3,14 @@ workflow:
   work_package: WP-02
   title: Layer 02 — history and compatibility envelope
   layer: "02"
-  status: CONTRACT_DRAFT
+  status: CONTRACT_REVIEW
   requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp02/contract, sha: a2178c955ffff1bd3bd604a628648463774f1b0e}
+    docs: {repo: minion-memory-docs, ref: wp02/contract, sha: 2c8647fd9ad4b0553552bce05ea629c32803f1da}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
-  open_findings: [NF-016]
+  open_findings: [NF-016, NF-026]
   provisionally_closed: []
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer02-start.md
@@ -20,10 +22,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Authority audit of the WP-02 sources; draft the Layer 02 envelope contract (spec deltas, manifest rows, canonical scenarios, feasibility matrix); hand to Codex for CONTRACT_REVIEW.
+    Execute process/handoffs/WP-02-codex-contract-review.md: independent CONTRACT_REVIEW of the Layer 02
+    history/compatibility envelope at docs 2c8647fd / code a2178c95; record APPROVED or CHANGES_REQUIRED
+    on review/wp02-contract-1.
   updated_by: Claude
-  updated_reason: Opened under Owner G-046/G-047.
+  updated_reason: WP-02 contract drafted (G-048..G-051 recorded; NF-026 raised); CONTRACT_DRAFT -> CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-02.md

@@ -43,7 +43,7 @@ work_packages:
     title: Layer 02 — history and compatibility envelope
     layer: "02"
     requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
-    contract: {status: DRAFT}
+    contract: {status: IN_REVIEW}
     python: {status: NOT_IMPLEMENTED}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
