@@ -3,7 +3,7 @@ workflow:
   work_package: WP-P01
   title: Process hardening 1 (carried forward from WP-00)
   layer: "00"
-  status: SCOPING
+  status: BLOCKED_FOR_OWNER
   requirements: []
   current_candidate:
     code:
@@ -21,8 +21,8 @@ workflow:
   convergence: null
   scoping_review:
     outcome: CHANGES_REQUIRED
-    verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 open (refined witnesses); trigger A fired.
-    source: assurance/reviews/WP-P01-targeted-closure-codex-1.md @ 869fa57 (reviewed docs cd828838 / code bb05e395)
+    verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 surviving a third review (refined Windows-inventory and branch/tag witnesses); route decision escalated.
+    source: review/wpP01-codex-3 @ dc576a97caa1929c00489203b7a80b8c24383f05 (reviewed docs a9ed71d2 / code bb05e395)
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
     decision: G-011 carries WP00-CR-014 and remaining WP-00 process items into a process-hardening WP.
@@ -30,12 +30,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Owner
   next_action: >
-    Execute process/handoffs/WP-P01-codex-targeted-closure-2.md: targeted closure of WPP01-CR-001 and
-    WPP01-CR-002 plus the characterized trust surface at docs a9ed71d2 (code bb05e395 = main);
-    record on review/wpP01-codex-3; notify Claude via Herdr.
+    Owner routing decision for WP-P01: both findings survived three independent reviews after trigger A
+    fired and a characterize-then-fix pass (Claude committed to escalate rather than attempt a fourth
+    fix). Options presented in the conversation of 2026-10-10.
   updated_by: Claude
-  updated_reason: Trigger A recorded; remediation 2 (characterize-then-fix) complete and gated; handing off.
+  updated_reason: Third surviving review of WPP01-CR-001/002; stop and escalate per remediation-2 commitment.
   history:
     assurance_index: plans/WP-P01.md
