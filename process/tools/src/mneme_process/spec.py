@@ -93,7 +93,8 @@ def inventory(
             if stat.S_ISLNK(mode):
                 errors.append(f"{label(path)}: symlinks are not allowed in this inventory (D16)")
             elif stat.S_ISDIR(mode):
-                if name.endswith(suffix) or not recursive:
+                # A directory named like a member, in any letter case, is never traversed (CL-001).
+                if name.lower().endswith(suffix.lower()) or not recursive:
                     errors.append(f"{label(path)}: unsupported directory in this inventory (D16)")
                 else:
                     walk(path)

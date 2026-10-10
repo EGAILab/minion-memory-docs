@@ -41,3 +41,21 @@ implementation pass, then Codex targeted closure (§11.8.7) against the agreed m
 > against the final process candidate, rerun the applicable validation under the corrected
 > validator, resolve any process-induced deltas, bind the candidate to exact SHAs, and only then
 > assign the WP-01 independent contract review to Codex."
+
+## G-024 — Route after CE-P01-01 targeted closure CHANGES_REQUIRED
+
+> **Q:** WP-P01: Codex's final check found 5 places where my implementation falls short of the
+> agreed rules (two high, including a build that can write outside its folder). G-018 said I
+> implement once and Codex checks once. How should I proceed?
+>
+> **A:** "Choose 1 — Fix pass, then targeted recheck.Treat CL-001..005 as implementation closure
+> defects against already-agreed rules, not as a new characterization round. Before changing
+> production code, reproduce each finding at the current candidate SHA and add a discriminating
+> test that demonstrably fails there. Perform one remediation pass limited to those five findings
+> and their direct regression surface; introduce no new semantic rules or decisions.Codex then
+> performs a targeted closure recheck, not a second full G-018 review: verify CL-001..005, all
+> still-open findings, and direct regressions from the fixes. CR-005/006 remain closed unless new
+> evidence specifically contradicts their prior closure.If any CL item cannot be fixed without
+> deciding previously unspecified semantics, stop that item and reopen contract convergence rather
+> than making an implementation-local decision.The current candidate is not closure-eligible while
+> the two High findings remain, particularly the out-of-folder write defect."

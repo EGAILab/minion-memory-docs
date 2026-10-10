@@ -153,6 +153,53 @@ Rules (validated by `mneme-process check state` and `state validate`):
 - The file is loaded through the YAML-1.2-core boundary (`process/hazard-families.md` H6): no
   aliases, tags, duplicate keys or YAML-1.1-only scalars; JSON-domain values; depth ≤ 64.
 
+### 3.1 Validator inventories, source build and CLI scope (CE-P01-01 D14–D16)
+
+**Other inventories (D16).**
+- **General rules.** Suffixes are compared case-sensitively and byte-exactly on every host, with
+  identical results on Windows and POSIX. Kinds come from `lstat`: symlinks are never followed and
+  are errors. A directory whose name ends with a member suffix *in any letter case* (e.g.
+  `dir.md`, `dir.MD`) is an error, never traversed. Every failure is a named error, never a silent
+  skip.
+- **Findings** (`assurance/findings/`): immediate entries only; members are regular `*.yaml`
+  files; any other entry is an error.
+- **Spec** (`spec/`): recursive; members are regular `*.md` files, `README.md` included. A
+  case-variant `.md` file is an error; other files are ignored.
+- **Source text** (`reference/source-text/`): immediate entries only; members are regular `*.md`
+  files; any other entry is an error. Both `check sources` and `check spec` report this, since the
+  FROZEN-label guard consumes the inventory.
+- **Conformance** (`conformance/<family>/`): recursive; members are regular `*.yaml` files, hidden
+  ones included; `README.md` is exempt; any other file is an error.
+- **Nested-repository scan.** An exact-name and location domain: an entry named exactly `.git`
+  (file or directory) below a repository root is a nested repository. A root's own `.git` is its
+  administrative marker and is valid, so linked worktrees are valid. `.GIT` is not a marker.
+
+**Source build (D14).**
+- **Entries.**
+  - `documents[].key` full-matches the citation grammar `[A-Z][A-Z0-9]{0,15}`.
+  - `documents[].file` is a relative path inside `bundle_root`: no `..`, no backslash, no absolute
+    or drive form.
+  - `sha256` is 64 lowercase hex characters.
+- **Preflight.** Every entry, hash and derivation is validated, and every output path is confirmed
+  inside `reference/source-text`, **before the first write**. That directory chain must consist of
+  real directories, not symlinks. Any validation failure exits 1 with every existing output and
+  index byte unchanged and no new file.
+- **Staging.** Outputs and index are staged beside their targets without following links: a stale
+  staging entry is removed itself, never its target, and the new file is created exclusively.
+  Staged files are then replaced in turn.
+- **Stated limit.** An OS failure during the replace phase can leave a mix of old and new files.
+  The build exits 1, naming every file already replaced and any cleanup failure, and a rerun is
+  required. This is not claimed transactional.
+
+**CLI scope (D15).**
+- `check --only` names at least one check; a bare `--only` is a usage error (exit 2).
+- `state validate --docs D` refuses a path outside `D/process/state`.
+- `state roundtrip` first verifies that `--docs` is a non-bare working-tree root.
+- A partial command reports only its own scope.
+- **Failed queries (D13).** A Git query that fails, or returns an unrecognized answer, is an error
+  and never evidence for its predicate. Examples: shallow detection, symbolic-ref detection and
+  workspace containment.
+
 ## 4. Commit rule (replaces the issue-body round-trip)
 
 A state transition is committed only when, in order:

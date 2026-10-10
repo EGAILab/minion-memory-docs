@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import stat
 import sys
 from pathlib import Path
 
@@ -51,8 +52,25 @@ def _sources_plan(args: argparse.Namespace) -> tuple[dict[Path, str], int, list[
     if not isinstance(workspace_root, str) or not checks.safe_relative_file(bundle_root):
         return {}, 0, [f"{checks.BUNDLE_MANIFEST}: workspace_root and a relative bundle_root are required"]
     root = Path(workspace_root) / bundle_root
-    out_dir = (docs / checks.SOURCE_TEXT_DIR).resolve()
+    # The producer boundary is the real directory chain under docs: a symlinked (or non-directory)
+    # `reference` / `reference/source-text` would redirect every write (CL-004).
     errors: list[str] = []
+    current = docs
+    for part in Path(checks.SOURCE_TEXT_DIR).parts:
+        current = current / part
+        try:
+            mode = os.lstat(current).st_mode
+        except FileNotFoundError:
+            continue  # created as a real directory in the write phase
+        except OSError as error:
+            return {}, 0, [f"{current}: unreadable ({error})"]
+        if not stat.S_ISDIR(mode):
+            return (
+                {},
+                0,
+                [f"{current}: the derived-output directory must be a real directory, not a symlink or file"],
+            )
+    out_dir = (docs / checks.SOURCE_TEXT_DIR).resolve()
     outputs: dict[Path, str] = {}
     derived: dict[str, tuple[str, str]] = {}
     for entry in documents:
@@ -102,6 +120,37 @@ def _replace(temporary: Path, target: Path) -> None:
     os.replace(temporary, target)
 
 
+def _stage(temporary: Path, text: str) -> None:
+    """Write a staging file without ever following a link (CL-004).
+
+    A stale staging entry (regular file or symlink) is removed itself — never its target — and the
+    new file is created exclusively, so a link planted between the two steps makes creation fail.
+    """
+    try:
+        mode = os.lstat(temporary).st_mode
+    except FileNotFoundError:
+        pass
+    else:
+        if stat.S_ISDIR(mode):
+            raise OSError(f"staging path {temporary} is a directory")
+        os.unlink(temporary)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(temporary, flags, 0o644)
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(text.encode("utf-8"))
+
+
+def _discard(paths: list[Path]) -> list[str]:
+    """Remove staging files; a cleanup failure is reported, never raised (CL-003)."""
+    failures: list[str] = []
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as error:
+            failures.append(f"could not remove staging file {path} ({error})")
+    return failures
+
+
 def _cmd_sources_build(args: argparse.Namespace) -> int:
     outputs, count, errors = _sources_plan(args)
     if errors:  # validation failure: nothing has been written (D14)
@@ -114,21 +163,21 @@ def _cmd_sources_build(args: argparse.Namespace) -> int:
         for target, text in outputs.items():
             target.parent.mkdir(parents=True, exist_ok=True)
             temporary = target.with_name(f".{target.name}.mneme-tmp")
-            temporary.write_text(text, encoding="utf-8", newline="\n")
+            _stage(temporary, text)
             staged.append((temporary, target))
     except OSError as error:
-        for temporary, _ in staged:
-            temporary.unlink(missing_ok=True)
-        return _fail([f"staging derived outputs failed before any replacement ({error})"])
+        cleanup = _discard([temporary for temporary, _ in staged])
+        return _fail([f"staging derived outputs failed before any replacement ({error})", *cleanup])
     replaced: list[str] = []
     for index, (temporary, target) in enumerate(staged):
         try:
             _replace(temporary, target)
         except OSError as error:
-            for leftover, _ in staged[index:]:
-                leftover.unlink(missing_ok=True)
+            cleanup = _discard([leftover for leftover, _ in staged[index:]])
             done = ", ".join(replaced) or "none"
-            return _fail([f"replacing {target} failed ({error}); already replaced: {done}; rerun the build"])
+            return _fail(
+                [f"replacing {target} failed ({error}); already replaced: {done}; rerun the build", *cleanup]
+            )
         replaced.append(str(target))
     print(f"wrote {count} derived texts and {checks.SOURCE_INDEX}")
     return 0

@@ -245,8 +245,13 @@ def _local_head(repo: Path, name: str) -> tuple[str | None, str | None]:
     if not plain_branch(name):
         return None, "is not a plain local branch name"
     qualified = f"refs/heads/{name}"
-    if _git(repo, "symbolic-ref", "-q", qualified)[0] == 0:
+    # `symbolic-ref -q`: exit 0 = symbolic, exit 1 = not symbolic; any other result is a failed
+    # query and never evidence of a plain head (CL-002).
+    status = _git(repo, "symbolic-ref", "-q", qualified)[0]
+    if status == 0:
         return None, "is a symbolic ref (refused)"
+    if status != 1:
+        return None, "cannot determine whether it is a symbolic ref (query failed)"
     status, line = _git(repo, "show-ref", "--verify", qualified)
     parts = line.split(" ")
     if status != 0 or len(parts) != 2 or parts[1] != qualified or not SHA.fullmatch(parts[0]):
@@ -262,7 +267,11 @@ def _graph_overlays(repo: Path) -> list[str]:
     status, common = _git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
     if status != 0 or not common:
         return [f"{repo.name}: cannot locate the git administrative directory"]
-    if _git(repo, "rev-parse", "--is-shallow-repository")[1] == "true":
+    # A failed or unrecognized query is an error, never evidence of absence (CL-002).
+    status, shallow = _git(repo, "rev-parse", "--is-shallow-repository")
+    if status != 0 or shallow not in ("true", "false"):
+        return [f"{repo.name}: cannot determine whether the repository is shallow; ancestry proofs refused"]
+    if shallow == "true":
         found.append("shallow history")
     if (Path(common) / "info" / "grafts").exists():
         found.append("info/grafts")
@@ -399,6 +408,22 @@ def _has_placeholder(value: Any) -> bool:
 # --------------------------------------------------------------------------- checks
 
 
+def _nested_markers(repo: Path) -> list[Path]:
+    """Directories below `repo` holding an entry named exactly `.git` (D16, CL-001).
+
+    An exact-name and location domain, identical on every host: `.GIT` is not a marker, the root's
+    own `.git` (file or directory) is the administrative marker, and symlinked directories are not
+    followed.
+    """
+    found: list[Path] = []
+    for current, dirs, files in os.walk(repo):
+        here = Path(current)
+        if here != repo and (".git" in dirs or ".git" in files):
+            found.append(here)
+        dirs[:] = sorted(d for d in dirs if d != ".git")
+    return sorted(found)
+
+
 def check_repos(ctx: Context) -> list[str]:
     errors: list[str] = []
     docs, code = ctx.docs.resolve(), ctx.code.resolve()
@@ -409,15 +434,20 @@ def check_repos(ctx: Context) -> list[str]:
         status, top = _git(repo, "rev-parse", "--show-toplevel")
         if status != 0 or Path(top).resolve() != repo:
             errors.append(f"{name} repo toplevel is {top!r}, expected {repo}")
-        for nested in repo.rglob(".git"):
-            if nested.parent != repo:
-                errors.append(f"nested git repository inside {name} repo: {nested.parent}")
+        errors.extend(
+            f"nested git repository inside {name} repo: {nested}" for nested in _nested_markers(repo)
+        )
     if docs == code or docs in code.parents or code in docs.parents:
         errors.append("docs and code repositories must be disjoint siblings")
     parent = docs.parent
-    status, top = _git(parent, "rev-parse", "--show-toplevel")
-    if status == 0 and top:
+    done = _run_git(parent, "rev-parse", "--show-toplevel")
+    if done is not None and done.returncode == 0:
+        top = done.stdout.decode("utf-8", errors="replace").strip()
         errors.append(f"workspace root {parent} is inside a git repository ({top})")
+    elif done is None or b"not a git repository" not in done.stderr:
+        # Only git's own "not a git repository" answer proves absence; a failed query never does
+        # (CL-002 neighborhood). A localized message therefore fails closed.
+        errors.append(f"workspace root {parent}: cannot determine whether it is inside a git repository")
     for name, repo in (("docs", docs), ("code", code)):
         for forbidden in (".tmp", "review-worktrees"):
             if (repo / forbidden).exists():
@@ -605,6 +635,9 @@ def check_spec(ctx: Context) -> list[str]:
     index = _index(ctx, errors)
     parsed = _spec(ctx)
     errors.extend(parsed.errors)
+    # The FROZEN-label guard consumes the source-text inventory: its violations are named here too,
+    # not only by check_sources (original E05 caller, CL-001).
+    errors.extend(_source_texts(ctx)[1])
     frozen_sections = _frozen_labelled_sections(ctx)
     for req in parsed.requirements:
         if req.source_status != "FROZEN":
