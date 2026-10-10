@@ -3,7 +3,7 @@ workflow:
   work_package: WP-02
   title: Layer 02 — history and compatibility envelope
   layer: "02"
-  status: IMPLEMENTATION_REVIEW
+  status: FINAL_CONTRACT_REVIEW
   requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
   current_candidate:
     code: {repo: minion-memory, ref: wp02/contract, sha: 43e0984e585975719231ba53466a9c78eba796e7}
@@ -24,9 +24,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-02-codex-python-implementation-review-2.md: targeted re-review of
-    WP02-CR-006 at docs d603683a / code 43e0984e; record APPROVED or CHANGES_REQUIRED on review/wp02-python-2.
+    Execute process/handoffs/WP-02-codex-final-review.md: one final complete review of WP-02 (contract,
+    corpus, Python, NF-026 runner integration, records) at docs d603683a / code 43e0984e; record APPROVED or
+    CHANGES_REQUIRED on review/wp02-final. On APPROVED, acceptance under G-009 and RUST_IMPLEMENTATION.
   updated_by: Claude
-  updated_reason: Codex Python review 1 (a29b0092) CHANGES_REQUIRED on WP02-CR-006; controls added (P12 killed); IMPLEMENTATION_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: Codex Python re-review APPROVED (cb439331; WP02-CR-006 closed); remediated candidate -> FINAL_CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-02.md
