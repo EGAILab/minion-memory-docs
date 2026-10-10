@@ -3,31 +3,29 @@ workflow:
   work_package: WP-02S
   title: Layer 02 — MemoryScope
   layer: "02"
-  status: CLOSURE_REVIEW
+  status: CLOSED
   requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
   current_candidate:
-    code: {repo: minion-memory, ref: wp02/rust, sha: a5506d0ddd98af33be4d9ec87305b10000febf4d}
-    docs: {repo: minion-memory-docs, ref: wp02/rust-state, sha: 620c512c5d19cb3e3ff73037d6016b50a1a605cc}
+    code: {repo: minion-memory, ref: main, sha: a5506d0ddd98af33be4d9ec87305b10000febf4d}
+    docs: {repo: minion-memory-docs, ref: main, sha: 620c512c5d19cb3e3ff73037d6016b50a1a605cc}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: []
   provisionally_closed: [WP02S-CR-001, WP02S-CR-002, WP02S-CR-003]
   governance_source:
-    artifact: reference/governance/2026-10-11-owner-wp02s-memoryscope.md
+    artifact: reference/governance/2026-10-11-owner-layer02-certification.md
     decision: >
-      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact rebased pair
-      (Python review b24c9b8e, rebase confirmation e45efdee): docs main = 36d02298, code main = 609dad7b.
-      MemoryScope semantics G-056..G-064.
+      Rust Layer 02 approved by Claude's CLOSURE_REVIEW 7283141d; accepted onto main under the G-009
+      standing delegation (docs main = 620c512c, code main = a5506d0d) after exact-tree containment
+      checks; Python and Rust certified, CERTIFIED_CLOSED, by Owner G-065.
     standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-02S]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
-  next_action: >
-    Claude CLOSURE_REVIEW of the combined Rust Layer 02 candidate (history + MemoryScope; code a5506d0d /
-    docs 620c512c) against the accepted contracts and corpus; record on review/l02-rust-closure.
+  next_owner: null
+  next_action: null
   updated_by: Claude
-  updated_reason: Codex Rust Layer 02 candidate ready (code a5506d0d, docs 620c512c; history and MemoryScope together); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
+  updated_reason: WP-02S closed and certified (G-065) on the accepted pair (code a5506d0d / docs 620c512c, G-009); CLOSURE_REVIEW -> CLOSED.
   history:
     assurance_index: plans/WP-02S.md
