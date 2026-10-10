@@ -320,7 +320,7 @@ findings:
     escalation_condition: >
       Path C only if a semantic order for non-episode containers (e.g. agent observations) is required; a durable per-store append cursor that asserts no semantic order is path B.
     blocking: [Layer-02]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: ["[FND §App-E]", "[R04 §34]", "[R04 §28]", "[R04 §41.1]"]
     requirements: [HIST-005, PERS-007, PERS-008]
@@ -332,6 +332,9 @@ findings:
     resolution_layer: "02"
     review_note: >
       Qualified per WP00 Codex review 1: an append cursor and episode semantic order coexist; no source contradiction is claimed. HIST-003 is now episode-scoped (WP00-CR-007).
+    resolution: >
+      HistoryBoundary is a store-local cursor (HIST-005; Owner G-047, G-051, G-054); accepted at code ff9d132a / docs 6541f33a (G-009).
+
 
   - id: NF-017
     title: Projection cost units are consumer/model-specific
@@ -537,7 +540,7 @@ findings:
     classification: CONTRACT_ASSURANCE_DEFECT
     owner_decision_required: false
     blocking: [WP-02]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: []
     requirements: []
@@ -551,3 +554,5 @@ findings:
       never a suite failure; done in the WP-02 candidate). The Rust owner aligns the Rust runner and its
       pinned counts with that rule before the WP-02 contract is agreed.
     resolution_layer: "02"
+    resolution: >
+      Corpus Drafts and Implemented-layers rules; Python runner (WP02-CR-007 fixed) and Rust runner b9f42d42 (approved 8a071acc) aligned; accepted at code ff9d132a / docs 6541f33a (G-009).
