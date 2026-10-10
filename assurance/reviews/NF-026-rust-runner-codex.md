@@ -3,51 +3,55 @@
 Date: 2026-10-11. Implementation owner: Codex.
 Status: **READY FOR INDEPENDENT REVIEW**. NF-026 closure belongs to Claude's review.
 
-## Candidate and scope
+## Revised candidate and base
 
 Code branch `wp02/rust-runner`, candidate
-`f97530bb8324b14d5d0cd4e91862626b12da07a7`, based on accepted code main
-`cc3c5d549a43f166bfa1d990d3363887d5e63774`.
-This companion record is on docs branch `wp02/rust-runner`, based on docs main
-`34c1b752d8d6d54a1181219eada48d07f792730f`.
+`b9f42d4227093cb3b9144e2d8ca2b068c8cb5876`, based on the Python implementation candidate
+`1d7167c85d4516dea6903ada6745139c3ac222f3` on `wp02/contract`.
+This supersedes the initially notified `f97530bb` candidate from main: the branch was
+rebased to the requested Python candidate, then the Implemented layers rule was added.
+The base's shared README text, four ACTIVE history scenarios and Python changes are
+preserved unchanged. The base is not approved by this runner implementation record.
 
-The request is NF-026: conform the Rust runner to the shared DRAFT rule while keeping
-later ACTIVE promotion observable. No public Rust library, dependencies, scenario
-expectations, process state or registry were changed. The code commit changes only:
+Companion docs branch: `wp02/rust-runner`, based on accepted docs main
+`34c1b752d8d6d54a1181219eada48d07f792730f`. Only this record changes on that docs branch.
+The cumulative code diff against the new base changes exactly two files:
 
 - `minion-memory-rust/tests/conformance.rs`;
-- `conformance/README.md` (the agreed DRAFT paragraph);
-- `minion-memory-rust/README.md` (runner behavior and inventory description).
+- `minion-memory-rust/README.md`.
 
-## Resulting behavior
+No public Rust library, dependencies, canonical scenario contents, process state or
+registry were changed. The shared README is exactly the version read at `1d7167c8`.
 
-The runner still parses portable YAML and validates every scenario against the shared
-JSON schema before status classification. A valid DRAFT reports an explicit xfail
-reason naming its layer and the README Drafts rule, without executing its operations.
-A DRAFT with a placeholder still receives the DRAFT reason. Existing placeholder and
-retired handling is retained; ACTIVE placeholders remain errors.
+## Behavior
 
-ACTIVE scenarios dispatch through the existing thin public-API operation adapter and
-compare every actual observation to the expected result. Unsupported operations,
-wrong expectations and unequal step/result lengths fail. The fixed `(8, 146, 5)`
-assertion is removed: inventory counts now derive from scenarios actually classified
-and ACTIVE steps actually executed. The corpus must still exercise ACTIVE scenarios.
-The README records the base inventory as an observation rather than a permanent limit.
+The runner declares `const IMPLEMENTED_LAYER: u8 = 1`. It moves only with the Rust
+implementation candidate for a later layer. Schema validation precedes classification.
+Every DRAFT reports an explicit xfail reason naming its layer and the README Drafts
+rule; it never dispatches an operation. DRAFT with a placeholder gets the DRAFT reason.
+An ACTIVE scenario above the declaration reports xfail naming its layer, Rust, the
+implemented layer and the README Implemented layers rule. It never executes as evidence.
+ACTIVE placeholders still fail before the layer gate, as required by the corpus rule.
+Existing placeholder and retired behavior is retained.
 
-`draft_rule_and_active_promotion` controls the status transition with both unknown and
-known operations, checks wrong and corrected observations, a failing additional step,
-length mismatch, retired handling and recursive placeholders. It checks that DRAFT
-classification remains independent of operation support.
+At or below the declaration, every ACTIVE step calls the real library through the
+unchanged thin operation adapter. Unsupported operations, wrong observations and
+unequal step/expectation lengths fail. Inventory counts derive from scenarios actually
+classified and steps actually executed, rather than the old `(8, 146, 5)` assertion;
+the corpus must still exercise ACTIVE scenarios. The printed ACTIVE count means
+executed ACTIVE scenarios; above-layer ACTIVE scenarios are counted as explicit xfails.
 
-## Independent executions
+The previous DRAFT/promotion controls now use Layer 01 for eligible ACTIVE transitions.
+The additional `implemented_layer_and_promotion` control asserts the production
+Layer 01 declaration, the exact Layer 02/Rust reason, xfail for known and unknown
+above-layer operations, and execution at layers 00/01. It exercises the identical
+classification function with an implementation limit of 2: unsupported operations and
+wrong results fail, while a corrected known-operation expectation executes one step.
+An invalid layer and an above-layer ACTIVE placeholder fail rather than being hidden.
 
-Sourced the project environment in each shell, including the current companion docs
-checkout for Cargo homes and the managed Python pin. All worktrees, scratch copies,
-Cargo homes and targets remained under the project root. Rust 1.97.1 was used on
-Windows and native WSL Ubuntu/Linux. The Linux checkout is on the E: mount; this is a
-native POSIX run, not a claim of a case-sensitive filesystem run.
+## Executed gates on this candidate
 
-Both Windows and Linux passed these gates on the candidate:
+Both Windows and native WSL Ubuntu/Linux passed:
 
 ```text
 cargo fmt --check
@@ -56,48 +60,38 @@ cargo test --locked --offline -- --nocapture
 RUSTDOCFLAGS=-D warnings cargo doc --locked --offline --no-deps
 ```
 
-PowerShell sets `RUSTDOCFLAGS` via its environment syntax for the last command.
-Tests: 17 integration tests and 1 doctest passed on each platform. Base corpus:
-8 ACTIVE scenarios, 146 executed steps and 5 explicit placeholder xfails.
-The companion docs/code mechanical deep-source check passed 8/8.
+PowerShell uses environment-variable syntax for `RUSTDOCFLAGS`. Rust 1.97.1;
+18 integration tests and 1 doctest passed on each platform. Both actual corpus runs
+reported 8 executed ACTIVE scenarios / 146 executed steps / 9 explicit xfails:
+5 existing placeholders plus all 4 promoted Layer 02 history scenarios. Each of the
+four reasons literally names layer 02, Rust, implemented layer 01 and the rule.
+The new promotion controls passed on both platforms. Native Linux ran on the E: mount;
+this does not claim a case-sensitive checkout.
 
-A scratch corpus overlays the four actual WP-02 DRAFT scenarios from code
-`15b71ca392384b447f4b2c0ca023a69538f977d8` (70 steps), and three actual WP-02S
-DRAFT scenarios from `95d1df6022aac1e203e4b677652fb2a885d20185` (69 steps).
-The old main runner fails this fixture on Windows because DRAFT is not ACTIVE.
-The fixed runner passes all four conformance tests on Windows and Linux, reporting
-8 ACTIVE / 146 steps / 12 explicit xfails. All seven new xfails name layer 02.
+Every shell sourced the project environment; the current companion environment sets
+Cargo homes and the managed Python pin. All caches, targets, worktrees and scratch
+files remain project-local. No acceptance, finding closure or registry transition is
+asserted by this author's implementation record.
 
-The following fixture mutations were also executed on both platforms:
+## Prior DRAFT evidence and reproduction
 
-| Control | Observation | Required outcome |
-| --- | --- | --- |
-| Promote the real scope shape scenario to ACTIVE | Unsupported `validate_scope`, step 0; exit 101 | Fail; promotion cannot hide missing implementation |
-| Add a known-operation DRAFT with wrong expected output | Exit 0; 8 ACTIVE / 146 steps / 13 xfails | Xfail without evaluating the draft expectation |
-| Promote that control with wrong output | Observed `less`, expected `greater`; exit 101 | Fail against the real public-API output |
-| Correct its ACTIVE expectation | Exit 0; 9 ACTIVE / 147 steps / 12 xfails | Execute the added scenario and reflect promotion in counts |
-| DRAFT missing required title | Shared-schema failure; exit 101 | Reject malformed corpus before DRAFT classification |
+Before the addendum, the original main-based candidate passed Windows/Linux gates,
+the 8/146/5 base corpus, and a scratch overlay of all seven actual WP-02/WP-02S DRAFT
+scenarios (8/146/12). The old runner failed that fixture on Windows. Synthetic wrong
+DRAFT expectations remained xfail; their ACTIVE promotion exposed wrong results;
+corrected ACTIVE promotion executed an extra scenario/step; malformed DRAFT envelopes
+failed schema validation. Those are historical DRAFT evidence, not assertions that
+Layer 02 ACTIVE operations should execute under the revised Layer 01 declaration.
 
-No mutation was made to a candidate corpus. Scratch fixture changes were restored.
+Scratch recipes under `.tmp/work/codex/`: `nf026-fixture.py`, `nf026-scenario.py`,
+`nf026-windows-controls.ps1`, `nf026-linux-fixture.sh` (prior DRAFT experiments), and
+`nf026-addendum-linux.sh` (current candidate Linux gates). The original 8/8 mechanical
+check predates this revised base and is not claimed as re-executed against the Python
+implementation candidate. The Python implementation remains a separate review.
 
-## Reproduction and evidence limits
-
-Project-local scratch recipes:
-
-- `.tmp/work/codex/nf026-fixture.py`: fixture construction;
-- `.tmp/work/codex/nf026-scenario.py`: real-scenario promotion and synthetic controls;
-- `.tmp/work/codex/nf026-windows-controls.ps1`: Windows controls;
-- `.tmp/work/codex/nf026-linux.sh`: Linux base gates;
-- `.tmp/work/codex/nf026-linux-fixture.sh`: Linux fixture and five controls.
-
-Two preliminary fixture attempts reused stale build artifacts and are excluded from
-success evidence: a Windows copied source retained its old modification time, and
-Linux initially shared a target directory with a checkout whose compiled
-`CARGO_MANIFEST_DIR` pointed to the base corpus. Windows was rebuilt after refreshing
-the copied source timestamp. Linux was rebuilt in the dedicated project-local target
-`.tmp/cache/cargo-target/nf026-fixture-linux`; its output explicitly names the fixture
-crate and demonstrates all seven DRAFT scenarios and all five controls above.
-
-This is a runner-policy fix, not an implementation of Layer 02 or a contract approval.
-The separate WP-02S review remains CHANGES_REQUIRED. No acceptance onto main, finding
-closure, state transition or registry update is asserted by this implementation record.
+Preliminary fixture runs with stale artifacts were excluded: on Windows a copied source
+retained its timestamp; on Linux a shared target reused a binary whose compiled
+`CARGO_MANIFEST_DIR` named the base checkout. Valid historical evidence followed a
+Windows timestamp refresh and a dedicated project-local Linux fixture target. Current
+candidate runs explicitly name `review-worktrees/code-wp02-rust-runner` and report all
+four real ACTIVE Layer 02 xfails. No candidate corpus was mutated for testing.
