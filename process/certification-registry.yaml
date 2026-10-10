@@ -33,9 +33,9 @@ work_packages:
     title: Layer 01 — core identity, versions, canonical bytes, value domain
     layer: "01"
     requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008, CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004, SER-007, SER-008, SER-009]
-    contract: {status: ACCEPTED, accepted_code_sha: bac6594e06dd321e547e917cebeeefc6562a19b9, accepted_docs_sha: 83c66c25d560accb3d57ba20be631d55faab72ff}
-    python: {status: APPROVED, approved_code_sha: bac6594e06dd321e547e917cebeeefc6562a19b9, review: review/wp01-final-2@2a4a4c694ebc852a3ad08a2e6c3306dd9fc3167b}
-    rust: {status: IN_PROGRESS}
-    cross_language: {status: NOT_CLOSED}
+    contract: {status: ACCEPTED, accepted_code_sha: cc3c5d549a43f166bfa1d990d3363887d5e63774, accepted_docs_sha: 71e2b12e65ae420ecd4fc9cd5579056e5d7d96a6}
+    python: {status: CERTIFIED, certified_code_sha: cc3c5d549a43f166bfa1d990d3363887d5e63774, review: review/wp01-final-2@2a4a4c694ebc852a3ad08a2e6c3306dd9fc3167b}
+    rust: {status: CERTIFIED, certified_code_sha: cc3c5d549a43f166bfa1d990d3363887d5e63774, review: review/wp01-rust-closure-2@689efef9884eff960f3c90e902a1c273d0c0786a}
+    cross_language: {status: CERTIFIED_CLOSED}
     evidence: plans/WP-01.md
-    governance: reference/governance/2026-10-10-owner-layer01-decisions.md
+    governance: reference/governance/2026-10-11-owner-wp01-certification.md

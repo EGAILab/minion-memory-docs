@@ -3,17 +3,17 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: CLOSURE_REVIEW
+  status: CLOSED
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
   current_candidate:
-    code: {repo: minion-memory, ref: wp01/closure, sha: cc3c5d549a43f166bfa1d990d3363887d5e63774}
-    docs: {repo: minion-memory-docs, ref: wp01/closure, sha: 71e2b12e65ae420ecd4fc9cd5579056e5d7d96a6}
+    code: {repo: minion-memory, ref: main, sha: cc3c5d549a43f166bfa1d990d3363887d5e63774}
+    docs: {repo: minion-memory-docs, ref: main, sha: 71e2b12e65ae420ecd4fc9cd5579056e5d7d96a6}
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
-  open_findings: [WP01-CR-011, NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
-  provisionally_closed: [WP01-CR-007, WP01-CR-008, WP01-CR-009, WP01-CR-010]
+  open_findings: []
+  provisionally_closed: [WP01-CR-007, WP01-CR-008, WP01-CR-009, WP01-CR-010, WP01-CR-011]
   convergence:
     episode: CE-01-01
     surface: Python native binding of built-in-kind subclasses (normalization, diagnostics, serialization)
@@ -31,22 +31,19 @@ workflow:
       prior_reviews: [65775db3a744f5b4912eeb0d9fe60cb86616d799, ae8751029dedbc442598ca5a24446201c735a250]
     open_findings: []
   governance_source:
-    artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
+    artifact: reference/governance/2026-10-11-owner-wp01-certification.md
     decision: >
-      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact pair
-      (final review e340e439, remediation re-review 2a4a4c69): docs main = 83c66c25, code main =
-      bac6594e. Layer 01 semantics: G-012..G-043 (reference/governance/2026-10-10-owner-layer01-decisions.md).
+      Accepted onto main under the G-009 standing delegation (docs main = 71e2b12e, code main =
+      cc3c5d54) after Claude's Rust CLOSURE_REVIEW completion 689efef9 (APPROVED) and Codex's
+      corpus-delta approval c73593d6; Python and Rust certified, CERTIFIED_CLOSED, by Owner G-044.
     standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-01]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
-  next_action: >
-    Execute process/handoffs/WP-01-codex-cr011-review.md: independent targeted review of the WP01-CR-011
-    corpus delta (code cc3c5d54 / docs 71e2b12e); record APPROVED or CHANGES_REQUIRED on
-    review/wp01-cr011. Then Claude completes the Rust CLOSURE_REVIEW on the exact pair.
+  next_owner: null
+  next_action: null
   updated_by: Claude
-  updated_reason: Claude Rust CLOSURE_REVIEW b1065af9 CHANGES_REQUIRED (WP01-CR-011, corpus; no Rust defect); corpus repaired (cc3c5d54).
+  updated_reason: WP-01 closed and certified (G-044) on the accepted pair (code cc3c5d54 / docs 71e2b12e, G-009); CLOSURE_REVIEW -> CLOSED.
   history:
     assurance_index: plans/WP-01.md
