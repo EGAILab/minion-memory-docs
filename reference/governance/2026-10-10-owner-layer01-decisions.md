@@ -87,3 +87,62 @@ Executed probe: RFC 8785 serializes `-0.0` and `0.0` to identical bytes.
 RFC 8785 orders object members by UTF-16 code units, not code points (probe: `"\U0001F600"` sorts
 before `"｡"`, the reverse of code-point / UTF-8 byte order). This follows from G-014's choice of
 RFC 8785; the WP-01 contract states it and canonical fixtures must include a discriminating pair.
+
+## G-020 — Stable ID lexical domain (NF-010)
+
+> **Q:** NF-010 — What characters may a stable ID contain? IDs become package file names
+> (`memories/<knowledge-unit-id>.md`), and Windows file names are case-insensitive.
+>
+> **A:** "Choose 1 — Lowercase portable token, with two contract corrections.Adopt a 1–128-byte
+> ASCII stable ID, beginning with a-z or 0-9, followed only by a-z, 0-9, ., _, -, compared
+> byte-for-byte. For filename portability, additionally forbid a trailing . and reject Windows
+> reserved device basenames such as con, prn, aux, nul, com1–com9, and lpt1–lpt9, including those
+> followed by an extension-like suffix. No Unicode normalization or case folding is ever part of
+> stable-ID identity. Human-readable Unicode belongs in titles/labels/source keys, not stable
+> IDs.Also pin that memories/<id>.md is a deterministic path projection of the stable ID, not a
+> second identity namespace."
+
+## G-021 — Scope of the same-ID-same-version conflict rule (NF-012)
+
+> **Q:** NF-012 — "Same ID + same version + different content = conflict" is stated in the sources
+> only for Knowledge. Should it apply to every versioned artifact?
+>
+> **A:** "Choose 1 — Core-wide, with the rule scoped to immutable semantically versioned
+> artifacts.For every artifact whose (stable_id, artifact_version) denotes an immutable semantic
+> revision, that pair MUST resolve to exactly one canonical content value. Encountering the same ID
+> and same artifact version with different canonical content is a visible conflict;
+> implementations MUST NOT silently overwrite, merge, normalize away, or choose one side.This rule
+> does not apply merely because something has a schema_version, model_version,
+> database_schema_version, or checkpoint-format version. Each artifact type must define its
+> canonical semantic-content projection. Mutable counters, access history,
+> reinforcement/retrieval observations and derived state should normally live outside the
+> immutable versioned artifact rather than mutate it under the same version."
+
+## G-022 — Timestamp representation (NF-015)
+
+> **Q:** NF-015 — How are timestamps (occurred_at, recorded_at) represented? G-016 limits integer
+> timestamps to microsecond precision.
+>
+> **A:** "Choose 1 — RFC 3339 UTC with exactly six fractional digits.Make
+> YYYY-MM-DDTHH:MM:SS.ffffffZ the sole canonical persisted/wire spelling. UTC Z is mandatory;
+> equivalent local-offset spellings, omitted/shorter/greater fractional precision, and leap-second
+> :60 forms are non-canonical. Unknown time is represented by field absence, never null, epoch, or
+> another sentinel.occurred_at and recorded_at retain distinct semantics, and timestamps MUST NOT
+> substitute for explicit semantic ordering such as episode sequence_no. If local wall-clock/time-zone
+> context is later required, represent it separately from the canonical instant.Physical storage
+> MAY use integer microseconds internally if and only if canonical round-trip is lossless."
+
+## G-023 — One numeric kind (NF-022)
+
+> **Q:** NF-022 — Canonical JSON writes the integer 1 and the float 1.0 identically, so the hash
+> can't tell them apart. Are they the same value?
+>
+> **A:** "Choose 1 — Same value.Mneme canonical JSON has one numeric semantic kind. Any accepted
+> numeric spellings that canonicalize to the same canonical JSON number represent the same value;
+> therefore 1, 1.0, 1e0, etc. are semantically identical after the canonical boundary and MUST
+> produce identical canonical content and hashes.Do not preserve numeric distinctions that
+> canonical serialization cannot observe. If a future domain genuinely requires distinctions such
+> as arbitrary-precision integers or typed decimal values, represent those with an explicit
+> domain/schema encoding rather than an invisible JSON-number subtype.Pin the interoperable numeric
+> domain and its precision limits separately, including finite-only behavior and the handling of
+> -0."
