@@ -7,7 +7,9 @@ workflow:
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp01/contract, sha: 4fe3ed34c29a6868a3f5050ecee95885b73bead0}
+    docs: {repo: minion-memory-docs, ref: wp01/contract, sha: 18bc390c2e8102113b3c152ff21d79fdc3201a15}
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
@@ -20,6 +22,7 @@ workflow:
     checkpoint:
       status: AGREED FOR IMPLEMENTATION
       approval: review/wp01-ce1-checkpoint-3 @ 1d99bc2c5f19f399abe22cdf43921b7377552dd7 (Codex APPROVED)
+      implementation: 4fe3ed34c29a6868a3f5050ecee95885b73bead0 (assurance/reviews/WP-01-CE-01-01-implementation-claude.md)
       revision: 3
       artifact: assurance/convergence/CE-01-01-classification.md
       sha: 8e8d30a824dee743782db6b5a5179515bcd36819
@@ -35,12 +38,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Implement the AGREED CE-01-01 checkpoint (8e8d30a8) once in minion-memory-python: genuine-ancestry
-    native extraction to exact built-ins (G-037..G-043), controls failing on eb47635c first, then
-    re-execute the characterization driver; hand targeted closure to Codex.
+    Execute process/handoffs/WP-01-CE-01-01-codex-targeted-closure.md: targeted closure of WP01-CR-007/008
+    against the agreed CE-01-01 checkpoint at docs 18bc390c / code 4fe3ed34; record APPROVED or
+    CHANGES_REQUIRED on review/wp01-ce1-closure.
   updated_by: Claude
-  updated_reason: Codex APPROVED CE-01-01 checkpoint revision 3 (1d99bc2c); AGREED FOR IMPLEMENTATION.
+  updated_reason: Agreed CE-01-01 checkpoint implemented once (4fe3ed34); targeted closure handed to Codex.
   history:
     assurance_index: plans/WP-01.md
