@@ -246,8 +246,9 @@ so the written contract and validator move together.
    labelled as such.
    - Controls run on Windows and on a case-sensitive POSIX filesystem; host-unrepresentable cells
      are skipped with a recorded reason, never counted.
-   - CH01–CH03 are added as controls; CH03 is checked against the actual `GIT_GRAFT_FILE`
-     mechanism.
+   - P01p and CH01–CH11 are added as controls. CH03 is checked against the actual
+     `GIT_GRAFT_FILE` mechanism, and CH04 uses a candidate distinct from the tip (Codex
+     `CP-CH04-corrected`).
 3. **Control accounting.**
    - Only **FIX** rows are kill-credited. For each one, the frozen tooling must produce the
      recorded wrong result and the implementation must produce the oracle. Both are executed
