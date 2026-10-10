@@ -210,6 +210,20 @@ on `(stable_id, artifact_version, semantic-content projection)`:
 The projection is supplied by the artifact type. Persistence and commit behaviour are later
 layers; Layer 01 fixes only this comparison.
 
+**Revision record (Owner G-035, DRAFT):** each compared input is a closed record
+`{stable_id, projection, artifact_version?}`.
+- **Shape.** `stable_id` and `projection` are required and `artifact_version` is optional. A
+  non-object input, a missing required member or any other member is `artifact.revision_invalid`
+  (stage 3).
+- **Fields after shape.** Only once the shape is valid are the present typed fields validated, in
+  the canonical member order (G-034):
+  - an invalid `artifact_version` is `version.invalid`;
+  - an invalid `stable_id` is `id.invalid`;
+  - `projection` carries no typed rule.
+- **Generic errors.** Values failing the generic domain remain stage-2 errors.
+- **Not applicable.** `not_applicable` is reached only after the complete record has validated: an
+  absent `artifact_version` never bypasses the missing-member or extra-member checks.
+
 *Note:* every source states this for Knowledge entities. NF-012 is resolved by G-021. The
 content-hash normalization is SER-009 (NF-013, G-014). The outcome names and the error code are
 representation (path B) of the G-021 outcomes.

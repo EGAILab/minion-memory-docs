@@ -125,7 +125,7 @@ are never aggregated.
 | 2 — value domain | every decoded or native value | `value.number_not_finite` | a numeral whose binary64 value overflows (`1e400`), and a native NaN or ±Infinity |
 | 2 | ″ | `value.integer_out_of_range` | an integral value outside ±(2^53−1), after the number interpretation below (G-025) |
 | 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
-| 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules |
+| 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` / `artifact.revision_invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules / CORE-003 record shape (G-035) |
 
 - **Order within a stage (Owner G-034).**
   - **Stage 1** reports the violation that occurs first in the source text; a duplicate is located
@@ -145,6 +145,16 @@ are never aggregated.
   - A native integer is taken exactly, without rounding.
   - Accepting a value never depends on a host parser's integer/float tag or its overflow
     behaviour.
+- **Stages across arguments.** For a primitive with several arguments, each stage runs over
+  **all** arguments, in declared order, before the next stage starts (G-031). So a stage-1 failure
+  in a later argument outranks a stage-2 failure in an earlier one. Arguments may arrive as JSON
+  text or as native values.
+- **Native array binding (Owner G-036).** At a native seam, a language binds its own natural
+  ordered-array types to the one canonical array kind. In Python these are `list` and `tuple`,
+  and no other sequence or iterable type (not `range`, generators, `bytes` or custom sequences);
+  Rust binds e.g. `Vec`, slices and arrays. Both preserve order, are validated by ascending index
+  and canonicalize identically. This is a binding rule, not a new value type: a tuple is always an
+  array, never inferred as a typed record.
 - **Precedence example.** An over-large version `9007199254740992` fails stage 2
   (`value.integer_out_of_range`), so it is never interpreted as a version. `0`, `-1`, `1.5` and
   `true` pass stage 2 and fail stage 3 (`version.invalid`).
