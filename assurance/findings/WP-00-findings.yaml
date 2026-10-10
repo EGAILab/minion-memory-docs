@@ -463,7 +463,7 @@ findings:
     classification: SEMANTICS_NEUTRAL_HARDENING
     owner_decision_required: false
     blocking: [none]
-    status: OPEN
+    status: CLOSED
     raised_by: Claude
     sources: []
     requirements: []
@@ -476,6 +476,9 @@ findings:
       Add CARGO_HOME (and RUSTUP_HOME only if a project-local toolchain is ever installed) to both
       scripts after WP-P01's frozen process surface is released (Owner G-019).
     resolution_layer: "00"
+    resolution: >
+      WP-P02 (Owner G-045): project-environment.{sh,ps1} set project-local CARGO_HOME (Linux also RUSTUP_HOME
+      and PATH) and pin uv-managed CPython 3.12.8; Codex APPROVED 2f6d2e5a; accepted on docs main 34c1b752 (G-009).
 
   - id: NF-024
     title: With one numeric kind, the integer bound and finite binary64 overlap for large whole numbers

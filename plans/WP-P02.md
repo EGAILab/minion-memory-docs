@@ -21,4 +21,6 @@ outside the repositories; it is reported in the implementation record only.
 
 | Step | Record |
 |---|---|
-| Implementation (Claude) | `assurance/reviews/WP-P02-implementation-claude.md` |
+| Implementation (Claude) | `assurance/reviews/WP-P02-implementation-claude.md` (docs `34c1b752`) |
+| Independent review (Codex) | `assurance/reviews/WP-P02-review-codex.md` (`2f6d2e5a`, APPROVED) |
+| Acceptance | docs `main` fast-forwarded to `34c1b752` under G-009; code `main` unchanged (`cc3c5d54`). NF-023 closed; WP-P02 **CLOSED** |
