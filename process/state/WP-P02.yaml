@@ -3,30 +3,32 @@ workflow:
   work_package: WP-P02
   title: Process hardening 2 — OWN-001 environment (NF-023)
   layer: "00"
-  status: CONTRACT_REVIEW
+  status: CLOSED
   requirements: []
   current_candidate:
     code: {repo: minion-memory, ref: main, sha: cc3c5d549a43f166bfa1d990d3363887d5e63774}
-    docs: {repo: minion-memory-docs, ref: wpP02/environment, sha: 34c1b752d8d6d54a1181219eada48d07f792730f}
+    docs: {repo: minion-memory-docs, ref: main, sha: 34c1b752d8d6d54a1181219eada48d07f792730f}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
-  open_findings: [NF-023]
-  provisionally_closed: []
+  open_findings: []
+  provisionally_closed: [NF-023]
+  scoping_review:
+    outcome: APPROVED
+    verdict: "APPROVED - NF-023 repair verified on PowerShell, Git Bash and WSL; no new findings; Claude may accept and close under G-009."
+    source: review/wpP02-env @ 2f6d2e5a52d424b06a857754b06e156223056e09 (assurance/reviews/WP-P02-review-codex.md), approving docs 34c1b752 / code cc3c5d54
   governance_source:
     artifact: reference/governance/2026-10-11-owner-wpp02-environment.md
     decision: >
-      G-045 (Owner "Fix two items"): fix NF-023 as a process-only WP; scope fixed by the finding
-      (CARGO_HOME, project-local Python pin). Opened directly at CONTRACT_REVIEW (SCOPING and
-      CONTRACT_DRAFT recorded in this one pass: no open scoping question).
+      G-045 (Owner "Fix two items"): NF-023 fixed as a process-only WP; Codex APPROVED 2f6d2e5a;
+      accepted onto main under the G-009 standing delegation (docs main = 34c1b752, code main = cc3c5d54).
+    standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-P02]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
-  next_action: >
-    Execute process/handoffs/WP-P02-codex-review.md: independent review of the WP-P02 environment
-    change at docs 34c1b752; record APPROVED or CHANGES_REQUIRED on review/wpP02-env.
+  next_owner: null
+  next_action: null
   updated_by: Claude
-  updated_reason: WP-P02 opened under G-045; NF-023 candidate 34c1b752 handed to Codex.
+  updated_reason: WP-P02 closed on the accepted docs 34c1b752 (Codex APPROVED 2f6d2e5a; G-009); CONTRACT_REVIEW -> FINAL_CONTRACT_REVIEW -> CLOSED.
   history:
     assurance_index: plans/WP-P02.md

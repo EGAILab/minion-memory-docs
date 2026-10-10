@@ -33,7 +33,7 @@ work_packages:
     title: Process hardening 2 — OWN-001 environment (NF-023)
     layer: "00"
     requirements: []
-    contract: {status: IN_REVIEW}
+    contract: {status: ACCEPTED, accepted_code_sha: cc3c5d549a43f166bfa1d990d3363887d5e63774, accepted_docs_sha: 34c1b752d8d6d54a1181219eada48d07f792730f}
     python: {status: NOT_IMPLEMENTED}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
