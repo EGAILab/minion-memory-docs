@@ -1,73 +1,72 @@
 # Cross-Language Feasibility Matrix — WP-01: Core identity, versions, canonical bytes, value domain
 
-**Template:** `process/templates/cross-language-feasibility-matrix.md`. **Status:** DRAFT, revised
-after Codex contract reviews 1 (`2b388e62`) and 2 (`1d25e434`), for re-review.
-**Authority bundle:** `mneme-v2.3-dual-profile`; **Owner decisions:** G-012…G-034.
-**Author:** Claude. **Independent checkpoint reviewer:** Codex.
-**Toolchains probed:** CPython 3.12.8 (project-local); rustc 1.97.1; `rfc8785` 0.1.4 (Python
-reference); `serde_jcs` 0.1.0 and `serde_json` 1 (Rust, off-the-shelf); dependency-free Rust `i64`
-civil-time arithmetic. Evidence: `assurance/layers/01-probes/`. The original probe transcripts are
-kept as historical evidence; their current interpretation is stated here.
+**Template:** `process/templates/cross-language-feasibility-matrix.md`.
+**Status:** current for the final Layer 01 contract (Owner decisions G-012…G-043), revised for
+WP01-CR-009 after Codex's final complete review (`e340e439`).
 
-## 1. Value-domain matrix
+**Checkpoints:**
+- contract review `154b4164`;
+- deltas `2f50acc0`;
+- native-binding convergence CE-01-01 agreed `1d99bc2c`, closed `dc9f9aaa`.
 
-| Value / field | Contract domain | Python repr | Rust repr | Canonical serialization | Lossless across all? | Evidence / witness |
+**Python implementation:** `minion_memory.core`. **Rust:** not started; this matrix is its
+readiness guidance.
+
+**Historical evidence:** `assurance/layers/01-probes/`. Those transcripts keep their original
+meaning; their current interpretation is stated here.
+
+## 1. Value-domain and binding matrix
+
+| Value / seam | Contract domain | Python binding (implemented) | Rust requirement | Canonical form | Lossless? | Evidence |
 |---|---|---|---|---|---|---|
-| number (one kind) | finite binary64 with every integral value within ±(2^53−1) (SER-008; G-016, G-023, G-025); −0 → 0 (G-017) | `int`/`float`, unified at the seam | `serde_json::Number` as a container only; checked integrality and a normalized `f64` or checked safe integer | ECMAScript shortest form | YES: every admitted integral value is exact in binary64; host int/float tags never decide validity or equality | AUDITED: reference library; scenarios `canonical-bytes-and-content-hash` (rounding, underflow, subnormal) and `portable-value-domain-rejections` (2^53 in every spelling, `1e400`) |
-| numeral interpretation | nearest binary64, ties to even (RFC 8785 §3.2.2.3) | `json` float parsing gives nearest; overflow gives `inf`, which must be rejected | `serde_json` with `float_roundtrip`; its overflow error must map to `value.number_not_finite` | — | YES once each host's overflow outcome is mapped | Codex probes (`2b388e62`): `1.0000000000000001`→1, `1e-400`→0, `5e-324` kept, `9007199254740991.5`→2^53 |
-| string | Unicode scalar values | `str` can hold lone surrogates, so it must be checked | `String` cannot; serde_json's decode error must map to `value.lone_surrogate` | RFC 8785 escaping | YES within the domain | AUDITED |
-| object member names | unique **after escape decoding**; ordered by UTF-16 code units | `dict` is last-key-wins on decode, so `object_pairs_hook` is needed | `Map` is last-key-wins, so duplicate-aware decoding is needed before map construction | RFC 8785 member order | YES only with UTF-16 ordering and pre-map duplicate rejection | AUDITED: serde_jcs orders by code point and **diverges**; scenarios include `｡` vs `😀` and `{"a":1,"a":2}` |
-| version | positive integer edition 1…2^53−1 (G-012); `2.0` is edition 2 (G-023) | number, unified | number, unified | number | YES | scenario `version-integer-edition-ordering` (stage precedence: out-of-range is `value.integer_out_of_range`) |
-| content hash | SHA-256, lowercase hex (G-014) | `hashlib` | `sha2` | 64 hex characters | YES | AUDITED (Codex re-derived all nine) |
-| stable ID (CORE-001) | lowercase portable ASCII token, 1–128 bytes, no trailing `.`, no Windows device basenames (G-020) | `str` with the ASCII grammar | `String` with the ASCII grammar | bytes as given | YES (ASCII only) | scenario `stable-id-lexical-domain` |
-| operation identity (CORE-012) | `{source_namespace` (G-020 token)`, source_operation_id` (1–256 UTF-8 bytes, exact)`}` (G-032, G-033) | two `str` fields | two `String` fields | an object with two members | YES (exact bytes; no normalization) | scenario `operation-identity-namespaced-pair` |
-| timestamp (HIST-004) | shared grammar (G-026, G-028, G-030) normalized to `YYYY-MM-DDTHH:MM:SS.ffffffZ`; local and UTC instants within 0001-01-01…9999-12-31 (G-029) | canonical `str`; `datetime` behind the grammar and range checks | canonical `String`; `i64` epoch µs plus civil arithmetic | the canonical string | YES: the whole domain (−62135596800000000…253402300799999999 µs) fits `i64` with exact round trips in both languages. The internal µs value is **not** a portable JSON number, because it exceeds 2^53−1 | probe `01-probes/timestamp-domain.md`; scenario `timestamp-seam-normalization` |
+| number (one kind) | finite binary64; every integral value within ±(2^53−1) whatever its spelling; −0 → 0 (SER-008; G-016, G-017, G-023, G-025) | numeral token kept as text through stage 1, then `float(text)` (nearest binary64, ties to even) and the integral check; native integers exact | **defer numeric interpretation until stage 2** (see §2), then checked integrality with a normalized `f64` or checked safe integer; `serde_json::Number`'s int/float tag never decides validity or equality | ECMAScript shortest form | YES: every admitted integral value is exact in binary64 | scenarios `canonical-bytes-and-content-hash`, `portable-value-domain-rejections`; Codex: 60,000 samples match Node `JSON.stringify` |
+| string | Unicode scalar values | escaped lone surrogate is a stage-1 error in JSON text; raw surrogate is `value.invalid_json`; a native surrogate is a stage-2 error | `String` cannot hold surrogates, but an escaped lone surrogate must map to `value.lone_surrogate` at its source position, not to a generic parse error | RFC 8785 escaping | YES | scenarios; WP01-PY-003 controls |
+| object member names | unique after escape decoding (JSON text) or as base strings (native, G-039); ordered by UTF-16 code units | duplicate detected at the second occurrence in source order; native duplicates detected while ordering a map | duplicate-aware structural decoding **before** any map is built; UTF-16 code-unit ordering (not code point) | RFC 8785 member order | YES with both | serde_jcs code-point order fails the `｡` vs `😀` case (Codex `e340e439`) |
+| arrays | ordered sequences | `list` and `tuple` (G-036); no other sequence or iterable | natural ordered types (`Vec`, slices, arrays) bind to one array kind (G-036) | JSON array | YES | G-036 controls |
+| native subclasses | admitted families read by base semantics only, no user hooks, exact built-in returns (G-037, G-042) | genuine-ancestry `issubclass(type(x), base)`; extraction via base slots to exact built-ins | the Rust native seam binds its own types; there is no analogue of Python subclass dispatch, but values returned to callers must be plain portable values | — | YES | CE-01-01: 25,470/25,470 rows, zero hooks |
+| cycles / shared references | cycles `value.cyclic`; shared acyclic references legal (G-040) | active-path identity tracking | needed only if the Rust seam accepts shared or reference-counted graphs; otherwise unrepresentable | — | — | CE-01-01 boundary rows |
+| byte and control inputs | byte buffers read as underlying bytes; JsonText as stored text; argument maps dict-only, else `TypeError` (G-041, G-043) | base-protocol reads; slot-stored `JsonText` | `&[u8]`/`Vec<u8>` and `&str` seams; no hookable wrappers | — | YES | CE-01-01 controls |
+| version | positive integer edition 1…2^53−1 (G-012); `2.0` is edition 2 (G-023) | typed rule after stages 1–2 | same; typed rule after generic stages | number | YES | `version-integer-edition-ordering` |
+| stable ID (CORE-001) | lowercase portable ASCII token, 1–128 bytes, no trailing `.`, no Windows device basename (G-020) | grammar plus device check | same grammar | bytes as given | YES (ASCII) | `stable-id-lexical-domain`; Codex: 5,000 generated tokens |
+| operation identity (CORE-012) | `{source_namespace, source_operation_id}`; 1–256 UTF-8 bytes; exact comparison (G-032, G-033) | two exact strings | two `String` fields; no normalization | object with two members | YES | `operation-identity-namespaced-pair` |
+| revision record (CORE-003) | closed `{stable_id, projection, artifact_version?}`; shape before fields (G-035) | `artifact.revision_invalid`, then canonical-order typed fields | same | — | YES | `identity-same-version-different-content-conflicts` |
+| timestamp (HIST-004) | required input grammar (case, offsets, 0–6 fraction digits); local and UTC instants within 0001–9999; canonical `…ffffffZ` (G-022, G-026, G-028–G-030) | contract grammar, then `datetime` arithmetic over 1–9999 | contract grammar in front of any time library (chrono accepts year 0 and extended years); `i64` epoch µs | canonical string | YES: −62135596800000000…253402300799999999 µs fits `i64` but **not** a JSON number | `01-probes/timestamp-domain.md`; Codex: 5,000 generated inputs |
+| content hash | SHA-256 lowercase hex of canonical bytes; raw content hashed over bytes as given (G-014) | `content_hash`, `raw_content_hash` | `sha2` | 64 hex characters | YES | scenario `raw-content-hash` |
 
 ## 2. Lower-layer capability matrix
 
-| Operation | Owning layer | Seam | Expresses contract? | Python | Rust | Extension? |
-|---|---|---|---|---|---|---|
-| decode JSON text and validate stages 1–2 (SER-008, G-031) | 01 (new) | public payload seam | YES: stage table and error map | stdlib `json` alone is insufficient (accepts `Infinity`, last-key-wins, lone surrogates); hooks plus checks are needed | `serde_json` alone is insufficient (last-key-wins, error mapping); a duplicate-aware visitor plus checks are needed | additive, Layer 01 |
-| validate native values (stage 1 `value.unsupported_type`, stage 2) | 01 (new) | native API seam | YES | type dispatch | typed values plus checks | additive |
-| canonicalize | 01 (new) | — | SER-009 | the reference library is conformant | serde_jcs is **non-conformant** (key order); a conformant UTF-16-ordered serializer is needed | additive |
-| hash | 01 | — | SER-009 | yes | yes | — |
-| compare versions, revisions and operation identities | 01 | — | CORE-002, CORE-003, CORE-012 | yes | yes | — |
-| normalize timestamp | 01 | public seam | HIST-004 grammar | a regex grammar plus `datetime` arithmetic | grammar plus `i64` civil arithmetic | additive |
+| Operation | Seam | Python | Rust requirement |
+|---|---|---|---|
+| decode JSON text (stage 1) | public payload seam | strict iterative RFC 8259 parser; first violation in source order; numerals kept as text | **staged decoding:** structural parse (syntax, escaped surrogates, duplicates in source order) must complete before any numeric conversion can fail. **Witness:** `{"a":1e400,"b":1,"b":2}` must be `value.duplicate_key`. Eager `serde_json` decoding fails first with "number out of range" at the first numeral, and mapping that to `value.number_not_finite` would report a stage-2 error. A duplicate-aware visitor over the same eager numeric decode does not fix this (Codex `e340e439`). |
+| validate generic domain (stage 2) | all seams | canonical traversal over exact values | canonical traversal (G-034); host map order never observable |
+| canonicalize / hash | SER-009 | own RFC 8785 serializer (UTF-16 order, ECMAScript numbers) | own conformant serializer, or a verified one; `serde_jcs` 0.1 unchanged fails UTF-16 ordering |
+| typed rules (stage 3) | primitives | after stages 1–2 over all arguments | same precedence across arguments (G-031) |
 
-## 3. Hazard checklist (families touched)
+## 3. Hazard checklist
 
 | Hazard | State | Evidence / reason |
 |---|---|---|
-| H1 integer width / float specials | AUDITED | one numeric kind; whole-number bound; overflow, underflow and subnormal cases; stage-2 codes |
-| H2 scalar domain / encoding / line endings | AUDITED | surrogates (decoded and native); SER-009 hashes bytes as given |
-| H3 Unicode normalization | AUDITED | never applied: IDs, operation identities and hashed text are exact bytes; an NFC vs NFD fixture shows two distinct operation identities |
-| H4 time | AUDITED | full grammar, range and overflow rules (G-028…G-030); domain fits `i64` µs in both languages (probe); host parsers are not relied on |
+| H1 integer width / float specials | AUDITED | one numeric kind; whole-number bound after rounding; overflow, underflow and subnormal; staged decoding |
+| H2 scalar domain / encoding / line endings | AUDITED | surrogates (escaped, raw, native); raw content hashed as given |
+| H3 Unicode normalization | AUDITED | never applied to IDs, operation identities or hashed content |
+| H4 time | AUDITED | contract grammar, range and overflow (G-028–G-030); `i64` µs domain probe |
 | H5 key order | AUDITED | UTF-16 order; serde_jcs divergence fixtured |
-| H6 YAML/JSON | AUDITED | scenarios carry JSON text in single-quoted YAML (YAML-1.2-core profile) |
-| H7 hashing | AUDITED | SHA-256 over JCS bytes, lowercase hex |
-| H8–H10 | NOT_APPLICABLE | no persistence, paths or concurrency in Layer 01 (operation-identity *behaviour* is Layer 04) |
-| H11 identifiers | AUDITED | G-020 token, path projection pinned; G-032 operation identity kept separate from stable IDs |
+| H6 YAML/JSON | AUDITED | corpus gate (aliases, YAML-1.2-core ambiguity) |
+| H7 hashing | AUDITED | SHA-256 over JCS bytes; raw-content scenario |
+| H8–H10 | NOT_APPLICABLE | no persistence, paths or concurrency in Layer 01 (operation-identity behaviour is Layer 04) |
+| H11 identifiers | AUDITED | G-020 token; G-032 pair kept separate from stable IDs |
 
 ## 4. Concurrency / order
 
-NOT_APPLICABLE — Layer 01 operations are pure functions. Error selection is deterministic: stage
-precedence (G-031) and canonical within-stage order (G-034); host map order is never observable.
+NOT_APPLICABLE: pure functions. Error selection is deterministic: stage precedence across all
+arguments (G-031), canonical within-stage order (G-034), and source order for JSON-text stage 1.
 
-## 5. Neighbourhood expansion
-
-| Family | Members probed | Source | New rows / findings |
-|---|---|---|---|
-| H1 | 2^53−1, 2^53 (integer, decimal and exponent spellings), `9007199254740991.5`, `1e400`, `1e-400`, `5e-324`, `1.0000000000000001`, −0 | reference library; Codex probes | G-025 bound after rounding; `value.number_not_finite` |
-| H4 | year 0001/9999 boundaries, offset overflow both ways, century leap days, letter case, offset and fraction grammar | strict grammar checker; Python and Rust domain probes | G-028…G-030; timestamp-domain probe |
-| H5 | ASCII, BMP high (`｡` U+FF61), astral (`😀`) | probes | UTF-16 order fixture; serde_jcs divergence |
-
-## 6. Verdict
+## 5. Verdict
 
 ```text
 FEASIBILITY
-    FEASIBLE (DRAFT)  no open path-C decision for Layer 01 (G-012..G-034; within-stage
-                      error order decided by G-034, WP01-CR-005). Rust needs its own
-                      UTF-16-ordered RFC 8785 serializer (serde_jcs 0.1 orders by code point),
-                      duplicate-aware decoding and the SER-008 stage checks; timestamps need the
-                      contract grammar in front of any host time library. For re-review by Codex.
+    FEASIBLE  for the final Layer 01 contract (G-012..G-043). Rust requires: staged JSON decoding
+              (numeric interpretation deferred past structural stage 1), a UTF-16-ordered RFC 8785
+              serializer (serde_jcs 0.1 is not usable unchanged), the SER-008 stage checks, and the
+              HIST-004 grammar in front of any time library.
 ```

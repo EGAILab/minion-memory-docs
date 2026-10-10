@@ -144,7 +144,7 @@ model must not depend on them; standards-based exports may be intentional projec
 Core IDs are opaque, stable, immutable and producer-generated (by the Knowledge producer, migration
 adapter or other producing component). IDs must not encode mutable semantics.
 
-**Layer 01 contract (Owner G-020, DRAFT):** a stable ID is an ASCII token of 1–128 bytes.
+**Layer 01 contract (Owner G-020):** a stable ID is an ASCII token of 1–128 bytes.
 - **Characters.** It begins with `a`–`z` or `0`–`9` and continues only with `a`–`z`, `0`–`9`, `.`,
   `_` and `-`. It must not end with `.`.
 - **Reserved names.** Its basename must not be a Windows reserved device name (`con`, `prn`, `aux`,
@@ -167,7 +167,7 @@ The ID answers "which entity"; an optional key answers "how humans refer to it";
 answers "which edition". Keys, slugs, titles, paths and collection membership are mutable and are
 not identity.
 
-**Layer 01 contract (Owner G-012, DRAFT):** an artifact version is a positive integer edition
+**Layer 01 contract (Owner G-012):** an artifact version is a positive integer edition
 (1 ≤ v ≤ 2^53−1, the SER-008 integer domain), compared numerically. Zero, negatives, non-integers
 and values outside the domain are invalid versions.
 
@@ -182,7 +182,7 @@ Same ID + same version must imply semantically identical content. Differing (nor
 at the same ID and version is a conflict; it fails visibly and is never silently overwritten or
 merged.
 
-**Layer 01 contract (Owner G-021, DRAFT):** the rule is core-wide, scoped to **immutable
+**Layer 01 contract (Owner G-021):** the rule is core-wide, scoped to **immutable
 semantically versioned artifacts**.
 - **Uniqueness.** For every artifact whose `(stable_id, artifact_version)` denotes an immutable
   semantic revision, that pair resolves to exactly one canonical content value.
@@ -196,7 +196,7 @@ semantically versioned artifacts**.
   normally live outside the immutable versioned artifact, rather than mutating it under the same
   version.
 
-**Layer 01 comparison (DRAFT; observation of G-021).** Two artifact revisions are compared
+**Layer 01 comparison (observation of G-021).** Two artifact revisions are compared
 on `(stable_id, artifact_version, semantic-content projection)`:
 - **Not applicable.** If either revision has no `artifact_version`, the rule does not apply. A
   `schema_version`, model version or format version alone never invokes it.
@@ -210,7 +210,7 @@ on `(stable_id, artifact_version, semantic-content projection)`:
 The projection is supplied by the artifact type. Persistence and commit behaviour are later
 layers; Layer 01 fixes only this comparison.
 
-**Revision record (Owner G-035, DRAFT):** each compared input is a closed record
+**Revision record (Owner G-035):** each compared input is a closed record
 `{stable_id, projection, artifact_version?}`.
 - **Shape.** `stable_id` and `projection` are required and `artifact_version` is optional. A
   non-object input, a missing required member or any other member is `artifact.revision_invalid`
@@ -291,7 +291,7 @@ or record when such a reference is sufficient for interpretation.
 The shared core provides hashes/checksums where required: normalized content hashes for
 same-version conflict detection and integrity hashes for assets and package entries.
 
-**Layer 01 contract (Owner G-014, DRAFT):** the content hash of a structured value is defined by
+**Layer 01 contract (Owner G-014):** the content hash of a structured value is defined by
 SER-009 (SHA-256, lowercase hex, over RFC 8785 canonical bytes); "normalized content" means that
 canonical form. Text and binary content are hashed as given (no Unicode or line-ending
 normalization).
@@ -307,14 +307,14 @@ history mutation) carries a durable operation identity (`operation_id`, submissi
 durable source identity). Retrying the same operation identity must not create a second historical
 record; a retry after a successful commit returns/reuses the existing result.
 
-**Layer 01 contract (Owner G-013, DRAFT):** an operation identity is unique within one
+**Layer 01 contract (Owner G-013):** an operation identity is unique within one
 Minion-Memory store, across both profiles. A retry with the same operation identity and identical
 content — equal SER-009 canonical bytes — returns the prior result and writes nothing. The same
 operation identity with different content is a visible conflict error and writes nothing. (The
 persistence behavior is implemented in Layer 04; Layer 01 fixes the identity's domain and the
 identical/different test.)
 
-**Operation identity domain (Owner G-032, G-033, DRAFT):** an operation identity is the pair
+**Operation identity domain (Owner G-032, G-033):** an operation identity is the pair
 `{source_namespace, source_operation_id}`.
 - **`source_namespace`.** A stable-ID token in the CORE-001 domain (G-020). It names the producer's
   uniqueness domain. A producer whose IDs are unique only within one deployment or instance uses a
@@ -387,7 +387,7 @@ The time something happened (`occurred_at`; for agent memory, source time) and t
 durably recorded or synchronized (`recorded_at`) are distinct, supporting offline-first capture and
 later synchronization.
 
-**Layer 01 contract (Owner G-022, DRAFT):** the sole canonical persisted and wire spelling of a
+**Layer 01 contract (Owner G-022):** the sole canonical persisted and wire spelling of a
 timestamp is RFC 3339 UTC with exactly six fractional digits: `YYYY-MM-DDTHH:MM:SS.ffffffZ`.
 - **Non-canonical forms.** `Z` is mandatory. Equivalent local-offset spellings, fractions with
   fewer or more than six digits, and leap-second `:60` forms are non-canonical.
@@ -400,7 +400,7 @@ timestamp is RFC 3339 UTC with exactly six fractional digits: `YYYY-MM-DDTHH:MM:
 - **Storage.** Physical storage may use integer microseconds internally if and only if the
   canonical round trip is lossless.
 
-**Seam input (Owner G-026, G-028, G-029, G-030, DRAFT):** accepted input is distinct from the
+**Seam input (Owner G-026, G-028, G-029, G-030):** accepted input is distinct from the
 canonical representation. Every conforming implementation **must** accept exactly the spellings
 of the grammar below and **must** reject every other input as `timestamp.invalid` (G-030); a
 host-language datetime parser's behaviour is never relied on.

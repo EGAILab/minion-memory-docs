@@ -66,12 +66,19 @@ Migration/decoding fixtures exist for legacy data and for each supported shipped
 
 ---
 
-## Layer 01 contract — DRAFT (WP-01)
+## Layer 01 contract (WP-01)
 
 The requirements below transcribe **Owner decisions** that resolve findings the sources leave
-open (`reference/governance/2026-10-10-owner-layer01-decisions.md`, G-012…G-017). Their bundle
+open (`reference/governance/2026-10-10-owner-layer01-decisions.md`, G-012…G-043). Their bundle
 citations name where the sources require the capability; the decision record supplies the choice.
-They are DRAFT contract text: not reviewed, not implementation-facing.
+
+**Status.** This is the Layer 01 contract checkpoint, and it is implementation-facing:
+- contract review approved by Codex `154b4164`;
+- deltas G-035/G-036 reviewed in `2f50acc0`;
+- the native-binding convergence checkpoint CE-01-01 agreed in `1d99bc2c` and closed in
+  `dc9f9aaa`.
+
+It is not yet accepted onto `main`; acceptance follows WP-01's final review.
 
 ### SER-008 — Portable value domain
 <a id="ser-008"></a>
@@ -91,7 +98,7 @@ canonical serialization) belongs to the portable value domain, identically in ev
 A value outside the domain is **rejected at the seam** with a validation error; it is never
 coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-wins).
 
-**One numeric kind (Owner G-023, DRAFT).**
+**One numeric kind (Owner G-023).**
 - **One kind.** Mneme canonical JSON has a single numeric semantic kind. Accepted numeric
   spellings that canonicalize to the same RFC 8785 number are the same value, and produce
   identical canonical content and hashes. So `1`, `1.0` and `1e0` are one value.
@@ -100,7 +107,7 @@ coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-w
 - **Other numeric domains.** A domain that genuinely needs one (arbitrary-precision integers, typed
   decimals) uses an explicit schema encoding, not an invisible JSON-number subtype.
 
-**Whole-number values (Owner G-025, DRAFT).**
+**Whole-number values (Owner G-025).**
 - **Spelling-independent bound.** The safe-integer bound applies after numeric normalization,
   whatever the token's integer, decimal or exponent spelling. Any numeric value that is integral
   must satisfy −(2^53−1) ≤ *v* ≤ 2^53−1. So `9007199254740992`, `9007199254740992.0`,
@@ -111,7 +118,7 @@ coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-w
 - **Larger exact values.** Exact values outside this generic domain need an explicit schema type,
   never an alternate JSON-number spelling.
 
-**Validation stages and error map (Owner G-031, DRAFT).** Every input is validated in three ordered
+**Validation stages and error map (Owner G-031).** Every input is validated in three ordered
 stages. A failure in an earlier stage stops validation, and exactly **one** error code is
 reported. Python and Rust must report the same code for the same input, and later-stage errors
 are never aggregated.
