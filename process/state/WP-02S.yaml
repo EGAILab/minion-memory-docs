@@ -3,11 +3,9 @@ workflow:
   work_package: WP-02S
   title: Layer 02 — MemoryScope
   layer: "02"
-  status: CONTRACT_REVIEW
+  status: PYTHON_IMPLEMENTATION
   requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp02s/contract, sha: 0c569afba20477e0687a1de837b70e4b8996fa1e}
-    docs: {repo: minion-memory-docs, ref: wp02s/scoping, sha: c08c57e46c0c972d0e497f74df311e0241cb8b5c}
+  current_candidate: null
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-018]
@@ -23,11 +21,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-02S-codex-contract-review-3.md: targeted re-review of WP02S-CR-003 at
-    docs c08c57e4 / code 0c569afb; record APPROVED or CHANGES_REQUIRED on review/wp02s-contract-3.
+    Implement the agreed Layer 02 MemoryScope contract (docs c08c57e4 / code 0c569afb; Codex APPROVED
+    697e372c) in Python through public seams; G3 evidence; hand off for IMPLEMENTATION_REVIEW.
   updated_by: Claude
-  updated_reason: Codex review 2 (f3b86200) closed CR-001/002 and raised CR-003 (feasibility matrix); repaired.
+  updated_reason: WP-02S contract APPROVED by Codex round 3 (697e372c; WP02S-CR-001..003 closed); CONTRACT_REVIEW -> PYTHON_IMPLEMENTATION.
   history:
     assurance_index: plans/WP-02S.md
