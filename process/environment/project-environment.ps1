@@ -25,6 +25,12 @@ $env:RUFF_CACHE_DIR = "$MnemeCache\ruff"
 $env:MYPY_CACHE_DIR = "$MnemeCache\mypy"
 $env:HYPOTHESIS_STORAGE_DIRECTORY = "$MnemeCache\hypothesis"
 $env:CARGO_TARGET_DIR = "$MnemeCache\cargo-target\windows"
+# Cargo registry/git caches (NF-023); the rustup toolchains already installed on C: are executed only.
+$env:CARGO_HOME = "$MnemeCache\cargo-home"
+# Project-local interpreter (NF-023): uv-managed CPython 3.12.8 under UV_PYTHON_INSTALL_DIR,
+# never a system Python. Install new interpreters only with `uv python install --no-bin`.
+$env:UV_PYTHON_PREFERENCE = 'only-managed'
+$env:UV_PYTHON = '3.12.8'
 $env:MNEME_PYTEST_CACHE = "$MnemeCache\pytest"
 # Language environments created by uv for the repos (outside the repo trees):
 $env:MNEME_VENV_ROOT = "$MnemeCache\venvs"

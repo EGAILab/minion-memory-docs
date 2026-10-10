@@ -6,7 +6,7 @@ All caches/venvs/targets under OWN-001 paths (`process/environment/project-envir
 
 | Item | Proposal | Observed now |
 |---|---|---|
-| Interpreter | CPython 3.12 (floor), managed by uv | 3.12.8 (`E:\AI\Python\Python312`) |
+| Interpreter | CPython 3.12 (floor), managed by uv | 3.12.8, uv-managed and project-local (`.tmp/cache/uv-python`; `UV_PYTHON_PREFERENCE=only-managed`, `UV_PYTHON=3.12.8`, NF-023) |
 | Project/env | uv; environments under `.tmp/cache/venvs/<project>` via `UV_PROJECT_ENVIRONMENT`; `uv.lock` committed | uv 0.10.9 |
 | Lint/format | ruff (lint + format), line length 110 | ruff from the dev group |
 | Types | mypy `--strict` | |

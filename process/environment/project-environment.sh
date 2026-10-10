@@ -25,5 +25,16 @@ export RUFF_CACHE_DIR="$MNEME_W/cache/ruff"
 export MYPY_CACHE_DIR="$MNEME_W/cache/mypy"
 export HYPOTHESIS_STORAGE_DIRECTORY="$MNEME_W/cache/hypothesis"
 export CARGO_TARGET_DIR="$MNEME_W/cache/cargo-target/$MNEME_PLATFORM"
+# Cargo registry/git caches (NF-023). Windows keeps using the rustup toolchains already installed
+# on C: (executed, never written); Linux/WSL uses a project-local rustup and its own Cargo home.
+if [ "$MNEME_PLATFORM" = windows ]; then
+  export CARGO_HOME="$MNEME_W/cache/cargo-home"
+else
+  export CARGO_HOME="$MNEME_W/cache/cargo-home-linux" RUSTUP_HOME="$MNEME_W/cache/rustup-linux"
+  case ":$PATH:" in *":$CARGO_HOME/bin:"*) ;; *) export PATH="$CARGO_HOME/bin:$PATH" ;; esac
+fi
+# Project-local interpreter (NF-023): uv-managed CPython 3.12.8 under UV_PYTHON_INSTALL_DIR,
+# never a system Python. Install new interpreters only with `uv python install --no-bin`.
+export UV_PYTHON_PREFERENCE=only-managed UV_PYTHON=3.12.8
 export MNEME_PYTEST_CACHE="$MNEME_W/cache/pytest"
 export MNEME_VENV_ROOT="$MNEME_W/cache/venvs"
