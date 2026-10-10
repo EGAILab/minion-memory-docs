@@ -135,6 +135,7 @@ are never aggregated.
 | 2 | ″ | `value.integer_out_of_range` | an integral value outside ±(2^53−1), after the number interpretation below (G-025) |
 | 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
 | 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` / `artifact.revision_invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules / CORE-003 record shape (G-035) |
+| 3 | Layer 02 scope arguments | `scope.invalid` / `scope.query_invalid` | MemoryScope value (G-056) / allowed-scope query (G-058, G-061), `spec/scope.md` |
 
 - **Order within a stage (Owner G-034).**
   - **Stage 1, JSON text.** Reports the violation that occurs first in the source text; a

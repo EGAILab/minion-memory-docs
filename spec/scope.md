@@ -85,7 +85,7 @@ conversation scope cannot be returned merely because its semantic similarity is 
 
 ## Layer 02 MemoryScope contract (WP-02S)
 
-The Owner decided this contract as G-056…G-063 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`). Only the representation choices below are
+The Owner decided this contract as G-056…G-064 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`). Only the representation choices below are
 made by the contract author, under path B, and they are flagged where they occur.
 
 ### Scope value (G-056, G-057)
@@ -97,9 +97,14 @@ A **scope** is exactly one of two closed records:
 {"scope_state": "unresolved"}
 ```
 
-- **Facet names.** A facet name is `<profile>.<facet>`: two CORE-001 tokens that contain no `.`,
-  joined by one `.`. The dotted spelling is lexical only, and the core infers no hierarchy from it
-  (G-057). (Path B: the two-state envelope and the one-dot grammar are representation choices.)
+- **Facet names (G-064).** A facet name is exactly two non-empty lowercase ASCII segments joined by
+  one literal `.`. Each segment is 1–128 bytes, starts with `a`–`z` or `0`–`9`, and otherwise contains
+  only `a`–`z`, `0`–`9`, `_` and `-`.
+  - Additional dots, Unicode, uppercase or a malformed segment give `scope.invalid`.
+  - Windows device names are **not** excluded, because facet names are not paths. So `agent.con` is a
+    well-formed facet name, unknown and hidden under G-061, while `agent.session.x` is invalid.
+  - The dotted spelling is lexical only, and the core infers no hierarchy from it (G-057).
+  - The two-state scope envelope itself is a representation choice (path B).
 - **Facet values.** Each value is one CORE-001 portable token; multi-valued facets do not exist.
 - **Global.** The empty resolved map `{}` is explicitly global scope.
 - **Unresolved.** `unresolved` means the scope is unknown (G-060). It is never empty, global or
@@ -158,18 +163,26 @@ facet map, given as the bare map `{"<profile>.<facet>": "<token>"}`. It returns 
 - **Consolidation.** Cross-scope consolidation is deferred to Layer 14 and must never widen
   visibility silently.
 
-`scopes_equal(a, b)` returns structural equality (G-056).
+`scopes_equal(a, b)` returns structural equality (G-056). Its arguments are validated in declared
+order, `a` then `b`.
+
+`validate_scope(scope)` validates one scope value and returns it normalized: exact SER-008 values,
+with facet names and values unchanged. A well-formed but unknown facet name is preserved and never
+dropped (G-061). The value rules are those of "Scope value" above. It takes one argument, so like
+every single-argument primitive (Layer 01 convention) its errors name no argument.
 
 ### Errors (stage 3, SER-008 G-031)
 
 - **Generic stages first.** The generic stages run across all arguments first, in declared order.
-- **`scope.invalid`.** For a `record`, `a` or `b` argument that is a non-object, has a missing or
+- **`scope.invalid`.** For a `scope`, `record`, `a` or `b` argument that is a non-object, has a missing or
   other member, has a `scope_state` other than `resolved` or `unresolved`, a malformed facet name,
   or a facet value outside the token domain.
 - **`scope.query_invalid` (G-061).** For a `query` that is not a facet map of well-formed names and
   token values, or that names an **unknown** facet. A query has no unresolved form.
-- **Order and naming.** Argument errors are checked in declared order (`record`, then `query`) and
-  name their argument.
+- **Order and naming.** Argument errors are checked in declared order: `record` then `query` for
+  `scope_visible`, `a` then `b` for `scopes_equal`. The multi-argument primitives name the failing
+  argument; `validate_scope` names none.
+- **Stage table.** Both codes are stage-3 rows of the SER-008 stage table.
 
 ### Conformance (G-063)
 

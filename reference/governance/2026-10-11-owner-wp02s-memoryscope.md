@@ -51,3 +51,19 @@ with the Owner's own text.
 > **Q:** WP-02S D8 — Agent scope-isolation conformance: sources list six dimensions, but the R04 §42 test names four (principal/agent/project/conversation). Which set must the isolation scenarios cover?
 >
 > **A:** "Choose 1 — isolation conformance covers all six Agent Profile dimensions: principal, agent, workspace, conversation, session, and task.R04 §42’s principal/agent/project/conversation list is a required subset, not an exhaustive cap; project maps to the canonical workspace facet. Each dimension requires match, mismatch, record-omission and query-omission evidence, plus composed cases proving that a mismatch in any one declared facet excludes the record.An exhaustive \(2^6\) cross-product is unnecessary, but session and task isolation cannot remain untested because both are normative visibility constraints."
+
+## G-064 — Facet-name grammar (resolves WP02S-CR-001)
+
+> **Q:** WP02S-CR-001: what counts as a well-formed MemoryScope facet name? (G-056 fixed the
+> <profile>.<facet> form and token values; G-057 says the dot is lexical only; G-061 says
+> well-formed unknown facets are preserved but hidden.) The choice decides whether an odd name
+> makes the whole scope invalid or is kept as an unknown, hidden facet.
+>
+> **A:** "Choose 3 — exactly one lexical namespace separator, with no filesystem device-name
+> restriction.A MemoryScope facet name consists of exactly two non-empty lowercase ASCII segments
+> separated by one literal dot. Each segment is 1–128 bytes, starts with a-z or 0-9, and otherwise
+> contains only a-z, 0-9, _, or -. Additional dots, Unicode, uppercase and malformed segments produce
+> scope.invalid.Windows reserved device names are not excluded because facet names are not
+> filesystem paths. Consequently, agent.con is a well-formed but potentially unknown facet and
+> follows G-061’s preserve-and-hide behavior; agent.session.x is structurally invalid rather than an
+> unknown facet."
