@@ -3,18 +3,21 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: IMPLEMENTATION_REVIEW
+  status: CONTRACT_CONVERGENCE
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp01/contract, sha: eb47635c6ea997f030d04b8099366044a2f702aa}
-    docs: {repo: minion-memory-docs, ref: wp01/contract, sha: 81192e3adf29ef474ce1ecdd0096bb306543a5ae}
+  current_candidate: null
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
   provisionally_closed: []
-  convergence: null
+  convergence:
+    episode: CE-01-01
+    surface: Python native binding of built-in-kind subclasses (normalization, diagnostics, serialization)
+    trigger: A (WP01-PY-004 survived reviews 716d7218 and 2f50acc0)
+    finding_aliases: {WP01-CR-007: WP01-PY-004, WP01-CR-008: WP01-PY-008}
+    open_findings: [WP01-CR-007, WP01-CR-008]
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
     decision: >
@@ -26,10 +29,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-01-codex-implementation-review-2.md: targeted closure of WP01-PY-001..004,
-    PY-007 and the G-035/G-036 contract delta at docs 81192e3a / code eb47635c; record APPROVED or
-    CHANGES_REQUIRED on review/wp01-python-2.
+    Execute process/handoffs/WP-01-CE-01-01-codex-characterization.md: characterize the Python native
+    binding surface (G-037) as an executed matrix; Claude then challenges and classifies it.
   updated_by: Claude
-  updated_reason: Remediation 1 committed (eb47635c; 83 passed) with contract delta G-035/G-036; REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: Codex targeted closure CHANGES_REQUIRED (2f50acc0); trigger A fired; Owner G-037 (subclass binding) and G-038 (narrow convergence); IMPLEMENTATION_REVIEW -> CONTRACT_CONVERGENCE CE-01-01.
   history:
     assurance_index: plans/WP-01.md

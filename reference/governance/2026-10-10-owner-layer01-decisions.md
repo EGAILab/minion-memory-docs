@@ -306,3 +306,33 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > their own natural ordered-array representations (for Rust, e.g. Vec, slices, or arrays) while
 > exposing the same canonical array semantics. A tuple at the generic seam is always an array and
 > must never be inferred as a typed domain record."
+
+## G-037 — Native binding of built-in-kind subclasses (WP01-PY-004/008)
+
+> **Q:** WP01-PY-004/008: How should the Python native seam treat SUBCLASSES of built-in kinds (a
+> float subclass with its own __repr__, a str subclass overriding __str__, a dict subclass
+> overriding items(), a list subclass overriding __iter__)? Today they're admitted and their
+> overridden hooks leak into hashes and errors.
+>
+> **A:** "Choose 1 — admit subclasses, but extract only the underlying admitted built-in
+> value.Python subclasses of admitted built-in families (int, float, str, list, tuple, dict) are
+> accepted at the generic native seam. Their subclass-specific behavior and state are not part of
+> Mneme semantics. Canonicalization MUST bypass overridden user hooks and use base-built-in
+> semantics for scalar extraction, string contents, sequence elements, and mapping
+> entries.Normative hashing, traversal, validation, and error selection MUST NOT invoke subclass
+> overrides such as __repr__, __str__, __iter__, items, custom conversion hooks, or other
+> user-defined behavior. Add hostile-subclass negative controls that raise if such hooks are
+> called.Subclass-added attributes are ignored. NamedTuple remains an array at the generic seam;
+> OrderedDict remains an object; IntEnum remains its underlying integer value. Typed domain meaning
+> requires an explicit typed adapter, never inference from the Python subclass."
+
+## G-038 — Route after convergence trigger A on WP01-PY-004
+
+> **Q:** Convergence trigger A has fired (PY-004 survived two independent reviews). Per our
+> workflow convergence is the default; a targeted fix needs an explicit reason. How should WP-01
+> proceed on this surface?
+>
+> **A:** "Narrow convergence (Recommended)" — the selected option read: "Open a convergence episode
+> limited to the native binding surface (built-in kinds × exact/subclass × overridden hooks, for
+> normalization, diagnostics and serialization). Codex characterizes it, I classify, Codex approves
+> the checkpoint, I implement once, Codex closes. Other WP-01 findings stay closed."

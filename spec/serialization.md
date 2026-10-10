@@ -155,6 +155,18 @@ are never aggregated.
   Rust binds e.g. `Vec`, slices and arrays. Both preserve order, are validated by ascending index
   and canonicalize identically. This is a binding rule, not a new value type: a tuple is always an
   array, never inferred as a typed record.
+- **Native subclasses (Owner G-037).** A subclass of an admitted built-in family (`int`, `float`,
+  `str`, `list`, `tuple`, `dict`) is accepted, but only its underlying built-in value is used:
+  base-built-in semantics for scalar extraction, string contents, sequence elements and mapping
+  entries.
+  - **Never invoked.** Hashing, traversal, validation, diagnostics and error selection never invoke
+    subclass overrides, such as `__repr__`, `__str__`, `__iter__`, `items`, conversion hooks or any
+    other user-defined behaviour.
+  - **Ignored.** Subclass-added attributes and state are ignored.
+  - **Examples.** A `NamedTuple` is an array, an `OrderedDict` an object and an `IntEnum` member its
+    underlying integer.
+  - **Typed meaning.** Typed domain meaning requires an explicit typed adapter, never inference from
+    the Python subclass.
 - **Precedence example.** An over-large version `9007199254740992` fails stage 2
   (`value.integer_out_of_range`), so it is never interpreted as a version. `0`, `-1`, `1.5` and
   `true` pass stage 2 and fail stage 3 (`version.invalid`).
