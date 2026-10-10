@@ -53,7 +53,7 @@ work_packages:
     title: Layer 02 — MemoryScope
     layer: "02"
     requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
-    contract: {status: DRAFT}
+    contract: {status: IN_REVIEW}
     python: {status: NOT_IMPLEMENTED}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
