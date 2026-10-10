@@ -1,5 +1,15 @@
 # Probe — RFC 8785 vs integer domain, negative zero, key order (WP-01 premise)
 
+> **Current interpretation (after Codex contract review 1, `2b388e62`).** This transcript is
+> historical evidence.
+> - `1e21` is no longer a valid Mneme value: G-025 bounds every integral value to
+>   ±(2^53−1), whatever the spelling.
+> - serde_jcs emitting 2^53 is not itself an RFC 8785 defect (RFC 8785 Appendix B includes that
+>   binary64 value). Such values are excluded by Mneme's domain at the SER-008 seam.
+> - The crate's actual defect is code-point key ordering.
+>
+> See `assurance/layers/01-feasibility-matrix.md`.
+
 Executed 2026-10-10 on Windows 11, CPython 3.12.8 via uv 0.10.9, package `rfc8785` 0.1.4, under OWN-001 (`.tmp/work/claude`). Command: `uv run --no-project --python 3.12 --with rfc8785 python probe_jcs.py`.
 
 ## Script

@@ -1,5 +1,15 @@
 # Probe — RFC 8785 cross-language: reference (Python) vs off-the-shelf Rust crate
 
+> **Current interpretation (after Codex contract review 1, `2b388e62`).** This transcript is
+> historical evidence.
+> - `1e21` is no longer a valid Mneme value: G-025 bounds every integral value to
+>   ±(2^53−1), whatever the spelling.
+> - serde_jcs emitting 2^53 is not itself an RFC 8785 defect (RFC 8785 Appendix B includes that
+>   binary64 value). Such values are excluded by Mneme's domain at the SER-008 seam.
+> - The crate's actual defect is code-point key ordering.
+>
+> See `assurance/layers/01-feasibility-matrix.md`.
+
 Executed 2026-10-10, Windows 11, OWN-001 (CARGO_HOME and target under .tmp). rustc 1.97.1 (8bab26f4f 2026-07-14); serde_jcs version = "0.1.0"; serde_json 1 (float_roundtrip). Python: rfc8785 0.1.4, CPython 3.12.8.
 
 Feasibility probe only — not a Minion-Memory implementation. Rust implementation remains Codex-owned.

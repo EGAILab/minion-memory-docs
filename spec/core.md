@@ -196,8 +196,23 @@ semantically versioned artifacts**.
   normally live outside the immutable versioned artifact, rather than mutating it under the same
   version.
 
+**Layer 01 comparison (DRAFT; observation of G-021).** Two artifact revisions are compared
+on `(stable_id, artifact_version, semantic-content projection)`:
+- **Not applicable.** If either revision has no `artifact_version`, the rule does not apply. A
+  `schema_version`, model version or format version alone never invokes it.
+- **Distinct.** Different `stable_id` or different `artifact_version` (CORE-002 numeric comparison).
+- **Identical.** Same `stable_id` and `artifact_version`, and the projections have equal SER-009
+  canonical bytes. Equivalent numeric spellings are therefore identical (G-023).
+- **Conflict.** Same `stable_id` and `artifact_version` with different canonical bytes. It is
+  reported as the visible error `artifact.revision_conflict` and is never resolved by overwrite,
+  merge, normalization or choosing a side.
+
+The projection is supplied by the artifact type. Persistence and commit behaviour are later
+layers; Layer 01 fixes only this comparison.
+
 *Note:* every source states this for Knowledge entities. NF-012 is resolved by G-021. The
-content-hash normalization is SER-009 (NF-013, G-014).
+content-hash normalization is SER-009 (NF-013, G-014). The outcome names and the error code are
+representation (path B) of the G-021 outcomes.
 
 ### CORE-004 — Edits version; replacement, split and merge create identities with lineage
 <a id="core-004"></a>
@@ -285,8 +300,29 @@ operation identity with different content is a visible conflict error and writes
 persistence behavior is implemented in Layer 04; Layer 01 fixes the identity's domain and the
 identical/different test.)
 
-*Note:* resolves NF-014 by Owner decision G-013. The lexical domain of an operation identity follows
-CORE-001's ID domain, still open (NF-010).
+**Operation identity domain (Owner G-032, G-033, DRAFT):** an operation identity is the pair
+`{source_namespace, source_operation_id}`.
+- **`source_namespace`.** A stable-ID token in the CORE-001 domain (G-020). It names the producer's
+  uniqueness domain. A producer whose IDs are unique only within one deployment or instance uses a
+  namespace naming that domain, not a broader one.
+- **`source_operation_id`.** A non-empty opaque string of 1–256 bytes, measured on its exact UTF-8
+  encoding (G-033). It is a SER-008 string, compared byte for byte: no normalization, case
+  folding, trimming, parsing or filename restriction. Empty or longer values are rejected, never
+  truncated or replaced by a digest.
+- **Identity.** Uniqueness and idempotency apply to the pair, never to either field alone; equal
+  `source_operation_id` values under different namespaces are different identities. The canonical
+  model keeps the two fields separate and never joins them into one delimited string.
+- **Retry and conflict.** The same pair for the same logical mutation is an idempotent retry. The
+  same pair with materially different canonical mutation content is a visible conflict, never
+  last-write-wins (G-013).
+- **Errors.** A malformed pair (wrong shape, invalid namespace token, empty or over-long
+  `source_operation_id`) is `operation_identity.invalid`, a stage-3 error (SER-008, G-031). A
+  string that fails the generic value domain (e.g. a lone surrogate) reports that stage-2 error
+  instead.
+
+*Note:* resolves NF-014 by Owner decision G-013; the identity domain is G-032/G-033. The earlier
+draft's statement that the operation identity "follows CORE-001's ID domain" was an author
+addition without a decision (Codex review Q1) and is withdrawn.
 
 ### CORE-013 — Similarity is never identity
 <a id="core-013"></a>
@@ -350,21 +386,46 @@ timestamp is RFC 3339 UTC with exactly six fractional digits: `YYYY-MM-DDTHH:MM:
 - **Storage.** Physical storage may use integer microseconds internally if and only if the
   canonical round trip is lossless.
 
-**Seam input (Owner G-026, DRAFT):** accepted input is distinct from the canonical
-representation.
-- **Accepted input.** Public APIs accept RFC 3339 timestamps with an explicit `Z` or `±HH:MM`
-  offset and zero to six fractional-second digits.
-- **Normalization.** The instant is normalized to UTC and emitted/stored exactly as
-  `YYYY-MM-DDTHH:MM:SS.ffffffZ`; shorter fractions are right-padded with zeros.
-- **Rejected input.** Timezone-less timestamps, leap-second `:60`, invalid calendar values and
-  any input with more than six fractional digits are rejected.
-- **Grammar.** The shared contract defines the accepted grammar; whatever a host-language
-  datetime parser happens to accept is not relied on.
-- **Semantics.** Equality, hashing, persistence, conflict detection and cross-language
-  conformance operate only on the normalized canonical value. The original offset or spelling is
-  not part of timestamp semantics; local-time context, if needed, is separate metadata.
+**Seam input (Owner G-026, G-028, G-029, G-030, DRAFT):** accepted input is distinct from the
+canonical representation. Every conforming implementation **must** accept exactly the spellings
+of the grammar below and **must** reject every other input as `timestamp.invalid` (G-030); a
+host-language datetime parser's behaviour is never relied on.
 
-*Note:* resolves NF-015 (G-022) and NF-025 (G-026).
+```text
+timestamp   = date sep time [fraction] offset        ; nothing before, between or after
+date        = year "-" month "-" day
+year        = 4DIGIT                                  ; 0001-9999 (0000 rejected, G-029)
+month       = 2DIGIT                                  ; 01-12
+day         = 2DIGIT                                  ; 01-28/29/30/31, proleptic Gregorian (G-029)
+sep         = "T" / "t"                               ; G-028
+time        = hour ":" minute ":" second
+hour        = 2DIGIT                                  ; 00-23
+minute      = 2DIGIT                                  ; 00-59
+second      = 2DIGIT                                  ; 00-59 (":60" rejected, G-026)
+fraction    = "." 1*6DIGIT                            ; one to six digits ("." alone rejected)
+offset      = "Z" / "z" / ( "+" / "-" ) 2DIGIT ":" 2DIGIT   ; offset hour 00-23, minute 00-59
+DIGIT       = %x30-39                                 ; ASCII digits only
+```
+
+- **Normalization.** The instant is the local civil time minus the offset; `-00:00` is the same
+  instant as `Z`. It is emitted and stored exactly as `YYYY-MM-DDTHH:MM:SS.ffffffZ`, with uppercase
+  `T` and `Z` and the fraction right-padded with zeros to six digits.
+- **Range (G-029).** Both the parsed local civil date-time and the normalized UTC instant must lie
+  within `0001-01-01T00:00:00` … `9999-12-31T23:59:59.999999`. An offset that moves the instant
+  across either boundary is rejected (`timestamp.invalid`); it is never clamped or wrapped, and
+  the offset form is never preserved instead. Leap years follow the Gregorian rule (divisible by
+  4, except centuries not divisible by 400).
+- **Semantics.** Equality, hashing, persistence, conflict detection and cross-language
+  conformance operate only on the normalized canonical value. The original offset, letter case or
+  spelling is not part of timestamp semantics; local-time context, if needed, is separate
+  metadata.
+- **Error stage.** `timestamp.invalid` is a stage-3 (typed field) error (SER-008, G-031). A
+  timestamp value that is not a string at all, or that fails the generic value domain, reports
+  that earlier error instead.
+
+*Note:* resolves NF-015 (G-022) and NF-025 (G-026), and the input-grammar questions in WP01-CR-001
+(G-028…G-030). The offset, second and fraction grammar follows RFC 3339 §5.6 (an authority
+reading); letter case, year range, overflow and required acceptance are Owner decisions.
 
 ### HIST-005 — No global total order is assumed
 <a id="hist-005"></a>

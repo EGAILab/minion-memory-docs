@@ -111,12 +111,47 @@ coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-w
 - **Larger exact values.** Exact values outside this generic domain need an explicit schema type,
   never an alternate JSON-number spelling.
 
-*Note:* resolves NF-019 (G-015 as amended by G-016; G-017), NF-022 (G-023) and NF-024 (G-025).
-The canonical case `1e21` therefore moves from the canonicalization scenario to the rejection
-scenario. Stable error codes are proposed in the
-canonical scenarios
-(`value.integer_out_of_range`, `value.lone_surrogate`, `value.duplicate_key`, `value.invalid_json`)
-for review.
+**Validation stages and error map (Owner G-031, DRAFT).** Every input is validated in three ordered
+stages. A failure in an earlier stage stops validation, and exactly **one** error code is
+reported. Python and Rust must report the same code for the same input, and later-stage errors
+are never aggregated.
+
+| Stage | Applies to | Code | Rejects |
+|---|---|---|---|
+| 1 — decoding | JSON text | `value.invalid_json` | text that is not UTF-8, or not one RFC 8259 JSON value: `NaN`/`Infinity` literals, comments, trailing commas, leading zeros, trailing content, empty text |
+| 1 | JSON text | `value.lone_surrogate` | a `\u` escape, in a string or a member name, that yields an unpaired surrogate (raw surrogate bytes are invalid UTF-8, so `value.invalid_json`) |
+| 1 | JSON text | `value.duplicate_key` | an object member whose name, **after escape decoding**, equals an earlier member's name in the same object (`{"a":1,"a":2}`); detected before any map discards it |
+| 1 | native values | `value.unsupported_type` | a value or member name of a kind outside the JSON data model, e.g. byte strings, sets, date-time objects, non-string map keys |
+| 2 — value domain | every decoded or native value | `value.number_not_finite` | a numeral whose binary64 value overflows (`1e400`), and a native NaN or ±Infinity |
+| 2 | ″ | `value.integer_out_of_range` | an integral value outside ±(2^53−1), after the number interpretation below (G-025) |
+| 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
+| 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules |
+
+- **Order within a stage.**
+  - Stage 1 reports the violation that occurs first in the source text; a duplicate is located
+    at its second occurrence.
+  - Stages 2 and 3 traverse depth-first, pre-order: array elements in index order, object members
+    in SER-009 order (names by UTF-16 code units), a member's name before its value. A primitive's
+    arguments are taken in declared order.
+- **Number interpretation (authority reading of RFC 8785 §3.2.2.3).**
+  - A JSON numeral denotes the IEEE 754 binary64 value nearest its exact decimal value, ties to
+    even. Hence `1.0000000000000001` is 1 and `5e-324` is kept.
+  - `1e-400` is 0, and `-1e-400` is −0, which is normalized to 0 (G-017).
+  - `9007199254740991.5` rounds to 2^53 and is rejected as `value.integer_out_of_range`.
+  - A native integer is taken exactly, without rounding.
+  - Accepting a value never depends on a host parser's integer/float tag or its overflow
+    behaviour.
+- **Precedence example.** An over-large version `9007199254740992` fails stage 2
+  (`value.integer_out_of_range`), so it is never interpreted as a version. `0`, `-1`, `1.5` and
+  `true` pass stage 2 and fail stage 3 (`version.invalid`).
+
+*Note:* resolves NF-019 (G-015 as amended by G-016; G-017), NF-022 (G-023), NF-024 (G-025) and the
+precedence question of WP01-CR-003 (G-031).
+- **Codes.** The codes name rejections the domain already fixes (representation, path B). The
+  stage-2 and stage-3 traversal order is the author's concrete reading of G-031's "shared
+  deterministic document traversal order", submitted for review.
+- **Native-value seam.** This seam is exercised by host-language conformance tests. JSON-text
+  scenarios cannot construct native values.
 
 ### SER-009 — Canonical bytes and content hash
 <a id="ser-009"></a>
@@ -125,13 +160,26 @@ for review.
 The canonical bytes of a SER-008 value are its RFC 8785 (JSON Canonicalization Scheme)
 serialization, encoded as UTF-8. In particular: object members are ordered by their names' UTF-16
 code units (not code points, not UTF-8 bytes); numbers use the ECMAScript shortest round-trip form
-(`1.0` → `1`, `1e21` → `1e+21`); strings use RFC 8785 escaping; no insignificant whitespace.
+(`1.0` → `1`, `1.5e-7` → `1.5e-7`, `0.000001` → `0.000001`); strings use RFC 8785 escaping; no
+insignificant whitespace. (Raw JCS would also write `1e21` as `1e+21`, but `1e21` is outside the
+Mneme value domain, G-025.)
 The content hash of a value is the SHA-256 of its canonical bytes, written as 64 lowercase
 hexadecimal digits. Text and binary content (e.g. Markdown files, assets) are hashed over their
 bytes as given — no Unicode normalization (G-014) and no line-ending conversion.
 
 *Note:* resolves NF-013. Executed feasibility evidence
 (`assurance/layers/01-probes/`): the RFC 8785 reference implementation (`rfc8785` 0.1.4, Python)
-and an off-the-shelf Rust crate (`serde_jcs` 0.1) **disagree**: the crate orders keys by code point
-and emits integers ≥ 2^53, so an implementation must not rely on it unverified. The canonical
-scenarios include the discriminating cases.
+and an off-the-shelf Rust crate (`serde_jcs` 0.1) **disagree**.
+- **The serializer defect.** The crate orders object members by code point instead of UTF-16 code
+  units, so it is not RFC 8785-conformant and must not be adopted unchanged.
+- **Not a serializer defect.** The crate emitting 2^53 is no RFC defect (RFC 8785 Appendix B
+  includes that binary64 value); such values are excluded by **Mneme's** domain (G-025), and that is
+  the seam validator's job.
+
+A conformant implementation needs:
+- recursive ordering by UTF-16 code units;
+- RFC 8785 string escaping and ECMAScript number formatting;
+- duplicate-aware decoding before map construction;
+- the SER-008 stage checks.
+
+The canonical scenarios include the discriminating cases.
