@@ -144,7 +144,20 @@ model must not depend on them; standards-based exports may be intentional projec
 Core IDs are opaque, stable, immutable and producer-generated (by the Knowledge producer, migration
 adapter or other producing component). IDs must not encode mutable semantics.
 
-*Note:* no source fixes an ID lexical form, alphabet, length or comparison rule (NF-010).
+**Layer 01 contract (Owner G-020, DRAFT):** a stable ID is an ASCII token of 1–128 bytes.
+- **Characters.** It begins with `a`–`z` or `0`–`9` and continues only with `a`–`z`, `0`–`9`, `.`,
+  `_` and `-`. It must not end with `.`.
+- **Reserved names.** Its basename must not be a Windows reserved device name (`con`, `prn`, `aux`,
+  `nul`, `com1`–`com9`, `lpt1`–`lpt9`). This holds whether the name stands alone or carries an
+  extension-like suffix, so `con` and `con.x` are both invalid.
+- **Comparison.** IDs are compared byte for byte. No Unicode normalization or case folding is ever
+  part of stable-ID identity. Human-readable Unicode belongs in titles, labels and source keys, not
+  in stable IDs.
+- **Path projection.** A package path such as `memories/<id>.md` is a deterministic projection of
+  the stable ID, not a second identity namespace.
+
+*Note:* resolves NF-010 by Owner decision G-020
+(`reference/governance/2026-10-10-owner-layer01-decisions.md`).
 
 ### CORE-002 — ID, key and version answer different questions
 <a id="core-002"></a>
@@ -169,9 +182,22 @@ Same ID + same version must imply semantically identical content. Differing (nor
 at the same ID and version is a conflict; it fails visibly and is never silently overwritten or
 merged.
 
-*Note:* every source states this for Knowledge entities. Whether it binds every versioned core
-artifact (e.g. MemoryRecord) is not stated (NF-012). The content-hash normalization is unspecified
-(NF-013).
+**Layer 01 contract (Owner G-021, DRAFT):** the rule is core-wide, scoped to **immutable
+semantically versioned artifacts**.
+- **Uniqueness.** For every artifact whose `(stable_id, artifact_version)` denotes an immutable
+  semantic revision, that pair resolves to exactly one canonical content value.
+- **Conflict.** The same pair with different canonical content (SER-009 bytes of the artifact
+  type's semantic-content projection) is a visible conflict. Implementations must not silently
+  overwrite, merge, normalize it away or choose one side.
+- **Exclusions.** The rule does not apply merely because something carries a `schema_version`,
+  `model_version`, `database_schema_version` or checkpoint-format version.
+- **Per-type projection.** Each artifact type defines its canonical semantic-content projection.
+  Mutable counters, access history, reinforcement/retrieval observations and derived state
+  normally live outside the immutable versioned artifact, rather than mutating it under the same
+  version.
+
+*Note:* every source states this for Knowledge entities. NF-012 is resolved by G-021. The
+content-hash normalization is SER-009 (NF-013, G-014).
 
 ### CORE-004 — Edits version; replacement, split and merge create identities with lineage
 <a id="core-004"></a>
@@ -311,7 +337,22 @@ The time something happened (`occurred_at`; for agent memory, source time) and t
 durably recorded or synchronized (`recorded_at`) are distinct, supporting offline-first capture and
 later synchronization.
 
-*Note:* representation, timezone and precision are unspecified (NF-015).
+**Layer 01 contract (Owner G-022, DRAFT):** the sole canonical persisted and wire spelling of a
+timestamp is RFC 3339 UTC with exactly six fractional digits: `YYYY-MM-DDTHH:MM:SS.ffffffZ`.
+- **Non-canonical forms.** `Z` is mandatory. Equivalent local-offset spellings, fractions with
+  fewer or more than six digits, and leap-second `:60` forms are non-canonical.
+- **Unknown time.** It is represented by absence of the field, never `null`, the epoch or another
+  sentinel.
+- **Semantics.** `occurred_at` and `recorded_at` keep distinct meanings. Timestamps must not
+  substitute for explicit semantic ordering such as an episode `sequence_no`.
+- **Local context.** Local wall-clock or time-zone context, if later required, is represented
+  separately from the canonical instant.
+- **Storage.** Physical storage may use integer microseconds internally if and only if the
+  canonical round trip is lossless.
+
+*Note:* resolves NF-015 by Owner decision G-022. Whether a non-canonical spelling received at a
+seam is rejected or normalized is a seam rule that Layer 01 does not yet state; see the canonical
+scenario proposal.
 
 ### HIST-005 — No global total order is assumed
 <a id="hist-005"></a>

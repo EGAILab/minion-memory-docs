@@ -444,3 +444,51 @@ findings:
       Add CARGO_HOME (and RUSTUP_HOME only if a project-local toolchain is ever installed) to both
       scripts after WP-P01's frozen process surface is released (Owner G-019).
     resolution_layer: "00"
+
+  - id: NF-024
+    title: With one numeric kind, the integer bound and finite binary64 overlap for large whole numbers
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: true
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §6]", "[MVP §18.1]"]
+    requirements: [SER-008, SER-009]
+    summary: >
+      G-016 bounds integers to +/-(2^53-1) and admits finite binary64 floats; G-023 makes every
+      accepted numeric spelling that canonicalizes to the same RFC 8785 number one value. A whole
+      number beyond 2^53-1 written as a float (9007199254740992.0, 1e21) canonicalizes like the
+      integer spelling, so it must be either a valid number or an out-of-range integer - not both.
+      The RFC 8785 reference library accepts the float spelling and refuses the integer one.
+    interpretations:
+      - "Magnitude bound for every number: any value whose magnitude is a whole number above 2^53-1 is rejected, whatever its spelling (1e21 rejected)."
+      - "Exactness bound: integer spellings are bounded; float spellings are accepted as binary64, and whole numbers above 2^53-1 are valid floats (1e21 accepted; 9007199254740992 rejected but 9007199254740992.0 accepted - spelling-dependent, contradicting G-023)."
+      - "Safe-integer rule: every whole-number value, any spelling, must lie within +/-(2^53-1); non-integral finite floats keep the full binary64 range."
+    recommendation: >
+      Safe-integer rule (third interpretation): one value, one answer regardless of spelling, matching
+      ECMAScript Number.isSafeInteger for integral values; large magnitudes stay expressible as
+      non-integral floats or by an explicit schema encoding (G-023).
+    resolution_layer: "01"
+
+  - id: NF-025
+    title: Whether a non-canonical timestamp spelling is rejected or normalized at a seam
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: true
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[FND §6]", "[R04 §9]"]
+    requirements: [HIST-004]
+    summary: >
+      G-022 fixes the sole canonical spelling (RFC 3339 UTC, six fractional digits) and calls offset,
+      shorter/longer-fraction and :60 forms non-canonical, but does not say what a public seam does
+      with one: reject it, or normalize it (e.g. +11:00 to Z, .5 to .500000) before persisting.
+      The choice is observable (acceptance and stored bytes); greater precision cannot be normalized
+      without loss.
+    interpretations:
+      - "Reject every non-canonical spelling at the seam."
+      - "Normalize lossless variants (offset, shorter fraction) to the canonical spelling; reject lossy ones (more than six fractional digits, :60)."
+    recommendation: >
+      Reject at the seam: the strictest rule, the same in both languages, and consistent with SER-008
+      (values are rejected, never coerced).
+    resolution_layer: "01"

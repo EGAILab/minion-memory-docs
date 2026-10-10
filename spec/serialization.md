@@ -91,9 +91,21 @@ canonical serialization) belongs to the portable value domain, identically in ev
 A value outside the domain is **rejected at the seam** with a validation error; it is never
 coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-wins).
 
-*Note:* resolves NF-019 (G-015 as amended by G-016; G-017). Whether a whole-number float (`1.0`)
-and the integer `1` are distinct values is **not** decided: RFC 8785 serializes both as `1`
-(NF-022, open). Stable error codes are proposed in the canonical scenarios
+**One numeric kind (Owner G-023, DRAFT).**
+- **One kind.** Mneme canonical JSON has a single numeric semantic kind. Accepted numeric
+  spellings that canonicalize to the same RFC 8785 number are the same value, and produce
+  identical canonical content and hashes. So `1`, `1.0` and `1e0` are one value.
+- **No hidden distinctions.** A numeric distinction that canonical serialization cannot observe is
+  not preserved.
+- **Other numeric domains.** A domain that genuinely needs one (arbitrary-precision integers, typed
+  decimals) uses an explicit schema encoding, not an invisible JSON-number subtype.
+
+*Note:* resolves NF-019 (G-015 as amended by G-016; G-017) and NF-022 (G-023). **Open (NF-024,
+path C):** with one numeric kind, the integer bound ±(2^53−1) (G-016) and "finite binary64"
+overlap. Whole-number values beyond 2^53−1 written in a float spelling need one rule: `1e21` or
+`9007199254740992.0` must be either valid floats or out-of-range integers, never both. The
+canonical scenario case `1e21` is pending that decision. Stable error codes are proposed in the
+canonical scenarios
 (`value.integer_out_of_range`, `value.lone_surrogate`, `value.duplicate_key`, `value.invalid_json`)
 for review.
 

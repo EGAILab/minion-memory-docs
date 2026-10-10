@@ -10,7 +10,7 @@ workflow:
   current_candidate: null
   dependencies:
     WP-P01: {relation: blocked_by, status: CONTRACT_CONVERGENCE}
-  open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022]
+  open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
   provisionally_closed: []
   convergence: null
   governance_source:
@@ -24,10 +24,11 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Claude
   next_action: >
-    Continue the Layer 01 contract draft; ask the Owner NF-010 residual, NF-012, NF-015 and NF-022
-    (path C) only while Codex is idle; after WP-P01 closes, rebase on the final process candidate,
-    re-validate, bind exact SHAs and hand off CONTRACT_REVIEW to Codex (G-019).
+    Ask the Owner NF-024 (large whole numbers under one numeric kind) and NF-025 (timestamp seam
+    handling) while Codex is idle; then add G-020..G-023 canonical scenarios. After WP-P01 closes,
+    rebase on the final process candidate, re-validate, bind exact SHAs and hand CONTRACT_REVIEW to
+    Codex (G-019).
   updated_by: Claude
-  updated_reason: WP-01 opened per G-019 (parallel authoring); Owner decisions G-012..G-017 transcribed as DRAFT contract.
+  updated_reason: Owner decisions G-020..G-023 transcribed as DRAFT contract; NF-024 and NF-025 raised.
   history:
     assurance_index: plans/WP-01.md
