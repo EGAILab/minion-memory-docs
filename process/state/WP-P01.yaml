@@ -3,7 +3,7 @@ workflow:
   work_package: WP-P01
   title: Process hardening 1 (carried forward from WP-00)
   layer: "00"
-  status: CONTRACT_CONVERGENCE
+  status: FINAL_CONTRACT_REVIEW
   requirements: []
   current_candidate:
     code:
@@ -16,8 +16,9 @@ workflow:
       sha: be2f4e29b862bfe0b5d3e57604eb0d979ac57521
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
-  open_findings: [WPP01-CR-001]
-  provisionally_closed: [WP00-CR-014, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
+  open_findings: []
+  provisionally_closed: [WP00-CR-014, WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005,
+                         WPP01-CR-006]
   convergence:
     episode: CE-P01-01
     root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
@@ -37,9 +38,9 @@ workflow:
       characterization: 281b81a3281ede7dc41a3f2913ae3a4b0b199625
     open_findings: [WPP01-CR-001]
   scoping_review:
-    outcome: CHANGES_REQUIRED
-    verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 surviving a third review (refined Windows-inventory and branch/tag witnesses); route decision escalated.
-    source: review/wpP01-codex-3 @ dc576a97caa1929c00489203b7a80b8c24383f05 (reviewed docs a9ed71d2 / code bb05e395)
+    outcome: APPROVED
+    verdict: "APPROVED - R1 resolved and WPP01-CR-001 closed; CR-002..006 retain their closed dispositions; no open finding or convergence reopening. This exact pair is the approved WP-P01 candidate."
+    source: review/wpP01-ce1-closure-3 @ c73f4410e9da6d98b4af1062bbc04eaa6c7f98db (assurance/reviews/WP-P01-CE-P01-01-targeted-closure-codex-3.md), approving code bb05e395 / docs be2f4e29
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
     decision: G-018 Codex-led convergence; production edits on the validator trust surface frozen until AGREED FOR IMPLEMENTATION.
@@ -47,11 +48,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-P01-CE-P01-01-codex-targeted-closure-3.md: recheck R1 / WPP01-CR-001
-    and direct regressions (G-027) at docs be2f4e29 / code bb05e395.
+    Accept the approved pair (docs be2f4e29 / code bb05e395) onto main under G-009 and close WP-P01
+    (FINAL_CONTRACT_REVIEW -> CLOSED, process-only WP).
   updated_by: Claude
-  updated_reason: Owner G-027 narrow fix for R1 committed; CR-002/003/004 closed by Codex recheck; R1 recheck handed to Codex.
+  updated_reason: Codex APPROVED the exact pair (c73f4410); all CE-P01-01 episode findings closed; CONTRACT_CONVERGENCE -> FINAL_CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-P01.md
