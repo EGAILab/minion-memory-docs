@@ -261,3 +261,18 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > silently replace the ID with a digest. This bound is intentionally larger than G-020’s stable-ID
 > limit because operation IDs are not filenames and may be composite or URL-like, while still
 > keeping idempotency/index keys bounded across Python, Rust, storage, and exports."
+
+## G-034 — Within-stage traversal order (WP01-CR-005)
+
+> **Q:** WP01-CR-005: G-031 says 'first violation under a shared deterministic traversal order' but
+> doesn't fix the order. It's observable: for {"b":9007199254740992,"a":1e400}, canonical order
+> reports value.number_not_finite, source order reports value.integer_out_of_range. Which
+> within-stage order?
+>
+> **A:** "Choose 1 — Canonical order.Stage 1 representation/JSON-decoding failures are selected in
+> source-text order, because representation defects such as duplicate keys exist only there. Once
+> decoding succeeds, Stages 2 and 3 operate on the canonical Mneme value and MUST use one shared
+> deterministic traversal: depth-first; object members in SER-009 canonical UTF-16 key order; for
+> each member, name/key before its value; arrays by ascending index; primitive/declared arguments
+> in declared order.Host map iteration/insertion order is never observable. Equivalent JSON texts
+> and equivalent native maps must therefore produce the same first error code."

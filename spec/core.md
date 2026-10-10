@@ -419,9 +419,11 @@ DIGIT       = %x30-39                                 ; ASCII digits only
   conformance operate only on the normalized canonical value. The original offset, letter case or
   spelling is not part of timestamp semantics; local-time context, if needed, is separate
   metadata.
-- **Error stage.** `timestamp.invalid` is a stage-3 (typed field) error (SER-008, G-031). A
-  timestamp value that is not a string at all, or that fails the generic value domain, reports
-  that earlier error instead.
+- **Error stage.** `timestamp.invalid` is a stage-3 (typed field) error (SER-008, G-031).
+  - **Wrong type.** A valid generic value of the wrong type (`null`, `true`, a number, an array or
+    an object) passes stages 1 and 2 and fails here as `timestamp.invalid`.
+  - **Earlier failure.** Only an actual stage-1 or stage-2 failure reports that earlier error
+    instead (e.g. a string containing a lone surrogate is `value.lone_surrogate`).
 
 *Note:* resolves NF-015 (G-022) and NF-025 (G-026), and the input-grammar questions in WP01-CR-001
 (G-028…G-030). The offset, second and fraction grammar follows RFC 3339 §5.6 (an authority

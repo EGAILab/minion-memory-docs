@@ -1,8 +1,8 @@
 # Cross-Language Feasibility Matrix — WP-01: Core identity, versions, canonical bytes, value domain
 
 **Template:** `process/templates/cross-language-feasibility-matrix.md`. **Status:** DRAFT, revised
-after Codex contract review 1 (`2b388e62`, CHANGES_REQUIRED), for re-review.
-**Authority bundle:** `mneme-v2.3-dual-profile`; **Owner decisions:** G-012…G-033.
+after Codex contract reviews 1 (`2b388e62`) and 2 (`1d25e434`), for re-review.
+**Authority bundle:** `mneme-v2.3-dual-profile`; **Owner decisions:** G-012…G-034.
 **Author:** Claude. **Independent checkpoint reviewer:** Codex.
 **Toolchains probed:** CPython 3.12.8 (project-local); rustc 1.97.1; `rfc8785` 0.1.4 (Python
 reference); `serde_jcs` 0.1.0 and `serde_json` 1 (Rust, off-the-shelf); dependency-free Rust `i64`
@@ -50,7 +50,8 @@ kept as historical evidence; their current interpretation is stated here.
 
 ## 4. Concurrency / order
 
-NOT_APPLICABLE — Layer 01 operations are pure functions. Error precedence is deterministic (G-031).
+NOT_APPLICABLE — Layer 01 operations are pure functions. Error selection is deterministic: stage
+precedence (G-031) and canonical within-stage order (G-034); host map order is never observable.
 
 ## 5. Neighbourhood expansion
 
@@ -64,7 +65,8 @@ NOT_APPLICABLE — Layer 01 operations are pure functions. Error precedence is d
 
 ```text
 FEASIBILITY
-    FEASIBLE (DRAFT)  no open path-C decision for Layer 01 (G-012..G-033). Rust needs its own
+    FEASIBLE (DRAFT)  no open path-C decision for Layer 01 (G-012..G-034; within-stage
+                      error order decided by G-034, WP01-CR-005). Rust needs its own
                       UTF-16-ordered RFC 8785 serializer (serde_jcs 0.1 orders by code point),
                       duplicate-aware decoding and the SER-008 stage checks; timestamps need the
                       contract grammar in front of any host time library. For re-review by Codex.

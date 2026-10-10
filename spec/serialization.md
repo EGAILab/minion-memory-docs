@@ -127,12 +127,16 @@ are never aggregated.
 | 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
 | 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules |
 
-- **Order within a stage.**
-  - Stage 1 reports the violation that occurs first in the source text; a duplicate is located
-    at its second occurrence.
-  - Stages 2 and 3 traverse depth-first, pre-order: array elements in index order, object members
-    in SER-009 order (names by UTF-16 code units), a member's name before its value. A primitive's
-    arguments are taken in declared order.
+- **Order within a stage (Owner G-034).**
+  - **Stage 1** reports the violation that occurs first in the source text; a duplicate is located
+    at its second occurrence. Representation defects such as duplicate keys exist only there.
+  - **Stages 2 and 3** operate on the decoded canonical value and use one shared traversal:
+    depth-first; object members in SER-009 canonical order (names by UTF-16 code units); for each
+    member, its name before its value; arrays by ascending index; a primitive's arguments in
+    declared order.
+  - **Host order never observable.** Host map iteration or insertion order is never observable.
+    Equivalent JSON texts (members in any order) and equivalent native maps produce the same first
+    error code.
 - **Number interpretation (authority reading of RFC 8785 §3.2.2.3).**
   - A JSON numeral denotes the IEEE 754 binary64 value nearest its exact decimal value, ties to
     even. Hence `1.0000000000000001` is 1 and `5e-324` is kept.
@@ -145,11 +149,9 @@ are never aggregated.
   (`value.integer_out_of_range`), so it is never interpreted as a version. `0`, `-1`, `1.5` and
   `true` pass stage 2 and fail stage 3 (`version.invalid`).
 
-*Note:* resolves NF-019 (G-015 as amended by G-016; G-017), NF-022 (G-023), NF-024 (G-025) and the
-precedence question of WP01-CR-003 (G-031).
-- **Codes.** The codes name rejections the domain already fixes (representation, path B). The
-  stage-2 and stage-3 traversal order is the author's concrete reading of G-031's "shared
-  deterministic document traversal order", submitted for review.
+*Note:* resolves NF-019 (G-015 as amended by G-016; G-017), NF-022 (G-023), NF-024 (G-025), the
+precedence question of WP01-CR-003 (G-031) and the within-stage order of WP01-CR-005 (G-034).
+- **Codes.** The codes name rejections the domain already fixes (representation, path B).
 - **Native-value seam.** This seam is exercised by host-language conformance tests. JSON-text
   scenarios cannot construct native values.
 
