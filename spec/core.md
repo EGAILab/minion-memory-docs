@@ -358,12 +358,69 @@ schedules, model state, checkpoints, indexes and projections are derived and reb
 projection, summary, model state, checkpoint, diagnostic or semantic index never replaces canonical
 history.
 
+**Layer 02 contract (WP-02).**
+- **Canonical history records.** A canonical history record is a history envelope (HIST-002) that a
+  reader of its profile admits with outcome `decode` (SER-005).
+- **Derived artifacts.** Current state, summaries, checkpoints, indexes, projections and diagnostics
+  are never history envelopes. They are never admitted as canonical history, and they never replace
+  it.
+- **Conformance.** Layer 02 fixes this vocabulary only. Rebuildability and non-replacement are
+  verified where derived artifacts first exist: Layer 03 projections, Layer 04 persistence and
+  Layer 05 checkpoints.
+
+
 ### HIST-002 — Typed, profile-owned canonical history
 <a id="hist-002"></a>
 - **Profile:** core · **Source status:** NORMATIVE · **Sources:** [FND §G.2] [MVP §18.1] [R04 §41.1]
 
 The core provides typed canonical history primitives (`CanonicalHistory<T profile record>`); each
 profile owns its history record types and payloads, which remain namespaced.
+
+**History envelope (Owner G-048, G-049; `reference/governance/2026-10-11-owner-layer02-start.md`).** Every canonical history record
+is serialized as one envelope, a JSON object:
+
+```text
+{record_id, profile, record_type, schema_version, compatibility, recorded_at,
+ occurred_at?, payload?, provenance?}
+```
+
+- **Identity members, present and valid in every schema version.**
+  - `profile` and `record_type` are tokens in the CORE-001 stable-ID lexical domain. The core
+    fixes only that domain. Each profile owns its vocabulary, and a `record_type` is meaningful
+    only within its `profile` (namespacing, R04 §41.1).
+  - `schema_version` is a positive integer edition from 1 to 2^53−1 (one numeric kind, G-023;
+    `1.0` is 1). It identifies the record's schema and is not an artifact version.
+  - `compatibility` is exactly `"required"` or `"ignorable"` (SER-005).
+- **Recognized versus unrecognized.** A `(record_type, schema_version)` pair is *recognized* by a
+  reader when that reader declares it. For a recognized pair, the member set is **closed**: exactly
+  the members above. Any other top-level member is `history.envelope_invalid`, and so is a missing
+  `record_id` or `recorded_at` (G-048).
+  - Envelope-level semantics evolve only through a new `schema_version` and/or `record_type`,
+    never by adding a member to a known schema.
+  - An unrecognized pair is never validated as if it were a known schema; SER-005 compatibility
+    applies to it instead.
+- **Fields of a recognized envelope.**
+  - `record_id`: a CORE-001 stable ID.
+  - `recorded_at`: required. It is the HIST-004 instant at which the local durable writer recorded
+    the record.
+  - `occurred_at`: optional. It is the HIST-004 source-event instant. **Absence means unknown**,
+    never `null`, epoch or any other sentinel, and a present `null` is `timestamp.invalid`. No
+    reader infers `occurred_at` from `recorded_at`, and no ordering between the two is required,
+    because clock skew and imported sources make it non-authoritative (G-049).
+  - `payload` and `provenance`: any SER-008 values. Their shapes are governed by the profile's own
+    schemas for that `record_type`, not by the core, and admission returns them unchanged
+    (HIST-010).
+- **Errors (stage 3, SER-008 G-031), after the generic stages.**
+  1. The identity members are checked first: a non-object envelope, or a missing or invalid
+     identity member, is `history.envelope_invalid`.
+  2. Profile admission and recognition follow (SER-005).
+  3. For a recognized pair, the closed shape is checked next: an unknown member or a missing
+     required member is `history.envelope_invalid`.
+  4. Last, the typed fields are checked in canonical member order (G-034): `occurred_at` and
+     `recorded_at` give `timestamp.invalid`, and `record_id` gives `id.invalid`.
+- **Normalized result.** The envelope with both timestamps in HIST-004 canonical form, and all
+  values as the exact normalized SER-008 values.
+
 
 ### HIST-003 — Deterministic episode event order
 <a id="hist-003"></a>
@@ -452,6 +509,38 @@ No total global order across devices or episodes is assumed or required.
 *Note:* bounded "since boundary" reads ([R04 §34]) need some durable ordering; how that coexists
 with this rule is unspecified (NF-016).
 
+**HistoryBoundary (Owner G-047, G-051, resolving NF-016; `reference/governance/2026-10-11-owner-layer02-start.md`).**
+
+A HistoryBoundary is the closed record `{store_id, position}`.
+- **`store_id`.** A CORE-001 stable ID naming one logical store.
+- **`position`.** An integer from 0 to 2^53−1, where 0 is the position before the store's first
+  record.
+- **What a position is.** It is a **store-local persistence/read cursor only**. It is **not** a
+  global, causal or cross-device event order, and it must never be used as one. Timestamps never
+  substitute for it.
+- **Mixed-profile stores.** Records that a profile reader excludes (G-050) still occupy store
+  positions and advance the shared cursor.
+
+Operations:
+- **Ordering.** `compare_history_boundaries(a, b)` returns `less`, `equal` or `greater` by position
+  only when both boundaries name the same `store_id`. Otherwise it fails with
+  `history.boundary_incomparable`. Implementations never compare positions alone and never derive
+  an order from store IDs.
+- **Equality.** `history_boundaries_equal(a, b)` is structural equality over the complete pair, so
+  it returns `false`, not an error, for different stores.
+- **Store-dependent operations.** Range, distance, minimum/maximum and since-boundary operations
+  likewise require a common store. They belong to Layer 04 (PERS-007/008).
+
+Errors (SER-008 G-031):
+- **Generic stages first.** The generic stages run across both arguments first.
+- **Invalid boundary.** Then a boundary with a non-object value, a missing or other member, an
+  invalid `store_id` or a `position` outside the domain is `history.boundary_invalid` (stage 3),
+  checked in declared order `a`, then `b`.
+- **Incomparable.** Incomparability is reported only once both boundaries are valid.
+- **Arguments in errors.** Argument errors name `a` or `b`. `history.boundary_incomparable` is a
+  relation and names no argument.
+
+
 ### HIST-006 — History is append-only
 <a id="hist-006"></a>
 - **Profile:** core · **Source status:** FROZEN · **Sources:** [FND §8] [FND §14] [R03 §14] [R04 §9] [R04 §11] [R03 §26]
@@ -494,6 +583,14 @@ examples, previously injected/recalled context) retains provenance so that a lat
 misclassified as independent retrieval or as new independent evidence. The system records what it
 exposed; it does not claim to know an internal cognitive source. Each profile owns its own
 mechanism (OBS-006, ACTX-004).
+
+**Layer 02 contract (WP-02).**
+- **No core origin vocabulary.** The core defines none: each profile owns its mechanism (OBS-006,
+  ACTX-004). "Shared in spirit" (R03 §28) is not a shared term (FND §G.1).
+- **Core guarantee.** The envelope's `payload` and `provenance` reach an admitting reader exactly,
+  as normalized SER-008 values. Envelope admission never drops, rewrites or summarizes the data in
+  which a profile records information origin.
+
 
 ---
 

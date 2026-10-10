@@ -50,12 +50,50 @@ declared ignorable may be skipped. Purely informational telemetry may be ignorab
 skipping it cannot change reconstruction of meaning; records that affect evidence, corrections or
 completion are normally required. Unknown required package semantics also fail safely.
 
+**Replay admission (Owner G-048, G-050; `reference/governance/2026-10-11-owner-layer02-start.md`).**
+`admit_history_record(reader, record)` decides how one reader treats one envelope (HIST-002).
+- **The reader.** The reader is the closed record `{profile, recognized}`. `profile` is a CORE-001
+  token. `recognized` is an array of closed `{record_type, schema_version}` pairs in the envelope
+  domains. Two pairs that are equal after SER-008 normalization are duplicates, so `1` and `1.0`
+  are the same `schema_version`. A duplicate pair, or any other reader value, is
+  `history.reader_invalid`.
+- **Order of decisions.** The generic stages SER-008 G-031 apply first, across `reader` and then
+  `record`; next `history.reader_invalid`; then:
+  1. **Identity.** A missing or invalid identity member is `history.envelope_invalid`. Invalid or
+     absent profile identity is an envelope error, never exclusion.
+  2. **Profile admission (G-050).** If the envelope's `profile` differs from the reader's, the
+     outcome is **`excluded`**. The record is not validated further and not payload-decoded, and
+     `compatibility` is not consulted. It takes no part in this profile's history, projections or
+     derived state.
+  3. **Recognition.**
+     - Unrecognized `(record_type, schema_version)` with `compatibility: "ignorable"`: the outcome
+       is **`skip`**.
+     - Unrecognized with `"required"`: replay stops with the error **`history.unknown_required`**.
+       It is never a partial or silent omission.
+     - An unrecognized envelope is never checked against the closed shape (G-048).
+  4. **Recognized.** The closed shape and typed fields are checked (HIST-002). The outcome is
+     **`decode`**, returning the normalized envelope.
+- **Arguments in errors.** `history.reader_invalid`, `history.envelope_invalid` and the generic and
+  typed errors name their argument, `reader` or `record`. `history.unknown_required` is a replay
+  stop about the admitted record and names no argument.
+- **Visible outcomes.** Only `decode` returns an envelope. `skip` and `excluded` are reported, never
+  dropped silently.
+
+
 ### SER-006 — Profile and type identity are explicit
 <a id="ser-006"></a>
 - **Profile:** core · **Source status:** NORMATIVE · **Sources:** [R03 §28] [R04 §41.1] [R04 §42] [MVP §18.1]
 
 If shared storage or serialization is used, profile/type/schema identity is explicit so a reader
 never interprets Agent Memory records as LearningEvents or vice versa.
+
+**Layer 02 contract (WP-02).**
+- **Explicit identity.** Every serialized history record states `profile`, `record_type` and
+  `schema_version`, and none of them is inferred from storage location or format (HIST-002).
+- **No cross-decoding.** A reader decodes only records of its own profile. A record of the other
+  profile is `excluded` (SER-005, G-050), so an Agent Memory record is never interpreted as a
+  LearningEvent, or vice versa, even when storage formats match.
+
 
 ### SER-007 — Migration fixtures per supported version
 <a id="ser-007"></a>
@@ -135,6 +173,8 @@ are never aggregated.
 | 2 | ″ | `value.integer_out_of_range` | an integral value outside ±(2^53−1), after the number interpretation below (G-025) |
 | 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
 | 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` / `artifact.revision_invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules / CORE-003 record shape (G-035) |
+| 3 | Layer 02 history arguments | `history.envelope_invalid` / `history.reader_invalid` / `history.boundary_invalid` | HIST-002 envelope (G-048, G-049) / SER-005 reader / HIST-005 boundary (G-051) |
+| after 3 | Layer 02 relations | `history.unknown_required` / `history.boundary_incomparable` | SER-005 replay stop for an unrecognized required record / HIST-005 cross-store ordering |
 
 - **Order within a stage (Owner G-034).**
   - **Stage 1, JSON text.** Reports the violation that occurs first in the source text; a

@@ -531,3 +531,23 @@ findings:
     resolution: >
       Resolved by Owner decision G-026 and G-028 to G-030 (HIST-004 seam grammar, case, range), reference/governance/2026-10-10-owner-layer01-decisions.md;
       contract accepted and Layer 01 certified at code cc3c5d54 / docs 71e2b12e (G-009, G-044).
+
+  - id: NF-026
+    title: Runner treatment of DRAFT scenarios is unspecified and the runners diverge
+    classification: CONTRACT_ASSURANCE_DEFECT
+    owner_decision_required: false
+    blocking: [WP-02]
+    status: OPEN
+    raised_by: Claude
+    sources: []
+    requirements: []
+    summary: >
+      conformance/README.md defines DRAFT as "under contract review" but not how a runner reports it.
+      The Python runner reports DRAFT as xfail; the Rust runner (tests/conformance.rs) asserts every
+      non-placeholder scenario is ACTIVE and pins (8, 146, 5), so adding WP-02's four DRAFT scenarios
+      fails the Rust suite. Found while drafting the WP-02 corpus.
+    recommendation: >
+      The corpus README states the rule (DRAFT reported as xfail in both runners, never evidence,
+      never a suite failure; done in the WP-02 candidate). The Rust owner aligns the Rust runner and its
+      pinned counts with that rule before the WP-02 contract is agreed.
+    resolution_layer: "02"
