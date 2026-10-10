@@ -1,0 +1,29 @@
+workflow:
+  schema_version: 2
+  work_package: WP-02S
+  title: Layer 02 — MemoryScope
+  layer: "02"
+  status: SCOPING
+  requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
+  current_candidate: null
+  dependencies:
+    WP-01: {relation: blocked_by, status: CLOSED}
+  open_findings: [NF-018]
+  provisionally_closed: []
+  governance_source:
+    artifact: reference/governance/2026-10-11-owner-layer02-start.md
+    decision: >
+      G-046 start Layer 02; G-047 split: WP-02 history/compatibility envelope proceeds now and may
+      close independently; WP-02S MemoryScope in parallel with one consolidated Owner-decision
+      packet; NF-016 append position only as a local read cursor, never a global/causal order.
+    scope: [WP-02S]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Claude
+  next_action: >
+    Characterize MemoryScope against every cited source and prepare one consolidated Owner-decision packet (G-047); never blocks WP-02.
+  updated_by: Claude
+  updated_reason: Opened under Owner G-046/G-047.
+  history:
+    assurance_index: plans/WP-02S.md
