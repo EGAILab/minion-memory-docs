@@ -53,8 +53,8 @@ work_packages:
     title: Layer 02 — MemoryScope
     layer: "02"
     requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
-    contract: {status: AGREED, agreed_code_sha: 0c569afba20477e0687a1de837b70e4b8996fa1e, agreed_docs_sha: c08c57e46c0c972d0e497f74df311e0241cb8b5c}
-    python: {status: IN_PROGRESS}
+    contract: {status: ACCEPTED, accepted_code_sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49, accepted_docs_sha: 36d02298d6c1f479e9b4ce370531fccdd88f6a58}
+    python: {status: APPROVED, approved_code_sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49, review: review/wp02s-rebase@e45efdeee607f3c57c116c669f847519363c5dc0}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-02S.md

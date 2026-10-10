@@ -3,32 +3,31 @@ workflow:
   work_package: WP-02S
   title: Layer 02 — MemoryScope
   layer: "02"
-  status: IMPLEMENTATION_REVIEW
+  status: RUST_IMPLEMENTATION
   requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
   current_candidate:
-    code: {repo: minion-memory, ref: wp02s/python-2, sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49}
-    docs: {repo: minion-memory-docs, ref: wp02s/docs-2, sha: 36d02298d6c1f479e9b4ce370531fccdd88f6a58}
+    code: {repo: minion-memory, ref: main, sha: 609dad7b5158d8821e4fb860d0f1e3bd2529eb49}
+    docs: {repo: minion-memory-docs, ref: main, sha: 36d02298d6c1f479e9b4ce370531fccdd88f6a58}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
-  open_findings: [NF-018]
+  open_findings: []
   provisionally_closed: [WP02S-CR-001, WP02S-CR-002, WP02S-CR-003]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-wp02s-memoryscope.md
     decision: >
-      G-047 split (WP-02S in parallel, never blocking WP-02); NF-018 decided by the Owner on the
-      consolidated packet as G-056..G-063 (value/equality, flat facets, applicability fail-closed,
-      not_found on out-of-scope, unresolved capture, Agent registry + fail-closed unknown facets,
-      learning deferred, six-dimension isolation conformance).
+      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact rebased pair
+      (Python review b24c9b8e, rebase confirmation e45efdee): docs main = 36d02298, code main = 609dad7b.
+      MemoryScope semantics G-056..G-064.
+    standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-02S]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-02S-codex-rebase-confirmation.md: confirm the rebased WP-02S pair (code
-    609dad7b = approved 5d1a74a5 rebased onto accepted WP-02 main; docs 36d02298 = approved content replayed onto
-    docs main); record APPROVED or CHANGES_REQUIRED on review/wp02s-rebase. On APPROVED, acceptance under G-009.
+    Rust Layer 02 MemoryScope (validate_scope, scopes_equal, scope_visible, Agent registry) against the
+    accepted contract and the 3 ACTIVE scope scenarios, after WP-02's Rust candidate; hand-off to follow.
   updated_by: Claude
-  updated_reason: Codex WP-02S Python review APPROVED (b24c9b8e); pair rebased onto the accepted WP-02 mains for fast-forward acceptance; confirmation handed to Codex.
+  updated_reason: WP-02S accepted onto main under G-009 (Codex APPROVED e45efdee; docs main 36d02298, code main 609dad7b); IMPLEMENTATION_REVIEW -> RUST_IMPLEMENTATION.
   history:
     assurance_index: plans/WP-02S.md
