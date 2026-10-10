@@ -556,12 +556,17 @@ def test_wpp01_cr002_closed_without_complete_pair_is_caught(world: World, varian
 # ---------------------------------------- WP-P01 remediation 2 (characterized trust surface)
 
 UNICODE_STATE = "WP-Ü.yaml"
+UNICODE_HANDOFF = "process/handoffs/hand-off-Ü.md"
 
 
-def test_wpp01_r2_unicode_state_inventory_matches(world: World) -> None:
+def test_wpp01_r2_unicode_state_name_is_named_in_both_views(world: World) -> None:
+    """CE-P01-01 D1 (row P06a): a non-ASCII state name is no longer a state file, and it is reported
+    with its exact decoded identity in both the working and the committed view (lossless transport)."""
     dump(world.docs / checks.STATE_DIR / UNICODE_STATE, world.state(work_package="WP-U"))
     world.commit_all(world.docs, "unicode state")
-    assert checks.state_roundtrip(world.docs) == []
+    errors = checks.state_roundtrip(world.docs)
+    assert any(repr(UNICODE_STATE) in e and "in the working tree" in e for e in errors), errors
+    assert any(repr(UNICODE_STATE) in e and "committed in" in e for e in errors), errors
 
 
 def test_wpp01_r2_unicode_state_uncommitted_deletion_is_caught(world: World) -> None:
@@ -570,13 +575,15 @@ def test_wpp01_r2_unicode_state_uncommitted_deletion_is_caught(world: World) -> 
     world.commit_all(world.docs, "unicode state")
     path.unlink()
     errors = checks.state_roundtrip(world.docs)
-    assert any(f"{UNICODE_STATE}: committed in HEAD but missing" in e for e in errors), errors
+    assert any(repr(UNICODE_STATE) in e and "committed in" in e for e in errors), errors
 
 
-def test_wpp01_r2_unicode_state_path_counts_as_state_only(world: World) -> None:
-    """diff-tree paths are read losslessly: a non-ASCII state path is still a state-only change."""
-    dump(world.docs / checks.STATE_DIR / UNICODE_STATE, world.state(work_package="WP-U"))
-    world.commit_all(world.docs, "unicode state after candidate")
+def test_wpp01_r2_unicode_state_only_path_counts_as_state_only(world: World) -> None:
+    """diff-tree paths are read losslessly: a non-ASCII hand-off path is still a state-only change."""
+    path = world.docs / UNICODE_HANDOFF
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("hand-off\n", encoding="utf-8", newline="\n")
+    world.commit_all(world.docs, "unicode hand-off after candidate")
     assert "state" not in only_failures(world)
 
 
@@ -627,4 +634,5 @@ def test_wpp01_r2_closed_requires_main_ref(world: World) -> None:
 @pytest.mark.parametrize("revision", ["-x", "--output=x", "HEAD..main", "nope"])
 def test_wpp01_r2_roundtrip_rejects_bad_revision(world: World, revision: str) -> None:
     errors = checks.state_roundtrip(world.docs, revision)
-    assert errors and ("must be HEAD" in errors[0] or "does not name a commit" in errors[0]), errors
+    refusals = ("must be HEAD", "does not name a commit", "is not a local branch")
+    assert errors and any(r in errors[0] for r in refusals), errors

@@ -34,10 +34,12 @@ exact action) is separate from history (reviews, rejected candidates, witnesses,
 
 1. the author commits the reviewed content → docs candidate `D`;
 2. the author then commits one or more **state-only descendants** of `D` on the same ref (a
-   linear chain `D → S1 → … → Sn`). **Every** commit in `D..ref` — checked per commit, not only
-   on the endpoint diff — touches only `process/state/**`, `process/handoffs/**` (hand-off
+   linear chain `D → S1 → … → Sn`: every commit in the chain has exactly one parent, so a merge
+   is refused). **Every** commit in `D..ref` — checked per commit, not only on the endpoint
+   diff — touches only `process/state/**`, `process/handoffs/**` (directory prefixes; hand-off
    prompts and gate results run at the exact candidate) and, when a transition changes registry
-   status, `process/certification-registry.yaml`;
+   status, exactly the path `process/certification-registry.yaml` (look-alikes such as
+   `…registry.yaml.bak` are not state-only; CE-P01-01 D10);
 3. the state file at the ref head names `D` (never an `Si`) as the docs candidate.
 
 A reviewer verifies, for each commit `c` in `git rev-list D..<ref>`, that
@@ -93,19 +95,48 @@ Rules (validated by `mneme-process check state` and `state validate`):
   WAITING_FOR_TRIGGER, CLOSED, INCIDENT, INVALID_UNAUTHORIZED, BLOCKED_FOR_OWNER.
 - Active states require non-empty string `next_owner` ∈ {Claude, Codex, Owner} and `next_action`.
 - `BLOCKED_FOR_OWNER` requires `next_owner: Owner`.
-- `WAITING_FOR_TRIGGER` requires `deferred_trigger` and null `next_owner`/`next_action`.
-- `CONTRACT_CONVERGENCE` requires `convergence.episode` and ≥1 `convergence.open_findings`.
-- `INCIDENT` / `INVALID_UNAUTHORIZED` authorize nothing (no hand-off, review, acceptance).
-- SHAs are 40 lowercase hex. `requirements`, `open_findings`, `provisionally_closed` are lists of IDs
-  (container shape validated before elements).
+- `WAITING_FOR_TRIGGER` requires a non-blank **string** `deferred_trigger` and null
+  `next_owner`/`next_action`.
+- `CONTRACT_CONVERGENCE` requires a mapping `convergence` with a non-blank string `episode` and a
+  non-empty list `open_findings` of finding IDs (truthy booleans, numbers or text are refused).
+- `INCIDENT` / `INVALID_UNAUTHORIZED` authorize nothing (no hand-off, review, acceptance):
+  `next_owner` **and** `next_action` are null.
+- Operational tokens are complete ASCII tokens (CE-P01-01 D11/D12; full match, no trailing
+  newline, no non-ASCII digits): `schema_version` is the integer `2` (not `2.0`, `true` or `"2"`);
+  `work_package` matches `WP-[A-Z0-9]{1,8}`; SHAs are 40 lowercase hex; `requirements` elements are
+  `<FAMILY>-NNN` with a declared family; `open_findings` / `provisionally_closed` elements are
+  `NF-NNN` or `WP…-CR-NNN`. Container shape is validated before elements, and owner/action
+  membership only after the type test, so malformed input is reported, never raised (D13).
+- Optional metadata (`title`, `layer`, `authority`, `dependencies`, `history`, `governance_source`,
+  `updated_by`, `updated_reason`, and `scoping_review` / `deferred_trigger` / `convergence` outside
+  the status that governs them) is opaque and confers **no** authority; existing type guards
+  (`updated_by` / `updated_reason` string-or-null) remain.
+- **State inventory (D1–D3).** Every immediate entry of `process/state/`, in the working tree and in
+  any committed tree, must be a regular file named `<WP-ID>.yaml` (literal lowercase suffix, byte
+  exact). Any other entry — another name, a case variant, a nested directory, a symlink, a gitlink,
+  a non-UTF-8 name — is an error naming its exact identity; it is never silently included or
+  skipped. The file-aware gates (`state validate`, `check state`) require the file stem to equal
+  `work_package`; the pure-object validator only checks the token, and `state roundtrip` proves
+  byte/inventory equality only.
 - Candidate sides are **bound to their repositories**: `code.repo` must be `minion-memory` and
   `docs.repo` must be `minion-memory-docs`; the validator resolves each side's repository from the
   side, never from the record (WPP01-CR-002).
 - A candidate `ref` is a **plain local branch name** that exists as `refs/heads/<ref>` — not a SHA,
-  `HEAD`, a range, or option-like text (otherwise a `ref` equal to the candidate SHA would make the
-  state-only descendant range empty). A `CLOSED` state uses `ref: main` on both sides.
-- Every path list read from git is NUL-delimited (`-z`) raw bytes decoded as UTF-8, so
-  `core.quotePath` display quoting never reaches a comparison (WPP01-CR-001).
+  `HEAD`, a qualified `refs/…` spelling, a range, or option-like text (otherwise a `ref` equal to
+  the candidate SHA would make the state-only descendant range empty). A `CLOSED` state uses
+  `ref: main` on both sides. A symbolic `refs/heads/<ref>` is refused (D5).
+- **One resolution per proof (D6, D8).** Each side resolves `refs/heads/<ref>` once to a commit
+  OID and uses that OID for ancestry, the descendant listing and every per-commit path listing;
+  CLOSED resolves `refs/heads/main` the same way. Tags, remotes and abbreviations are never
+  consulted. The candidate `sha` must itself be a commit object (an annotated tag that peels to a
+  commit is refused). Each state file is read and parsed once per check (D9).
+- **Hermetic Git (D7).** Every validator Git call runs with all inherited `GIT_*` variables
+  removed, replacement objects disabled and the graft file pointed at a path that never exists.
+  A repository that is shallow, or carries `refs/replace/*` or `info/grafts`, is refused for
+  ancestry proofs: only real object ancestry proves a candidate or an acceptance.
+- Every path list read from git is NUL-terminated (`-z`) raw bytes decoded as strict UTF-8, with no
+  trimming, case folding or normalization, so `core.quotePath` display quoting never reaches a
+  comparison (WPP01-CR-001); an unterminated record is a framing error (D4).
 - `CLOSED` requires no open findings, the exact accepted pair recorded (`current_candidate.code`
   and `.docs` both present with 40-hex SHAs — absent, empty, null or partial records fail closed,
   WPP01-CR-002), and every candidate SHA reachable from `main` (accepted).
@@ -135,7 +166,10 @@ A state transition is committed only when, in order:
    CRLF/LF differences ignored as a checkout artifact, any other byte difference fails; the
    committed and working state **inventories** must match first — a committed state missing from
    the working tree or an uncommitted extra state fails, while a committed deletion is legitimate,
-   WPP01-CR-001);
+   WPP01-CR-001). `--docs` must be a non-bare working-tree root. `--revision` accepts exactly
+   `HEAD`, a full 40-hex commit OID, or a plain local branch name resolved only as
+   `refs/heads/<name>` (never a tag, remote, abbreviation or qualified `refs/…` spelling); it is
+   resolved once, and that commit supplies the inventory and every blob (CE-P01-01 D8, D15);
 5. only then is any dependent action taken (hand-off, review start, acceptance, closure).
 
 A failed step 4 is a FAILED STATE COMMIT: no dependent action; repair by a new commit from the last

@@ -23,7 +23,8 @@ from mneme_process import checks, sources
 
 TOOLS = Path(__file__).resolve().parents[1]
 REAL_DOCS = TOOLS.parents[1]
-REAL_CODE = REAL_DOCS.parent / "minion-memory"
+# The code repo is the docs repo's sibling; a docs worktree elsewhere names it explicitly.
+REAL_CODE = Path(os.environ.get("MNEME_CODE_REPO") or REAL_DOCS.parent / "minion-memory")
 
 GIT_ENV = {
     **os.environ,
@@ -66,7 +67,7 @@ SCENARIO = {
 
 def git(repo: Path, *args: str) -> str:
     done = subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True, env=GIT_ENV, check=True
+        ["git", "-C", str(repo), *args], capture_output=True, encoding="utf-8", env=GIT_ENV, check=True
     )
     return done.stdout.strip()
 

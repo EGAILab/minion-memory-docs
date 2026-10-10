@@ -13,6 +13,7 @@ Exit status: 0 when every selected check passes, 1 when any reports an error, 2 
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -22,49 +23,114 @@ from . import checks, sources, transitions
 from .yamlcore import load_core
 
 
-def _bundle(docs: Path) -> dict[str, object]:
-    result = load_core((docs / checks.BUNDLE_MANIFEST).read_text(encoding="utf-8"))
-    if not result.ok:
-        raise SystemExit("source bundle manifest invalid: " + "; ".join(result.errors))
-    assert isinstance(result.value, dict)
-    return result.value
+def _fail(errors: list[str]) -> int:
+    for error in errors:
+        print(f"ERROR {error}", file=sys.stderr)
+    return 1
 
 
-def _cmd_sources_build(args: argparse.Namespace) -> int:
+def _sources_plan(args: argparse.Namespace) -> tuple[dict[Path, str], int, list[str]]:
+    """Preflight (CE-P01-01 D14): validate every entry, hash and output path before any write.
+
+    Returns the complete set of outputs (path -> text), the derived-text count and the errors.
+    """
     docs = Path(args.docs).resolve()
-    bundle = _bundle(docs)
-    workspace = Path(args.workspace or str(bundle["workspace_root"]))
-    root = workspace / str(bundle["bundle_root"])
-    out_dir = docs / checks.SOURCE_TEXT_DIR
-    out_dir.mkdir(parents=True, exist_ok=True)
+    manifest = docs / checks.BUNDLE_MANIFEST
+    try:
+        result = load_core(manifest.read_bytes().decode("utf-8"))
+    except (OSError, UnicodeDecodeError) as error:
+        return {}, 0, [f"{checks.BUNDLE_MANIFEST}: unreadable ({error})"]
+    if not result.ok:
+        return {}, 0, [f"{checks.BUNDLE_MANIFEST}: {e}" for e in result.errors]
+    bundle = result.value
+    documents = bundle.get("documents") if isinstance(bundle, dict) else None
+    if not isinstance(documents, list):
+        return {}, 0, [f"{checks.BUNDLE_MANIFEST}: documents must be a list"]
+    workspace_root = args.workspace or bundle.get("workspace_root")
+    bundle_root = bundle.get("bundle_root")
+    if not isinstance(workspace_root, str) or not checks.safe_relative_file(bundle_root):
+        return {}, 0, [f"{checks.BUNDLE_MANIFEST}: workspace_root and a relative bundle_root are required"]
+    root = Path(workspace_root) / bundle_root
+    out_dir = (docs / checks.SOURCE_TEXT_DIR).resolve()
+    errors: list[str] = []
+    outputs: dict[Path, str] = {}
     derived: dict[str, tuple[str, str]] = {}
-    documents = bundle["documents"]
-    assert isinstance(documents, list)
     for entry in documents:
-        key, file = str(entry["key"]), str(entry["file"])
+        entry_errors = checks.source_entry_errors(entry)
+        if entry_errors:
+            errors.extend(entry_errors)
+            continue
+        key, file = entry["key"], entry["file"]
         if not file.endswith((".docx", ".md")):
             continue
+        if key in derived:
+            errors.append(f"{key}: duplicate document key")
+            continue
+        target = (out_dir / f"{key}.md").resolve()
+        if target.parent != out_dir:
+            errors.append(f"{key}: derived output {target} escapes {out_dir}")
+            continue
         path = root / file
-        digest = sources.sha256_file(path)
+        try:
+            digest = sources.sha256_file(path)
+        except OSError as error:
+            errors.append(f"{key}: source unreadable: {path} ({error})")
+            continue
         if digest != entry["sha256"]:
-            print(f"ERROR {key}: sha256 mismatch for {path}", file=sys.stderr)
-            return 1
-        text = sources.derive_text(path)
+            errors.append(f"{key}: sha256 mismatch for {path}")
+            continue
+        try:
+            text = sources.derive_text(path)
+        except Exception as error:  # a failed derivation is a reported error, never a partial build
+            errors.append(f"{key}: derivation failed ({type(error).__name__}: {error})")
+            continue
         header = (
             f"<!-- DERIVED, NON-AUTHORITATIVE reading aid. Source: {file} sha256:{digest}. "
             "Regenerate with `mneme-process sources build`; never edit by hand. -->\n\n"
         )
-        (out_dir / f"{key}.md").write_text(header + text, encoding="utf-8", newline="\n")
+        outputs[target] = header + text
         derived[key] = (digest, text)
-    index = sources.build_index(derived)
-    (docs / checks.SOURCE_INDEX).write_text(
+    outputs[(docs / checks.SOURCE_INDEX).resolve()] = (
         "# DERIVED, NON-AUTHORITATIVE section-anchor index. Regenerate with "
         "`mneme-process sources build`.\n"
-        + yaml.safe_dump(index, sort_keys=False, allow_unicode=True, width=1000),
-        encoding="utf-8",
-        newline="\n",
+        + yaml.safe_dump(sources.build_index(derived), sort_keys=False, allow_unicode=True, width=1000)
     )
-    print(f"wrote {len(derived)} derived texts and {checks.SOURCE_INDEX}")
+    return outputs, len(derived), errors
+
+
+def _replace(temporary: Path, target: Path) -> None:
+    os.replace(temporary, target)
+
+
+def _cmd_sources_build(args: argparse.Namespace) -> int:
+    outputs, count, errors = _sources_plan(args)
+    if errors:  # validation failure: nothing has been written (D14)
+        return _fail(errors)
+    # Write phase: stage every output beside its target, then replace in turn. An OS failure while
+    # replacing can leave a mix of old and new files: the build then exits 1 naming every file
+    # already replaced (a stated limit, not a transactional claim).
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for target, text in outputs.items():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_name(f".{target.name}.mneme-tmp")
+            temporary.write_text(text, encoding="utf-8", newline="\n")
+            staged.append((temporary, target))
+    except OSError as error:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
+        return _fail([f"staging derived outputs failed before any replacement ({error})"])
+    replaced: list[str] = []
+    for index, (temporary, target) in enumerate(staged):
+        try:
+            _replace(temporary, target)
+        except OSError as error:
+            for leftover, _ in staged[index:]:
+                leftover.unlink(missing_ok=True)
+            done = ", ".join(replaced) or "none"
+            return _fail([f"replacing {target} failed ({error}); already replaced: {done}; rerun the build"])
+        replaced.append(str(target))
+    print(f"wrote {count} derived texts and {checks.SOURCE_INDEX}")
     return 0
 
 
@@ -123,7 +189,8 @@ def main(argv: list[str] | None = None) -> int:
     check.add_argument("--docs", required=True)
     check.add_argument("--code", required=True)
     check.add_argument("--workspace")
-    check.add_argument("--only", nargs="*", choices=checks.CHECK_NAMES)
+    # D15: `--only` names at least one check; a bare `--only` is a usage error, never "all checks".
+    check.add_argument("--only", nargs="+", choices=checks.CHECK_NAMES)
     check.add_argument("--deep-sources", action="store_true")
     check.set_defaults(func=_cmd_check)
 

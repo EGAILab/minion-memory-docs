@@ -26,3 +26,17 @@ Unit: 11 label-rule cases. Repository-level: 3 non-label negatives and 2 positiv
 (CR-014), NORMATIVE citing only an unlabelled section, round-trip positive / uncommitted-change
 negative / non-ASCII (em dash, ü) / CRLF-only, CLOSED-state post-acceptance records positive and
 active-state chain negative. Known-bad replay: see the hand-off.
+
+## CE-P01-01 convergence (G-018)
+
+The validator trust boundary was characterized by Codex: 688 rows, `281b81a`.
+
+Claude challenged and classified it, adding 12 controls. Revision 2 was AGREED by Codex
+`APPROVED` (`1845aa9b`).
+
+The implementation is in `assurance/reviews/WP-P01-remediation-claude-3.md`:
+- decisions D1–D16;
+- 115 row-keyed controls;
+- kill run on the frozen modules: no FIX control passes.
+
+Findings WPP01-CR-001…006 await Codex targeted closure.

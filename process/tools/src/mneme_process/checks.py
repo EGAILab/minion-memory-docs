@@ -8,17 +8,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import stat
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 import jsonschema
 
 from . import sources, transitions
-from .spec import CITATION, PROFILES, SOURCE_STATUSES, SpecParse, parse_spec
+from .spec import CITATION, PROFILES, SOURCE_STATUSES, SpecParse, inventory, parse_spec
 from .yamlcore import load_core
 
 BUNDLE_MANIFEST = "reference/mneme-v2.3-source-bundle.yaml"
@@ -80,11 +82,34 @@ XL_STATUSES = frozenset({"NOT_CLOSED", "CERTIFIED_CLOSED"})
 CONTRACT_STATUSES = frozenset({"DRAFT", "IN_REVIEW", "AGREED", "ACCEPTED"})
 OWNERS = frozenset({"Claude", "Codex", "Owner"})
 AGENTS = frozenset({"Claude", "Codex"})
-SHA = re.compile(r"^[0-9a-f]{40}$")
-REQ_ID = re.compile(r"^[A-Z]{2,5}-\d{3}$")
-FINDING_ID = re.compile(r"^[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}$")
+# Operational tokens are complete ASCII tokens, always used with `fullmatch` (CE-P01-01 D11/D12):
+# no `$`-before-newline leniency, no Unicode digits, no prefix matches.
+SHA = re.compile(r"[0-9a-f]{40}", re.ASCII)
+WP_ID = re.compile(r"WP-[A-Z0-9]{1,8}", re.ASCII)
+REQ_ID = re.compile(r"(?P<family>[A-Z]{2,5})-[0-9]{3}", re.ASCII)
+FINDING_ID = re.compile(r"NF-[0-9]{3}|WP[0-9A-Z]+-CR-[0-9]{3}", re.ASCII)
+SOURCE_KEY = re.compile(r"[A-Z][A-Z0-9]{0,15}", re.ASCII)  # the citation key grammar (spec.CITATION)
+STATE_FILE = re.compile(r"(?P<wp>WP-[A-Z0-9]{1,8})\.yaml", re.ASCII)  # D1: the only state entry
 HISTORY_KEYS = frozenset({"reviews", "remediations", "review_history", "history_log"})
 STATE_BUDGET = 8000
+STATE_ONLY_DIRS = ("process/state/", "process/handoffs/")
+
+
+def _is_str(value: Any) -> bool:
+    return isinstance(value, str)
+
+
+def _nonblank(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def is_requirement_id(value: Any) -> bool:
+    match = REQ_ID.fullmatch(value) if isinstance(value, str) else None
+    return bool(match) and match.group("family") in FAMILIES  # type: ignore[union-attr]
+
+
+def is_finding_id(value: Any) -> bool:
+    return isinstance(value, str) and bool(FINDING_ID.fullmatch(value))
 
 
 @dataclass
@@ -113,50 +138,142 @@ def _load(path: Path, errors: list[str], label: str | None = None) -> Any:
     return result.value
 
 
-def _git(repo: Path, *args: str) -> tuple[int, str]:
+def _no_graft_file(repo: Path) -> Path:
+    """The graft-file path given to Git: inside the project scratch root (OWN-001), never created.
+    Its existence is itself a refused overlay (`_graph_overlays`)."""
+    return repo.resolve().parent / ".tmp" / "mneme-process" / "no-grafts" / "absent"
+
+
+def _git_env(repo: Path) -> dict[str, str]:
+    """A hermetic Git environment (CE-P01-01 D7).
+
+    Every inherited ``GIT_*`` variable is removed: repository/object/namespace selectors, ceiling
+    directories, injected configuration and replacement-ref bases can never substitute another
+    repository or graph for the one named by ``-C`` (M01-M04, CH01, CH02). Replacement objects and
+    legacy grafts are disabled (``--no-replace-objects`` alone does not disable ``info/grafts``;
+    CH03), so the object graph is the real one. Repositories carrying overlays are refused too.
+    """
+    env = {key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")}
+    env["GIT_NO_REPLACE_OBJECTS"] = "1"
+    env["GIT_GRAFT_FILE"] = str(_no_graft_file(repo))
+    return env
+
+
+def _run_git(repo: Path, *args: str) -> subprocess.CompletedProcess[bytes] | None:
     try:
-        done = subprocess.run(
-            ["git", "-C", str(repo), *args],
-            capture_output=True,
-            # Never the platform code page: git emits UTF-8 (paths, messages, file contents).
-            encoding="utf-8",
-            errors="replace",
-            check=False,
-            timeout=60,
+        return subprocess.run(
+            ["git", "-C", str(repo), *args], capture_output=True, check=False, timeout=60, env=_git_env(repo)
         )
-    except (OSError, subprocess.TimeoutExpired) as error:
-        return 1, str(error)
-    return done.returncode, done.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def _git(repo: Path, *args: str) -> tuple[int, str]:
+    done = _run_git(repo, *args)
+    if done is None:
+        return 1, "git could not be run"
+    # Never the platform code page: git emits UTF-8 (paths, messages, file contents).
+    return done.returncode, done.stdout.decode("utf-8", errors="replace").strip()
+
+
+def _nul_records(data: bytes) -> list[bytes] | None:
+    """Split NUL-terminated records (D4): non-empty output must end in NUL; no empty record."""
+    if not data:
+        return []
+    if not data.endswith(b"\0"):
+        return None
+    records = data[:-1].split(b"\0")
+    return None if any(not record for record in records) else records
 
 
 def _git_paths(repo: Path, *args: str) -> tuple[int, list[str]]:
-    """Run a git command that lists paths, losslessly (WPP01-CR-001).
+    """Run a git command that lists paths, losslessly (WPP01-CR-001, CE-P01-01 D4).
 
-    Requests NUL-delimited output (`-z` must be among `args`) and decodes the raw path bytes as
-    UTF-8, so `core.quotePath` display quoting (e.g. ``"WP-\\303\\234.yaml"``) never reaches a
-    comparison. Undecodable bytes are reported as a failure, not guessed.
+    Requests NUL-terminated output (`-z` must be among `args`) and decodes the raw path bytes as
+    strict UTF-8, so `core.quotePath` display quoting (e.g. ``"WP-\\303\\234.yaml"``) never reaches
+    a comparison. No trimming, case folding or normalization. Undecodable bytes or broken framing
+    are reported as a failure, not guessed.
     """
-    try:
-        done = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, check=False, timeout=60)
-    except (OSError, subprocess.TimeoutExpired):
+    done = _run_git(repo, *args)
+    if done is None:
         return 1, []
     if done.returncode != 0:
         return done.returncode, []
+    records = _nul_records(done.stdout)
+    if records is None:
+        return 1, []
     try:
-        return 0, [part.decode("utf-8") for part in done.stdout.split(b"\0") if part]
+        return 0, [record.decode("utf-8") for record in records]
     except UnicodeDecodeError:
         return 1, []
 
 
 # Candidate sides are bound to their canonical repositories (WPP01-CR-002).
 SIDE_REPOS: dict[str, str] = {"code": "minion-memory", "docs": "minion-memory-docs"}
-# A candidate ref is a plain local branch name: no option-like or range syntax (WP-P01 sweep).
-BRANCH = re.compile(r"^(?!-)(?!.*\.\.)(?!.*//)[A-Za-z0-9._/-]+(?<![./])$")
+# A plain local branch name: no option-like, range, reflog or revision-suffix syntax.
+BRANCH = re.compile(r"(?!-)(?!.*\.\.)(?!.*//)[A-Za-z0-9._/-]+(?<![./])", re.ASCII)
 
 
-def valid_revision(text: str) -> bool:
-    """A revision accepted from the CLI: HEAD, a full SHA, or a plain branch name."""
-    return text == "HEAD" or bool(SHA.match(text)) or bool(BRANCH.match(text))
+def plain_branch(text: Any) -> bool:
+    """A candidate `ref` / roundtrip branch spelling (D5, D8): a plain name, resolved only as
+    ``refs/heads/<name>``. Never ``HEAD``, a qualified ``refs/...`` spelling or a 40-hex form."""
+    return (
+        isinstance(text, str)
+        and bool(BRANCH.fullmatch(text))
+        and text != "HEAD"
+        and not text.startswith("refs/")
+        and not SHA.fullmatch(text)
+    )
+
+
+def valid_revision(text: Any) -> bool:
+    """A roundtrip revision spelling (D8): exactly `HEAD`, a full 40-hex OID or a plain branch."""
+    return text == "HEAD" or (isinstance(text, str) and bool(SHA.fullmatch(text))) or plain_branch(text)
+
+
+def _object_type(repo: Path, oid: str) -> str | None:
+    status, kind = _git(repo, "cat-file", "-t", oid)
+    return kind if status == 0 else None
+
+
+def _local_head(repo: Path, name: str) -> tuple[str | None, str | None]:
+    """Resolve ``refs/heads/<name>`` once to a commit OID (D5, D8).
+
+    Returns ``(oid, None)`` or ``(None, reason)``. A symbolic head is refused: following it could
+    leave the local-branch namespace (J05). Tags, remotes and abbreviations are never consulted.
+    """
+    if not plain_branch(name):
+        return None, "is not a plain local branch name"
+    qualified = f"refs/heads/{name}"
+    if _git(repo, "symbolic-ref", "-q", qualified)[0] == 0:
+        return None, "is a symbolic ref (refused)"
+    status, line = _git(repo, "show-ref", "--verify", qualified)
+    parts = line.split(" ")
+    if status != 0 or len(parts) != 2 or parts[1] != qualified or not SHA.fullmatch(parts[0]):
+        return None, "is not a local branch"
+    if _object_type(repo, parts[0]) != "commit":
+        return None, "does not point at a commit"
+    return parts[0], None
+
+
+def _graph_overlays(repo: Path) -> list[str]:
+    """Overlays that could make Git's graph differ from real object ancestry (D7) are refused."""
+    found: list[str] = []
+    status, common = _git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if status != 0 or not common:
+        return [f"{repo.name}: cannot locate the git administrative directory"]
+    if _git(repo, "rev-parse", "--is-shallow-repository")[1] == "true":
+        found.append("shallow history")
+    if (Path(common) / "info" / "grafts").exists():
+        found.append("info/grafts")
+    if _no_graft_file(repo).exists():
+        found.append(f"graft file {_no_graft_file(repo)}")
+    status, refs = _git(repo, "for-each-ref", "--format=%(refname)", "refs/replace/")
+    if status != 0 or refs:
+        found.append("replacement refs (refs/replace/)")
+    if not found:
+        return []
+    return [f"{repo.name}: git graph overlay present ({', '.join(found)}); ancestry proofs refused"]
 
 
 def _bundle(ctx: Context, errors: list[str]) -> dict[str, Any] | None:
@@ -191,7 +308,11 @@ def _spec(ctx: Context) -> SpecParse:
 def _finding_ids(ctx: Context, errors: list[str]) -> dict[str, dict[str, Any]]:
     found: dict[str, dict[str, Any]] = {}
     directory = ctx.docs / FINDINGS_DIR
-    for path in sorted(directory.glob("*.yaml")) if directory.is_dir() else []:
+    paths, inventory_errors = (
+        inventory(directory, ".yaml", ctx.docs, recursive=False) if directory.is_dir() else ([], [])
+    )
+    errors.extend(inventory_errors)
+    for path in paths:
         label = path.relative_to(ctx.docs).as_posix()
         data = _load(path, errors, label)
         if data is None:
@@ -239,13 +360,12 @@ def _scenarios(ctx: Context, errors: list[str]) -> dict[str, tuple[str, dict[str
         if not directory.is_dir():
             errors.append(f"conformance/{family}: missing directory")
             continue
-        for path in sorted(directory.rglob("*")):
-            if not path.is_file() or path.name == "README.md":
-                continue
+        paths, inventory_errors = inventory(
+            directory, ".yaml", ctx.code, recursive=True, skip_names=frozenset({"README.md"})
+        )
+        errors.extend(f"{e} (canonical scenarios must be .yaml)" for e in inventory_errors)
+        for path in paths:
             label = path.relative_to(ctx.code).as_posix()
-            if path.suffix != ".yaml":
-                errors.append(f"{label}: canonical scenarios must be .yaml")
-                continue
             data = _load(path, errors, label)
             if data is None:
                 continue
@@ -307,8 +427,45 @@ def check_repos(ctx: Context) -> list[str]:
     return errors
 
 
+def _source_texts(ctx: Context) -> tuple[list[Path], list[str]]:
+    directory = ctx.docs / SOURCE_TEXT_DIR
+    if not directory.is_dir():
+        return [], []
+    return inventory(directory, ".md", ctx.docs, recursive=False)
+
+
+def safe_relative_file(text: Any) -> bool:
+    """D14: a bundle file is a relative path inside bundle_root: no '..', absolute or drive form."""
+    if not isinstance(text, str) or not text or "\\" in text or "\0" in text:
+        return False
+    windows = PureWindowsPath(text)
+    if PurePosixPath(text).is_absolute() or windows.is_absolute() or windows.drive or windows.root:
+        return False
+    return all(part not in ("", ".", "..") for part in text.split("/"))
+
+
+def source_entry_errors(entry: Any) -> list[str]:
+    """D14 shape of one `documents[]` entry: string key in the citation grammar, safe file, sha."""
+    if not isinstance(entry, dict):
+        return [f"{BUNDLE_MANIFEST}: document entry must be a mapping"]
+    key = entry.get("key")
+    errors: list[str] = []
+    if not isinstance(key, str) or not SOURCE_KEY.fullmatch(key):
+        errors.append(f"{BUNDLE_MANIFEST}: document key {key!r} must match [A-Z][A-Z0-9]{{0,15}}")
+    if not safe_relative_file(entry.get("file")):
+        errors.append(
+            f"{BUNDLE_MANIFEST}: {key!r} file {entry.get('file')!r} must be a relative path "
+            "inside bundle_root"
+        )
+    digest = entry.get("sha256")
+    if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest, re.ASCII):
+        errors.append(f"{BUNDLE_MANIFEST}: {key!r} sha256 must be 64 lowercase hex")
+    return errors
+
+
 def check_sources(ctx: Context) -> list[str]:
     errors: list[str] = []
+    errors.extend(_source_texts(ctx)[1])
     bundle = _bundle(ctx, errors)
     if bundle is None:
         return errors
@@ -336,7 +493,11 @@ def check_sources(ctx: Context) -> list[str]:
         if missing:
             errors.append(f"{BUNDLE_MANIFEST}: {entry.get('key')}: missing {missing}")
             continue
-        key = str(entry["key"])
+        entry_errors = source_entry_errors(entry)
+        if entry_errors:
+            errors.extend(entry_errors)
+            continue
+        key = entry["key"]
         if key in expected:
             errors.append(f"{BUNDLE_MANIFEST}: duplicate document key {key}")
         expected[key] = str(entry["sha256"])
@@ -358,6 +519,9 @@ def check_sources(ctx: Context) -> list[str]:
     if not isinstance(index, dict) or not isinstance(index.get("documents"), dict):
         return errors
     for key, doc in index["documents"].items():
+        if not isinstance(doc, dict):
+            errors.append(f"{SOURCE_INDEX}: {key} must be a mapping")
+            continue
         if key not in expected:
             errors.append(f"{SOURCE_INDEX}: {key} not in the bundle manifest")
             continue
@@ -367,7 +531,11 @@ def check_sources(ctx: Context) -> list[str]:
         if not text_path.is_file():
             errors.append(f"{SOURCE_TEXT_DIR}/{key}.md missing")
             continue
-        body = text_path.read_text(encoding="utf-8").split("\n", 2)[2]
+        parts = text_path.read_bytes().decode("utf-8", errors="replace").split("\n", 2)
+        if len(parts) < 3:
+            errors.append(f"{SOURCE_TEXT_DIR}/{key}.md has no derived header")
+            continue
+        body = parts[2]
         if hashlib.sha256(body.encode("utf-8")).hexdigest() != doc.get("derived_text_sha256"):
             errors.append(f"{SOURCE_TEXT_DIR}/{key}.md does not match the index (hand-edited?)")
         if [a.get("anchor") for a in doc.get("anchors", [])] != [a.anchor for a in sources.index_text(body)]:
@@ -415,9 +583,11 @@ def _frozen_labelled_sections(ctx: Context) -> set[tuple[str, str]]:
     actually covers the requirement's main statement stays a reviewer judgment.
     """
     found: set[tuple[str, str]] = set()
-    directory = ctx.docs / SOURCE_TEXT_DIR
-    for path in sorted(directory.glob("*.md")) if directory.is_dir() else []:
-        parts = path.read_text(encoding="utf-8").split("\n", 2)
+    for path in _source_texts(ctx)[0]:
+        try:
+            parts = path.read_bytes().decode("utf-8").split("\n", 2)
+        except (OSError, UnicodeDecodeError):
+            continue  # reported by check_sources
         if len(parts) < 3:
             continue
         body = parts[2]
@@ -545,16 +715,100 @@ def check_conformance(ctx: Context) -> list[str]:
     return errors
 
 
+def _kind(path: Path) -> str:
+    """Entry kind without following symlinks (D3)."""
+    try:
+        mode = os.lstat(path).st_mode
+    except FileNotFoundError:
+        return "missing"
+    except OSError:
+        return "unreadable"
+    if stat.S_ISLNK(mode):
+        return "symlink"
+    if stat.S_ISREG(mode):
+        return "file"
+    if stat.S_ISDIR(mode):
+        return "directory"
+    return "special file"
+
+
+_GIT_KINDS = {
+    b"100644": "file",
+    b"100755": "file",
+    b"120000": "symlink",
+    b"040000": "directory",
+    b"160000": "gitlink",
+}
+
+
+def _unsupported(name: str, kind: str, where: str) -> str:
+    return (
+        f"{STATE_DIR}/{name!r}: unsupported state entry ({kind}{where}); only regular "
+        "<WP-ID>.yaml files may appear in the state area (CE-P01-01 D1/D3)"
+    )
+
+
+def _state_working(docs: Path) -> tuple[dict[str, Path], list[str]]:
+    """Working state inventory: canonical members by name, plus one error per other entry (D1)."""
+    directory = docs / STATE_DIR
+    if _kind(directory) != "directory":
+        return {}, []
+    members: dict[str, Path] = {}
+    errors: list[str] = []
+    try:
+        names = sorted(os.listdir(directory))
+    except OSError as error:
+        return {}, [f"{STATE_DIR}: cannot list the working state area ({error})"]
+    for name in names:
+        kind = _kind(directory / name)
+        if kind == "file" and STATE_FILE.fullmatch(name):
+            members[name] = directory / name
+        else:
+            errors.append(_unsupported(name, kind, " in the working tree"))
+    return members, errors
+
+
+def _state_committed(docs: Path, oid: str) -> tuple[dict[str, str] | None, list[str]]:
+    """Committed state inventory at one commit OID: canonical members by name -> blob OID (D1/D3)."""
+    done = _run_git(docs, "ls-tree", "-z", f"{oid}:{STATE_DIR}")
+    records = _nul_records(done.stdout) if done is not None and done.returncode == 0 else None
+    if records is None:
+        return None, [f"{STATE_DIR}: cannot list committed state files in {oid[:12]}"]
+    members: dict[str, str] = {}
+    errors: list[str] = []
+    for record in records:
+        meta, tab, raw_name = record.partition(b"\t")
+        fields = meta.split(b" ")
+        if not tab or len(fields) != 3:
+            return None, [f"{STATE_DIR}: malformed tree listing in {oid[:12]}"]
+        kind = _GIT_KINDS.get(fields[0], "special entry")
+        try:
+            name = raw_name.decode("utf-8")
+        except UnicodeDecodeError:
+            errors.append(_unsupported(repr(raw_name), "non-UTF-8 name", f" committed in {oid[:12]}"))
+            continue
+        if kind == "file" and fields[1] == b"blob" and STATE_FILE.fullmatch(name):
+            members[name] = fields[2].decode("ascii")
+        else:
+            errors.append(_unsupported(name, kind, f" committed in {oid[:12]}"))
+    return members, errors
+
+
 def validate_state(state: Any, label: str) -> list[str]:
-    """Structural invariants of one state document (coordination-state.md §3)."""
+    """Structural invariants of one state document (coordination-state.md §3).
+
+    A pure-object gate: `label` is a diagnostic label, never a path. File identity (stem ==
+    work_package) is enforced by the file-aware gates (CE-P01-01 D2).
+    """
     errors: list[str] = []
     if not isinstance(state, dict) or not isinstance(state.get("workflow"), dict):
         return [f"{label}: top level must be a mapping with a 'workflow' mapping"]
     wf = state["workflow"]
-    if wf.get("schema_version") != 2:
+    schema = wf.get("schema_version")
+    if type(schema) is not int or schema != 2:  # D11: the integer 2, never 2.0 / True / "2"
         errors.append(f"{label}: schema_version must be 2")
-    if not isinstance(wf.get("work_package"), str) or not wf["work_package"]:
-        errors.append(f"{label}: work_package must be a non-empty string")
+    if not isinstance(wf.get("work_package"), str) or not WP_ID.fullmatch(wf["work_package"]):
+        errors.append(f"{label}: work_package must be a WP-ID token (WP-[A-Z0-9]{{1,8}})")
     status = wf.get("status")
     if not isinstance(status, str) or status not in transitions.STATUSES:
         errors.append(f"{label}: unknown status {status!r}")
@@ -562,32 +816,49 @@ def validate_state(state: Any, label: str) -> list[str]:
     for key in ("next_owner", "next_action", "updated_by", "updated_reason"):
         if key in wf and wf[key] is not None and not isinstance(wf[key], str):
             errors.append(f"{label}: {key} must be a string or null")
-    for key in ("requirements", "open_findings", "provisionally_closed"):
+    # Membership is tested only on strings (D13): an unhashable value is a shape error, not a raise.
+    owner = wf.get("next_owner") if isinstance(wf.get("next_owner"), str) else None
+    for key, valid in (
+        ("requirements", is_requirement_id),
+        ("open_findings", is_finding_id),
+        ("provisionally_closed", is_finding_id),
+    ):
         value = wf.get(key)
         if not isinstance(value, list):
             errors.append(f"{label}: {key} must be a list")
             continue
-        pattern = REQ_ID if key == "requirements" else FINDING_ID
         for item in value:
-            if not isinstance(item, str) or not pattern.match(item):
-                errors.append(f"{label}: {key} element {item!r} is not an ID")
+            if not valid(item):
+                errors.append(f"{label}: {key} element {item!r} is not a valid ID for {key}")
     if status in transitions.ACTIVE:
-        if wf.get("next_owner") not in OWNERS:
+        if owner not in OWNERS:
             errors.append(f"{label}: active status {status} needs next_owner in {sorted(OWNERS)}")
-        if not isinstance(wf.get("next_action"), str) or not wf["next_action"].strip():
+        if not _nonblank(wf.get("next_action")):
             errors.append(f"{label}: active status {status} needs a next_action")
-    if status == "BLOCKED_FOR_OWNER" and wf.get("next_owner") != "Owner":
+    if status == "BLOCKED_FOR_OWNER" and owner != "Owner":
         errors.append(f"{label}: BLOCKED_FOR_OWNER requires next_owner: Owner")
     if status == "WAITING_FOR_TRIGGER" and (
-        not wf.get("deferred_trigger")
+        not _nonblank(wf.get("deferred_trigger"))
         or wf.get("next_owner") is not None
         or wf.get("next_action") is not None
     ):
-        errors.append(f"{label}: WAITING_FOR_TRIGGER needs deferred_trigger and null owner/action")
+        errors.append(
+            f"{label}: WAITING_FOR_TRIGGER needs a non-blank string deferred_trigger and null owner/action"
+        )
     if status == "CONTRACT_CONVERGENCE":
         conv = wf.get("convergence")
-        if not isinstance(conv, dict) or not conv.get("episode") or not conv.get("open_findings"):
-            errors.append(f"{label}: CONTRACT_CONVERGENCE needs convergence.episode and open_findings")
+        findings = conv.get("open_findings") if isinstance(conv, dict) else None
+        if (
+            not isinstance(conv, dict)
+            or not _nonblank(conv.get("episode"))
+            or not isinstance(findings, list)
+            or not findings
+            or not all(is_finding_id(f) for f in findings)
+        ):
+            errors.append(
+                f"{label}: CONTRACT_CONVERGENCE needs convergence.episode (non-blank string) and a "
+                "non-empty convergence.open_findings list of finding IDs"
+            )
     if status == "CLOSED":
         if wf.get("open_findings"):
             errors.append(f"{label}: CLOSED with open findings")
@@ -597,7 +868,7 @@ def validate_state(state: Any, label: str) -> list[str]:
         complete = isinstance(candidate_record, dict) and all(
             isinstance(candidate_record.get(side), dict)
             and isinstance(candidate_record[side].get("sha"), str)
-            and SHA.match(candidate_record[side]["sha"])
+            and SHA.fullmatch(candidate_record[side]["sha"])
             for side in ("code", "docs")
         )
         if not complete:
@@ -610,10 +881,8 @@ def validate_state(state: Any, label: str) -> list[str]:
             if (
                 not isinstance(review, dict)
                 or review.get("outcome") != "APPROVED"
-                or not isinstance(review.get("verdict"), str)
-                or not review["verdict"].strip()
-                or not isinstance(review.get("source"), str)
-                or not review["source"].strip()
+                or not _nonblank(review.get("verdict"))
+                or not _nonblank(review.get("source"))
             ):
                 errors.append(
                     f"{label}: a scoping/process-only WP closes only with scoping_review "
@@ -630,7 +899,7 @@ def validate_state(state: Any, label: str) -> list[str]:
                 if not isinstance(value, dict):
                     errors.append(f"{label}: current_candidate.{side} must be a mapping or null")
                     continue
-                if not isinstance(value.get("sha"), str) or not SHA.match(value["sha"]):
+                if not isinstance(value.get("sha"), str) or not SHA.fullmatch(value["sha"]):
                     errors.append(f"{label}: current_candidate.{side}.sha must be 40 lowercase hex")
                 if value.get("repo") != SIDE_REPOS[side]:
                     errors.append(
@@ -638,10 +907,10 @@ def validate_state(state: Any, label: str) -> list[str]:
                         f"(sides are bound to their repositories), got {value.get('repo')!r}"
                     )
                 ref = value.get("ref")
-                if not isinstance(ref, str) or not BRANCH.match(ref) or SHA.match(ref):
+                if not plain_branch(ref):
                     errors.append(
                         f"{label}: current_candidate.{side}.ref must be a plain local branch name "
-                        f"(not a SHA, range or option), got {ref!r}"
+                        f"(not HEAD, refs/..., a SHA, range or option), got {ref!r}"
                     )
                 elif status == "CLOSED" and ref != "main":
                     errors.append(f"{label}: CLOSED requires current_candidate.{side}.ref == 'main'")
@@ -650,99 +919,161 @@ def validate_state(state: Any, label: str) -> list[str]:
         quarantine.get("derived_from_quarantined_artifact"), bool
     ):
         errors.append(f"{label}: quarantine.derived_from_quarantined_artifact must be a boolean")
-    elif quarantine["derived_from_quarantined_artifact"] and wf.get("next_owner") in AGENTS:
+    elif quarantine["derived_from_quarantined_artifact"] and owner in AGENTS:
         errors.append(
             f"{label}: a quarantined candidate authorizes no agent action (next_owner must be Owner or null)"
         )
-    if status in transitions.NON_ACTIONABLE and wf.get("next_owner") is not None:
-        errors.append(f"{label}: {status} authorizes no owner/action")
+    if status in transitions.NON_ACTIONABLE and (
+        wf.get("next_owner") is not None or wf.get("next_action") is not None
+    ):
+        errors.append(
+            f"{label}: {status} authorizes no owner/action (next_owner and next_action must be null)"
+        )
     bad = HISTORY_KEYS & set(wf)
     if bad:
         errors.append(f"{label}: history-shaped keys not allowed in current state: {sorted(bad)}")
     return errors
 
 
+def _state_file(path: Path, docs: Path | None) -> tuple[Any, list[str]]:
+    """Read, parse and validate one state file exactly once (D9); file-aware gate (D2, D15).
+
+    Returns the validated object (or None) and the errors; callers use this object, never a reread.
+    """
+    label = path.name
+    if docs is not None:
+        state_dir = (docs / STATE_DIR).resolve()
+        if path.resolve().parent != state_dir:
+            return None, [f"{label}: {path} is not a state file inside {state_dir} (--docs containment, D15)"]
+    kind = _kind(path)
+    if kind != "file":
+        return None, [f"{label}: {'missing' if kind == 'missing' else f'not a regular file ({kind})'}"]
+    try:
+        text = path.read_bytes().decode("utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        return None, [f"{label}: unreadable ({error})"]
+    result = load_core(text)
+    errors = [f"{label}: {e}" for e in result.errors]
+    if not result.ok:
+        return None, errors
+    data = result.value
+    errors.extend(validate_state(data, label))
+    match = STATE_FILE.fullmatch(path.name)
+    wf = data.get("workflow") if isinstance(data, dict) else None
+    work_package = wf.get("work_package") if isinstance(wf, dict) else None
+    if match is None:
+        errors.append(f"{label}: a state file is named <WP-ID>.yaml (D1)")
+    elif isinstance(work_package, str) and work_package != match.group("wp"):
+        errors.append(
+            f"{label}: work_package {work_package!r} does not equal the file stem {match.group('wp')!r} (D2)"
+        )
+    if len(text) > STATE_BUDGET:
+        errors.append(f"{label}: exceeds the {STATE_BUDGET}-character lean budget")
+    return data, errors
+
+
 def validate_state_file(path: Path, docs: Path | None) -> list[str]:
-    errors: list[str] = []
-    data = _load(path, errors, path.name)
-    if data is None:
-        return errors
-    errors.extend(validate_state(data, path.name))
-    if len(path.read_text(encoding="utf-8")) > STATE_BUDGET:
-        errors.append(f"{path.name}: exceeds the {STATE_BUDGET}-character lean budget")
-    return errors
+    return _state_file(path, docs)[1]
 
 
 def check_state(ctx: Context) -> list[str]:
     errors: list[str] = []
-    directory = ctx.docs / STATE_DIR
-    files = sorted(directory.glob("*.yaml")) if directory.is_dir() else []
-    if not files:
-        return [f"{STATE_DIR}: no work-package state file"]
+    members, inventory_errors = _state_working(ctx.docs)
+    errors.extend(inventory_errors)
+    if not members:
+        return [*errors, f"{STATE_DIR}: no work-package state file"]
     side_paths = {"code": ctx.code, "docs": ctx.docs}
-    for path in files:
-        errors.extend(validate_state_file(path, ctx.docs))
-        data = _load(path, [], path.name)
+    overlays: dict[str, list[str]] = {}
+    for name, path in members.items():
+        data, file_errors = _state_file(path, ctx.docs)  # one load per file (D9)
+        errors.extend(file_errors)
         wf = data.get("workflow") if isinstance(data, dict) else None
-        if not isinstance(wf, dict) or not isinstance(wf.get("current_candidate"), dict):
+        if not isinstance(wf, dict):
             continue
-        for side, cand in wf["current_candidate"].items():
-            if side not in side_paths or not isinstance(cand, dict) or not isinstance(cand.get("sha"), str):
+        status = wf.get("status")
+        candidate = wf.get("current_candidate")
+        for side, cand in candidate.items() if isinstance(candidate, dict) else []:
+            if side not in side_paths or not isinstance(cand, dict):
                 continue
-            # The repository is fixed by the side, never chosen by the record (WPP01-CR-002).
-            if cand.get("repo") != SIDE_REPOS[side]:
-                continue  # reported by validate_state; never resolve a mis-bound side
+            sha, ref = cand.get("sha"), cand.get("ref")
+            # The repository is fixed by the side, never chosen by the record (WPP01-CR-002); shape
+            # errors were reported by validate_state, so never resolve a malformed side.
+            if cand.get("repo") != SIDE_REPOS[side] or not isinstance(sha, str) or not SHA.fullmatch(sha):
+                continue
+            if not isinstance(ref, str) or not plain_branch(ref):
+                continue
             repo = side_paths[side]
-            sha, ref = cand["sha"], str(cand.get("ref"))
-            if not BRANCH.match(ref) or SHA.match(ref):
-                continue  # reported by validate_state
-            if _git(repo, "show-ref", "--verify", "--quiet", f"refs/heads/{ref}")[0] != 0:
-                errors.append(f"{path.name}: {side}.ref {ref!r} is not a local branch in {repo.name}")
+            if side not in overlays:
+                overlays[side] = _graph_overlays(repo)
+                errors.extend(overlays[side])
+            if overlays[side]:
                 continue
-            if _git(repo, "cat-file", "-e", f"{sha}^{{commit}}")[0] != 0:
-                errors.append(f"{path.name}: {side} candidate {sha} does not exist in {repo.name}")
+            tip, reason = _local_head(repo, ref)  # resolved once; this OID is used throughout (D8)
+            if tip is None:
+                errors.append(f"{name}: {side}.ref {ref!r} {reason} in {repo.name}")
                 continue
-            if _git(repo, "merge-base", "--is-ancestor", sha, ref)[0] != 0:
-                errors.append(f"{path.name}: {side} candidate {sha} is not reachable from {ref}")
-            if (
-                wf.get("status") == "CLOSED"
-                and _git(repo, "merge-base", "--is-ancestor", sha, "main")[0] != 0
-            ):
-                errors.append(f"{path.name}: CLOSED but {side} candidate {sha[:12]} is not accepted on main")
+            kind = _object_type(repo, sha)
+            if kind != "commit":  # D6: the recorded OID itself is a commit, never a peeled tag
+                errors.append(
+                    f"{name}: {side} candidate {sha} does not exist in {repo.name}"
+                    if kind is None
+                    else f"{name}: {side} candidate {sha} is a {kind} object, not a commit"
+                )
+                continue
+            if _git(repo, "merge-base", "--is-ancestor", sha, tip)[0] != 0:
+                errors.append(f"{name}: {side} candidate {sha} is not reachable from {ref}")
+            if status == "CLOSED":
+                main, main_reason = _local_head(repo, "main")
+                if main is None or _git(repo, "merge-base", "--is-ancestor", sha, main)[0] != 0:
+                    errors.append(
+                        f"{name}: CLOSED but {side} candidate {sha[:12]} is not accepted on main"
+                        + (f" (main {main_reason})" if main is None else "")
+                    )
             # An accepted (CLOSED) candidate is protected by the main-ancestry check above, and
             # post-acceptance record commits may follow it (coordination-state §2). Otherwise every
             # commit after the docs candidate must be state-only.
-            if side == "docs" and wf.get("status") != "CLOSED":
-                errors.extend(_state_only_chain(path.name, repo, sha, ref))
-        if wf.get("status") == "CLOSED" and wf.get("requirements"):
+            if side == "docs" and status != "CLOSED":
+                errors.extend(_state_only_chain(name, repo, sha, tip, ref))
+        work_package = wf.get("work_package")
+        if status == "CLOSED" and wf.get("requirements") and isinstance(work_package, str):
             registry = _load(ctx.docs / REGISTRY, [], REGISTRY)
-            entry = (registry or {}).get("work_packages", {}).get(wf.get("work_package"))
+            packages = registry.get("work_packages") if isinstance(registry, dict) else None
+            entry = packages.get(work_package) if isinstance(packages, dict) else None
             xl = entry.get("cross_language") if isinstance(entry, dict) else None
             if not isinstance(xl, dict) or xl.get("status") != "CERTIFIED_CLOSED":
-                errors.append(
-                    f"{path.name}: a product WP closes only when the registry says CERTIFIED_CLOSED"
-                )
+                errors.append(f"{name}: a product WP closes only when the registry says CERTIFIED_CLOSED")
     return errors
 
 
-def _state_only_chain(label: str, repo: Path, sha: str, ref: str) -> list[str]:
-    """Every commit after the docs candidate on `ref` touches only state-only paths.
+def _state_only_path(path: str) -> bool:
+    """D10: the two state directories by prefix, the registry by exact path only."""
+    return path.startswith(STATE_ONLY_DIRS) or path == REGISTRY
 
-    Checked per commit, not on the endpoint diff: a content change followed by its revert must not
-    pass (coordination-state.md §2).
+
+def _state_only_chain(label: str, repo: Path, sha: str, tip: str, ref: str) -> list[str]:
+    """Every commit in `sha..tip` is a single-parent commit touching only state-only paths (D10).
+
+    `tip` is the OID that `ref` resolved to once (D8). Checked per commit, not on the endpoint
+    diff: a content change followed by its revert must not pass (coordination-state.md §2).
     """
     errors: list[str] = []
-    status, commits = _git(repo, "rev-list", "--reverse", f"{sha}..{ref}")
+    status, listing = _git(repo, "rev-list", "--reverse", "--parents", f"{sha}..{tip}")
     if status != 0:
         return [f"{label}: cannot list commits {sha[:12]}..{ref}"]
-    for commit in commits.split():
+    for line in listing.splitlines():
+        commit, *parents = line.split()
+        if len(parents) != 1:
+            errors.append(
+                f"{label}: commit {commit[:12]} after docs candidate {sha[:12]} on {ref} has "
+                f"{len(parents)} parents (state-only descendants form a linear chain)"
+            )
         status, changed = _git_paths(
             repo, "diff-tree", "-z", "--no-commit-id", "--name-only", "-r", "-m", commit
         )
         if status != 0:
             errors.append(f"{label}: cannot list paths changed by commit {commit[:12]}")
             continue
-        extra = sorted({f for f in changed if not f.startswith(STATE_ONLY_PATHS)})
+        extra = sorted({f for f in changed if not _state_only_path(f)})
         if extra:
             errors.append(
                 f"{label}: commit {commit[:12]} after docs candidate {sha[:12]} on {ref} changes "
@@ -851,59 +1182,88 @@ def run_all(ctx: Context, only: list[str] | None = None) -> dict[str, list[str]]
     return report
 
 
+def _working_root(docs: Path) -> str | None:
+    """D15: the roundtrip target must be a non-bare working-tree repository root."""
+    status, bare = _git(docs, "rev-parse", "--is-bare-repository")
+    if status != 0 or bare != "false":
+        return f"docs {docs} is not a non-bare git working-tree root"
+    status, top = _git(docs, "rev-parse", "--show-toplevel")
+    if status != 0 or Path(top).resolve() != docs.resolve():
+        return f"docs {docs} is not a git working-tree root (toplevel {top!r})"
+    return None
+
+
+def _resolve_revision(docs: Path, revision: str) -> tuple[str | None, str | None]:
+    """D8: exactly three spellings, each resolved once to a commit OID."""
+    if not valid_revision(revision):
+        return None, f"revision {revision!r} must be HEAD, a 40-hex commit OID or a plain local branch name"
+    if revision == "HEAD":
+        status, head = _git(docs, "rev-parse", "--verify", "--quiet", "--end-of-options", "HEAD^{commit}")
+        if status == 0 and SHA.fullmatch(head):
+            return head, None
+        return None, "revision 'HEAD' does not name a commit"
+    if SHA.fullmatch(revision):
+        if _object_type(docs, revision) == "commit":
+            return revision, None
+        return None, f"revision {revision!r} does not name a commit object"
+    branch, reason = _local_head(docs, revision)
+    return (branch, None) if branch else (None, f"revision {revision!r} {reason}")
+
+
 def state_roundtrip(docs: Path, revision: str = "HEAD") -> list[str]:
     """Commit rule step 4 (coordination-state §4): every working-tree state file must equal, byte for
-    byte and semantically, the copy stored in `revision`. Reads git blobs as raw bytes and decodes
-    UTF-8 explicitly — never via the platform code page."""
-    errors: list[str] = []
-    directory = docs / STATE_DIR
-    files = sorted(directory.glob("*.yaml")) if directory.is_dir() else []
+    byte and semantically, the copy stored in `revision`.
+
+    The revision is resolved once to a commit OID; the committed inventory and every blob read come
+    from that one tree listing (D8). Both inventories obey the same domain (D1/D3). Blobs are read
+    as raw bytes and decoded as UTF-8 explicitly — never via the platform code page. Content
+    identity (stem == work_package) is not checked here: the roundtrip proves equality only (D2).
+    """
+    root_error = _working_root(docs)
+    if root_error:
+        return [root_error]
+    overlays = _graph_overlays(docs)
+    if overlays:
+        return overlays
+    oid, reason = _resolve_revision(docs, revision)
+    if oid is None:
+        return [reason or f"revision {revision!r} does not name a commit"]
+    committed, errors = _state_committed(docs, oid)
+    if committed is None:
+        return errors
+    working, working_errors = _state_working(docs)
+    errors.extend(working_errors)
     # Inventory first (WPP01-CR-001): a committed state missing from the working tree, or a working
     # state absent from the commit, is a failed round trip — never silently skipped.
-    if not valid_revision(revision):
-        return [f"revision {revision!r} must be HEAD, a 40-hex SHA or a plain branch name"]
-    if _git(docs, "rev-parse", "--verify", "--quiet", f"{revision}^{{commit}}")[0] != 0:
-        return [f"revision {revision!r} does not name a commit"]
-    status, listing = _git_paths(docs, "ls-tree", "-z", "--name-only", f"{revision}:{STATE_DIR}")
-    if status != 0:
-        return [f"{STATE_DIR}: cannot list committed state files in {revision}"]
-    committed_names = {name for name in listing if name.endswith(".yaml")}
-    working_names = {path.name for path in files}
-    for name in sorted(committed_names - working_names):
+    for name in sorted(set(committed) - set(working)):
         errors.append(f"{STATE_DIR}/{name}: committed in {revision} but missing from the working tree")
-    for name in sorted(working_names - committed_names):
+    for name in sorted(set(working) - set(committed)):
         errors.append(f"{STATE_DIR}/{name}: present in the working tree but not committed in {revision}")
-    if not committed_names and not working_names:
-        return [*errors, f"{STATE_DIR}: no state files"]
-    for path in files:
-        if path.name not in committed_names:
+    if not committed and not working and not errors:
+        return [f"{STATE_DIR}: no state files"]
+    for name in sorted(set(committed) & set(working)):
+        rel = f"{STATE_DIR}/{name}"
+        done = _run_git(docs, "cat-file", "blob", committed[name])
+        if done is None or done.returncode != 0:
+            errors.append(f"{rel}: cannot read the committed blob in {revision}")
             continue
-        rel = path.relative_to(docs).as_posix()
         try:
-            done = subprocess.run(
-                ["git", "-C", str(docs), "show", f"{revision}:{rel}"],
-                capture_output=True,
-                check=False,
-                timeout=60,
-            )
-        except (OSError, subprocess.TimeoutExpired) as error:
-            errors.append(f"{rel}: git show failed ({error})")
+            working_bytes = working[name].read_bytes()
+        except OSError as error:
+            errors.append(f"{rel}: unreadable in the working tree ({error})")
             continue
-        if done.returncode != 0:
-            errors.append(f"{rel}: not present in {revision}")
-            continue
-        committed_bytes, working_bytes = done.stdout, path.read_bytes()
+        committed_bytes = done.stdout
         # Line endings alone are a checkout/transport artifact (hazard H2; .gitattributes eol=lf),
         # not a different state; any other byte difference is a failed state commit.
         crlf, lf = b"\r\n", b"\n"
         if committed_bytes.replace(crlf, lf) != working_bytes.replace(crlf, lf):
             errors.append(f"{rel}: committed bytes in {revision} differ from the working tree")
         try:
-            committed = load_core(committed_bytes.decode("utf-8"))
-            working = load_core(working_bytes.decode("utf-8"))
+            committed_doc = load_core(committed_bytes.decode("utf-8"))
+            working_doc = load_core(working_bytes.decode("utf-8"))
         except UnicodeDecodeError as error:
             errors.append(f"{rel}: not valid UTF-8 ({error})")
             continue
-        if not committed.ok or not working.ok or committed.value != working.value:
+        if not committed_doc.ok or not working_doc.ok or committed_doc.value != working_doc.value:
             errors.append(f"{rel}: committed and working states are not semantically equal")
     return errors
