@@ -3,31 +3,31 @@ workflow:
   work_package: WP-02
   title: Layer 02 — history and compatibility envelope
   layer: "02"
-  status: IMPLEMENTATION_REVIEW
+  status: RUST_IMPLEMENTATION
   requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
   current_candidate:
-    code: {repo: minion-memory, ref: wp02/contract, sha: ff9d132ada35a604c6f4bc7f11504b229afece6e}
-    docs: {repo: minion-memory-docs, ref: wp02/contract, sha: 6541f33a989da531cc2f21c6b3169b962c45d808}
+    code: {repo: minion-memory, ref: main, sha: ff9d132ada35a604c6f4bc7f11504b229afece6e}
+    docs: {repo: minion-memory-docs, ref: main, sha: 6541f33a989da531cc2f21c6b3169b962c45d808}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
-  open_findings: [NF-016, NF-026]
+  open_findings: []
   provisionally_closed: [WP02-CR-001, WP02-CR-002, WP02-CR-003, WP02-CR-004, WP02-CR-005, WP02-CR-006, WP02-CR-007]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer02-start.md
     decision: >
-      G-046 start Layer 02; G-047 split: WP-02 history/compatibility envelope proceeds now and may
-      close independently; WP-02S MemoryScope in parallel with one consolidated Owner-decision
-      packet; NF-016 append position only as a local read cursor, never a global/causal order.
+      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact pair
+      (final review b910a244, re-review 80d01123): docs main = 6541f33a, code main = ff9d132a.
+      Layer 02 envelope semantics G-047..G-055.
+    standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-02]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-02-codex-final-review-2.md: targeted re-review of WP02-CR-007 at docs
-    6541f33a / code ff9d132a; record APPROVED or CHANGES_REQUIRED on review/wp02-final-2. On APPROVED,
-    acceptance under G-009 and RUST_IMPLEMENTATION.
+    Execute process/handoffs/WP-02-codex-rust-implementation.md: Rust Layer 02 history envelope against the
+    accepted contract and corpus (not against Python); then hand the Rust candidate to Claude for CLOSURE_REVIEW.
   updated_by: Claude
-  updated_reason: Codex final review (b910a244) CHANGES_REQUIRED on WP02-CR-007; runner fixed; FINAL_CONTRACT_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: WP-02 accepted onto main under G-009 (Codex APPROVED 80d01123; docs main 6541f33a, code main ff9d132a); IMPLEMENTATION_REVIEW -> RUST_IMPLEMENTATION.
   history:
     assurance_index: plans/WP-02.md
