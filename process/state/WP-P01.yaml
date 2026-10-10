@@ -3,7 +3,7 @@ workflow:
   work_package: WP-P01
   title: Process hardening 1 (carried forward from WP-00)
   layer: "00"
-  status: BLOCKED_FOR_OWNER
+  status: CONTRACT_CONVERGENCE
   requirements: []
   current_candidate:
     code:
@@ -13,29 +13,33 @@ workflow:
     docs:
       repo: minion-memory-docs
       ref: wpP01/hardening
-      sha: a9ed71d2f943c3fb5dc32f51fb7d5db99291abcb
+      sha: 1422423e8fd7b163f498466d6596e3ef5741c53d
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
   open_findings: [WPP01-CR-001, WPP01-CR-002]
   provisionally_closed: [WP00-CR-014]
-  convergence: null
+  convergence:
+    episode: CE-P01-01
+    root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
+    checkpoint: null
+    open_findings: [WPP01-CR-001, WPP01-CR-002]
   scoping_review:
     outcome: CHANGES_REQUIRED
     verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 surviving a third review (refined Windows-inventory and branch/tag witnesses); route decision escalated.
     source: review/wpP01-codex-3 @ dc576a97caa1929c00489203b7a80b8c24383f05 (reviewed docs a9ed71d2 / code bb05e395)
   governance_source:
-    artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
-    decision: G-011 carries WP00-CR-014 and remaining WP-00 process items into a process-hardening WP.
-    scope: [WP-P01]
+    artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
+    decision: G-018 Codex-led convergence; production edits on the validator trust surface frozen until AGREED FOR IMPLEMENTATION.
+    scope: [WP-P01, WPP01-CR-001, WPP01-CR-002]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Owner
+  next_owner: Codex
   next_action: >
-    Owner routing decision for WP-P01: both findings survived three independent reviews after trigger A
-    fired and a characterize-then-fix pass (Claude committed to escalate rather than attempt a fourth
-    fix). Options presented in the conversation of 2026-10-10.
+    Execute process/handoffs/WP-P01-CE-P01-01-codex-characterization.md: exhaustive characterization
+    matrix at docs 1422423e; artifact on branch review/wpP01-ce1; notify Claude via Herdr for the
+    challenge pass.
   updated_by: Claude
-  updated_reason: Third surviving review of WPP01-CR-001/002; stop and escalate per remediation-2 commitment.
+  updated_reason: Owner decision G-018 recorded; BLOCKED_FOR_OWNER -> CONTRACT_CONVERGENCE (CE-P01-01).
   history:
     assurance_index: plans/WP-P01.md
