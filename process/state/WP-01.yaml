@@ -3,11 +3,13 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: REMEDIATION
+  status: IMPLEMENTATION_REVIEW
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp01/contract, sha: bac6594e06dd321e547e917cebeeefc6562a19b9}
+    docs: {repo: minion-memory-docs, ref: wp01/contract, sha: 83c66c25d560accb3d57ba20be631d55faab72ff}
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
@@ -37,11 +39,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Remediate Codex final review e340e439: refresh the readiness records to the final contract (WP01-CR-009)
-    and record author-run G3 coverage evidence (WP01-CR-010); then hand the repaired pair back to Codex.
+    Execute process/handoffs/WP-01-codex-final-review-2.md: targeted re-review of WP01-CR-009/010 at
+    docs 83c66c25 / code bac6594e; record APPROVED or CHANGES_REQUIRED on review/wp01-final-2.
   updated_by: Claude
-  updated_reason: Codex final review CHANGES_REQUIRED (e340e439, WP01-CR-009/010); FINAL_CONTRACT_REVIEW -> REMEDIATION.
+  updated_reason: WP01-CR-009/010 remediated (code bac6594e, G3 100% statements+branches); REMEDIATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-01.md
