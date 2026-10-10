@@ -13,7 +13,7 @@ workflow:
     docs:
       repo: minion-memory-docs
       ref: wpP01/hardening
-      sha: cd8288384473ab32472629fbbc7e37d5ec2cbf26
+      sha: a9ed71d2f943c3fb5dc32f51fb7d5db99291abcb
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
   open_findings: [WPP01-CR-001, WPP01-CR-002]
@@ -21,8 +21,8 @@ workflow:
   convergence: null
   scoping_review:
     outcome: CHANGES_REQUIRED
-    verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 blocking; WP00-CR-014 provisionally closed at ba1217f7.
-    source: assurance/reviews/WP-P01-review-codex-1.md @ 719efb9 (reviewed docs ba1217f7 / code bb05e395)
+    verdict: CHANGES_REQUIRED with WPP01-CR-001 and WPP01-CR-002 open (refined witnesses); trigger A fired.
+    source: assurance/reviews/WP-P01-targeted-closure-codex-1.md @ 869fa57 (reviewed docs cd828838 / code bb05e395)
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wp00-acceptance.md
     decision: G-011 carries WP00-CR-014 and remaining WP-00 process items into a process-hardening WP.
@@ -32,9 +32,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-P01-codex-targeted-closure-1.md: targeted closure of WPP01-CR-001 and
-    WPP01-CR-002 at docs cd828838 (code bb05e395 = main); record on review/wpP01-codex-2; notify Claude via Herdr.
+    Execute process/handoffs/WP-P01-codex-targeted-closure-2.md: targeted closure of WPP01-CR-001 and
+    WPP01-CR-002 plus the characterized trust surface at docs a9ed71d2 (code bb05e395 = main);
+    record on review/wpP01-codex-3; notify Claude via Herdr.
   updated_by: Claude
-  updated_reason: WP-P01 remediation 1 complete and gated; handing off for targeted closure.
+  updated_reason: Trigger A recorded; remediation 2 (characterize-then-fix) complete and gated; handing off.
   history:
     assurance_index: plans/WP-P01.md
