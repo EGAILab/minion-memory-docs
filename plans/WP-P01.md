@@ -40,3 +40,21 @@ The implementation is in `assurance/reviews/WP-P01-remediation-claude-3.md`:
 - kill run on the frozen modules: no FIX control passes.
 
 Findings WPP01-CR-001…006 await Codex targeted closure.
+
+## Closure (2026-10-10)
+
+The CE-P01-01 implementation went through Codex targeted closure:
+- `c7dadc07`: CHANGES_REQUIRED, CL-001…005;
+- Owner G-024 fix pass, `c9be60e8`;
+- recheck `e557098b`: CHANGES_REQUIRED, R1;
+- Owner G-027 narrow fix, `be2f4e29`;
+- R1 recheck `c73f4410`: **APPROVED** for docs `be2f4e29` / code `bb05e395`.
+
+WPP01-CR-001…006 are all closed.
+
+Docs `main` was fast-forwarded to `be2f4e29` under the G-009 standing delegation, and code `main`
+is unchanged. WP-P01 is **CLOSED**. WP-00's post-acceptance records reached `main` through this
+acceptance (G-011).
+
+Carried forward: NF-023 (`CARGO_HOME`), now unblocked because the frozen process surface is
+released.

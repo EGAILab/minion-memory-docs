@@ -3,7 +3,7 @@ workflow:
   work_package: WP-P01
   title: Process hardening 1 (carried forward from WP-00)
   layer: "00"
-  status: FINAL_CONTRACT_REVIEW
+  status: CLOSED
   requirements: []
   current_candidate:
     code:
@@ -12,7 +12,7 @@ workflow:
       sha: bb05e3953a044ea8abd9d796675290ad9fe80941
     docs:
       repo: minion-memory-docs
-      ref: wpP01/hardening
+      ref: main
       sha: be2f4e29b862bfe0b5d3e57604eb0d979ac57521
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
@@ -21,38 +21,24 @@ workflow:
                          WPP01-CR-006]
   convergence:
     episode: CE-P01-01
-    root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
-    checkpoint:
-      status: AGREED FOR IMPLEMENTATION
-      implementation: db672edc05d15f1f2981928c86e2bb9d4224966e (assurance/reviews/WP-P01-remediation-claude-3.md)
-      closure_review_1: review/wpP01-ce1-closure @ c7dadc07bacb1d273a9ecadd261a10b1036bd02e (CHANGES_REQUIRED CL-001..005; CR-005/006 closed)
-      remediation: c9be60e833d42c3981fb271e6882b0017b55c781 (assurance/reviews/WP-P01-remediation-claude-4.md, Owner G-024)
-      closure_review_2: review/wpP01-ce1-closure-2 @ e557098b5e95aa270ea64fb96f8eade2990fbdb2 (CHANGES_REQUIRED R1 only; CR-002/003/004 closed)
-      remediation_2: be2f4e29b862bfe0b5d3e57604eb0d979ac57521 (assurance/reviews/WP-P01-remediation-claude-5.md, Owner G-027)
-      revision: 2
-      artifact: assurance/convergence/CE-P01-01-classification.md
-      branch: review/wpP01-ce1-claude
-      sha: cb7977f4a71c86279f16c73742ae2a9f19eda83c
-      approval: review/wpP01-ce1-checkpoint-2 @ 1845aa9b9ecec72d60be42817975ef7d5b21e516 (Codex APPROVED)
-      prior_review: review/wpP01-ce1-checkpoint @ 842076061caa4a0820d7a38993b750caf3f28103 (CHANGES_REQUIRED, CE1-CP-001..007)
-      characterization: 281b81a3281ede7dc41a3f2913ae3a4b0b199625
-    open_findings: [WPP01-CR-001]
+    record: assurance/convergence/CE-P01-01-classification.md (rev. 2, AGREED via Codex APPROVED 1845aa9b)
+    closure_reviews: [c7dadc07, e557098b, c73f4410]
   scoping_review:
     outcome: APPROVED
     verdict: "APPROVED - R1 resolved and WPP01-CR-001 closed; CR-002..006 retain their closed dispositions; no open finding or convergence reopening. This exact pair is the approved WP-P01 candidate."
     source: review/wpP01-ce1-closure-3 @ c73f4410e9da6d98b4af1062bbc04eaa6c7f98db (assurance/reviews/WP-P01-CE-P01-01-targeted-closure-codex-3.md), approving code bb05e395 / docs be2f4e29
   governance_source:
     artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
-    decision: G-018 Codex-led convergence; production edits on the validator trust surface frozen until AGREED FOR IMPLEMENTATION.
-    scope: [WP-P01, WPP01-CR-001, WPP01-CR-002]
+    decision: >
+      G-018 convergence, G-024 and G-027 fix passes; accepted onto main under the G-009 standing
+      delegation (docs main = be2f4e29, code main = bb05e395) after Codex APPROVED the exact pair.
+    scope: [WP-P01]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
-  next_action: >
-    Accept the approved pair (docs be2f4e29 / code bb05e395) onto main under G-009 and close WP-P01
-    (FINAL_CONTRACT_REVIEW -> CLOSED, process-only WP).
+  next_owner: null
+  next_action: null
   updated_by: Claude
-  updated_reason: Codex APPROVED the exact pair (c73f4410); all CE-P01-01 episode findings closed; CONTRACT_CONVERGENCE -> FINAL_CONTRACT_REVIEW.
+  updated_reason: WP-P01 closed on the accepted pair (Codex APPROVED c73f4410; docs main fast-forwarded to be2f4e29 under G-009).
   history:
     assurance_index: plans/WP-P01.md

@@ -23,8 +23,9 @@ work_packages:
     title: Process hardening 1 (carried forward from WP-00)
     layer: "00"
     requirements: []
-    contract: {status: DRAFT}
+    contract: {status: ACCEPTED, accepted_code_sha: bb05e3953a044ea8abd9d796675290ad9fe80941, accepted_docs_sha: be2f4e29b862bfe0b5d3e57604eb0d979ac57521}
     python: {status: NOT_IMPLEMENTED}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-P01.md
+    governance: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
