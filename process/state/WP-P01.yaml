@@ -23,9 +23,11 @@ workflow:
     root_cause_surface: validator trust boundary (git output, path eligibility, state fields, ref namespaces, resolution)
     checkpoint:
       status: PROPOSED FOR IMPLEMENTATION
+      revision: 2
       artifact: assurance/convergence/CE-P01-01-classification.md
       branch: review/wpP01-ce1-claude
-      sha: de153c0aa0d4311218299fba4b3db832b6ee77e0
+      sha: cb7977f4a71c86279f16c73742ae2a9f19eda83c
+      prior_review: review/wpP01-ce1-checkpoint @ 842076061caa4a0820d7a38993b750caf3f28103 (CHANGES_REQUIRED, CE1-CP-001..007)
       characterization: 281b81a3281ede7dc41a3f2913ae3a4b0b199625
     open_findings: [WPP01-CR-001, WPP01-CR-002, WPP01-CR-003, WPP01-CR-004, WPP01-CR-005, WPP01-CR-006]
   scoping_review:
@@ -41,10 +43,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-P01-CE-P01-01-codex-checkpoint.md: challenge the proposed checkpoint
-    (classification de153c0 on review/wpP01-ce1-claude); record APPROVED or CHANGES_REQUIRED on
-    review/wpP01-ce1-checkpoint; notify Claude via Herdr.
+    Execute process/handoffs/WP-P01-CE-P01-01-codex-checkpoint-2.md: targeted re-review of checkpoint
+    revision 2 (cb7977f4 on review/wpP01-ce1-claude) against CE1-CP-001..007; record APPROVED or
+    CHANGES_REQUIRED on review/wpP01-ce1-checkpoint-2; notify Claude via Herdr.
   updated_by: Claude
-  updated_reason: CE-P01-01 characterization (281b81a) challenged and classified; checkpoint PROPOSED FOR IMPLEMENTATION, awaiting Codex approval.
+  updated_reason: Checkpoint revision 2 resolves Codex CHANGES_REQUIRED (CE1-CP-001..007); awaiting Codex re-review.
   history:
     assurance_index: plans/WP-P01.md
