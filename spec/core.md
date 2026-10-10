@@ -154,8 +154,12 @@ The ID answers "which entity"; an optional key answers "how humans refer to it";
 answers "which edition". Keys, slugs, titles, paths and collection membership are mutable and are
 not identity.
 
-*Note:* "semantic version" ([MVP §18.1]) versus the integer editions shown in examples is not
-defined by the sources (NF-011).
+**Layer 01 contract (Owner G-012, DRAFT):** an artifact version is a positive integer edition
+(1 ≤ v ≤ 2^53−1, the SER-008 integer domain), compared numerically. Zero, negatives, non-integers
+and values outside the domain are invalid versions.
+
+*Note:* resolves NF-011 by Owner decision G-012
+(`reference/governance/2026-10-10-owner-layer01-decisions.md`); the integer bound follows G-016.
 
 ### CORE-003 — Same ID and same version imply identical content
 <a id="core-003"></a>
@@ -232,7 +236,12 @@ or record when such a reference is sufficient for interpretation.
 The shared core provides hashes/checksums where required: normalized content hashes for
 same-version conflict detection and integrity hashes for assets and package entries.
 
-*Note:* algorithm and canonical byte form are unspecified (NF-013).
+**Layer 01 contract (Owner G-014, DRAFT):** the content hash of a structured value is defined by
+SER-009 (SHA-256, lowercase hex, over RFC 8785 canonical bytes); "normalized content" means that
+canonical form. Text and binary content are hashed as given (no Unicode or line-ending
+normalization).
+
+*Note:* resolves NF-013 by Owner decision G-014.
 
 ### CORE-012 — Durable operation identity
 <a id="core-012"></a>
@@ -243,8 +252,15 @@ history mutation) carries a durable operation identity (`operation_id`, submissi
 durable source identity). Retrying the same operation identity must not create a second historical
 record; a retry after a successful commit returns/reuses the existing result.
 
-*Note:* the uniqueness domain of an operation identity, and the outcome when the same identity
-arrives with different content, are not specified (NF-014).
+**Layer 01 contract (Owner G-013, DRAFT):** an operation identity is unique within one
+Minion-Memory store, across both profiles. A retry with the same operation identity and identical
+content — equal SER-009 canonical bytes — returns the prior result and writes nothing. The same
+operation identity with different content is a visible conflict error and writes nothing. (The
+persistence behavior is implemented in Layer 04; Layer 01 fixes the identity's domain and the
+identical/different test.)
+
+*Note:* resolves NF-014 by Owner decision G-013. The lexical domain of an operation identity follows
+CORE-001's ID domain, still open (NF-010).
 
 ### CORE-013 — Similarity is never identity
 <a id="core-013"></a>

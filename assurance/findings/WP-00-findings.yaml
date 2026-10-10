@@ -405,3 +405,42 @@ findings:
     resolution: >
       Resolved by Owner decision G-010: status in process/certification-registry.yaml; manifest holds locations.
 
+  - id: NF-022
+    title: Integer versus whole-number float is not decided, and canonical bytes cannot distinguish them
+    classification: REQUIREMENT_UNCERTAIN
+    owner_decision_required: true
+    blocking: [Layer-01]
+    status: OPEN
+    raised_by: Claude
+    sources: ["[R04 §6]", "[MVP §18.1]"]
+    requirements: [SER-008, SER-009, CORE-003]
+    summary: >
+      G-015 lists integers and finite floats as value kinds, but RFC 8785 (G-014) serializes the
+      integer 1 and the float 1.0 identically ("1"), so same-version conflict detection cannot see a
+      1 vs 1.0 difference (the same invisibility G-017 resolved for -0). Python and Rust both keep
+      them as distinct types (probe, assurance/layers/01-feasibility-matrix.md).
+    interpretations:
+      - "One number kind: a whole-number float is the integer of the same value (matches JSON and RFC 8785)."
+      - "Two kinds: whole-number floats are distinct and must be preserved, accepting that hashing cannot see the difference."
+      - "Two kinds, but integral floats are rejected or normalized to integers at the seam."
+    recommendation: Owner decision (path C) before the WP-01 contract checkpoint.
+    resolution_layer: "01"
+
+  - id: NF-023
+    title: OWN-001 environment script does not relocate CARGO_HOME
+    classification: SEMANTICS_NEUTRAL_HARDENING
+    owner_decision_required: false
+    blocking: [none]
+    status: OPEN
+    raised_by: Claude
+    sources: []
+    requirements: []
+    summary: >
+      process/environment/project-environment.{ps1,sh} sets CARGO_TARGET_DIR but not CARGO_HOME, so
+      cargo's registry/git download caches default to C:/Users/<user>/.cargo, violating OWN-001. Found
+      while running the WP-01 Rust feasibility probe (CARGO_HOME was set manually to
+      .tmp/cache/cargo-home for that run).
+    recommendation: >
+      Add CARGO_HOME (and RUSTUP_HOME only if a project-local toolchain is ever installed) to both
+      scripts after WP-P01's frozen process surface is released (Owner G-019).
+    resolution_layer: "00"

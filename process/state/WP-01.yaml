@@ -1,0 +1,33 @@
+workflow:
+  schema_version: 2
+  work_package: WP-01
+  title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
+  layer: "01"
+  status: CONTRACT_DRAFT
+  requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
+                 CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
+                 SER-007, SER-008, SER-009]
+  current_candidate: null
+  dependencies:
+    WP-P01: {relation: blocked_by, status: CONTRACT_CONVERGENCE}
+  open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022]
+  provisionally_closed: []
+  convergence: null
+  governance_source:
+    artifact: reference/governance/2026-10-10-owner-wpp01-convergence-and-wp01-parallel.md
+    decision: >
+      G-019 parallel authoring, serial governance: CONTRACT_DRAFT only; no CONTRACT_REVIEW and no
+      Codex hand-off while WP-P01 convergence is active; validator results are development feedback.
+    scope: [WP-01]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Claude
+  next_action: >
+    Continue the Layer 01 contract draft; ask the Owner NF-010 residual, NF-012, NF-015 and NF-022
+    (path C) only while Codex is idle; after WP-P01 closes, rebase on the final process candidate,
+    re-validate, bind exact SHAs and hand off CONTRACT_REVIEW to Codex (G-019).
+  updated_by: Claude
+  updated_reason: WP-01 opened per G-019 (parallel authoring); Owner decisions G-012..G-017 transcribed as DRAFT contract.
+  history:
+    assurance_index: plans/WP-01.md

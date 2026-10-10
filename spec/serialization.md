@@ -63,3 +63,54 @@ never interprets Agent Memory records as LearningEvents or vice versa.
 
 Migration/decoding fixtures exist for legacy data and for each supported shipped schema version
 (event, package, database, backup).
+
+---
+
+## Layer 01 contract — DRAFT (WP-01)
+
+The requirements below transcribe **Owner decisions** that resolve findings the sources leave
+open (`reference/governance/2026-10-10-owner-layer01-decisions.md`, G-012…G-017). Their bundle
+citations name where the sources require the capability; the decision record supplies the choice.
+They are DRAFT contract text: not reviewed, not implementation-facing.
+
+### SER-008 — Portable value domain
+<a id="ser-008"></a>
+- **Profile:** core · **Source status:** NORMATIVE · **Sources:** [R04 §6] [R03 §6] [R05 §5.1] [MVP §18.1] · **Governance:** G-015, G-016, G-017
+
+Every structured payload value that crosses a Minion-Memory seam (public API input, persistence,
+canonical serialization) belongs to the portable value domain, identically in every implementation:
+
+- `null`, `true`, `false`;
+- integers *n* with −(2^53−1) ≤ *n* ≤ 2^53−1;
+- finite IEEE-754 binary64 numbers; NaN and ±Infinity are not values; negative zero is
+  normalized to zero at the seam (G-017);
+- strings of Unicode scalar values (no surrogate code points);
+- arrays of values;
+- objects whose member names are strings (as above), unique within the object.
+
+A value outside the domain is **rejected at the seam** with a validation error; it is never
+coerced, replaced (e.g. by U+FFFD), clamped or silently deduplicated (last-key-wins).
+
+*Note:* resolves NF-019 (G-015 as amended by G-016; G-017). Whether a whole-number float (`1.0`)
+and the integer `1` are distinct values is **not** decided: RFC 8785 serializes both as `1`
+(NF-022, open). Stable error codes are proposed in the canonical scenarios
+(`value.integer_out_of_range`, `value.lone_surrogate`, `value.duplicate_key`, `value.invalid_json`)
+for review.
+
+### SER-009 — Canonical bytes and content hash
+<a id="ser-009"></a>
+- **Profile:** core · **Source status:** NORMATIVE · **Sources:** [MVP §18.1] [R04 §7] [R01 §8] [R01 §9] · **Governance:** G-014, G-016, G-017
+
+The canonical bytes of a SER-008 value are its RFC 8785 (JSON Canonicalization Scheme)
+serialization, encoded as UTF-8. In particular: object members are ordered by their names' UTF-16
+code units (not code points, not UTF-8 bytes); numbers use the ECMAScript shortest round-trip form
+(`1.0` → `1`, `1e21` → `1e+21`); strings use RFC 8785 escaping; no insignificant whitespace.
+The content hash of a value is the SHA-256 of its canonical bytes, written as 64 lowercase
+hexadecimal digits. Text and binary content (e.g. Markdown files, assets) are hashed over their
+bytes as given — no Unicode normalization (G-014) and no line-ending conversion.
+
+*Note:* resolves NF-013. Executed feasibility evidence
+(`assurance/layers/01-probes/`): the RFC 8785 reference implementation (`rfc8785` 0.1.4, Python)
+and an off-the-shelf Rust crate (`serde_jcs` 0.1) **disagree**: the crate orders keys by code point
+and emits integers ≥ 2^53, so an implementation must not rely on it unverified. The canonical
+scenarios include the discriminating cases.
