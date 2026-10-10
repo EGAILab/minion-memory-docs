@@ -1,6 +1,6 @@
 # WP-02S — Layer 02: MemoryScope
 
-**Status:** `CONTRACT_REVIEW`. **Governance:** G-046, G-047 (`reference/governance/2026-10-11-owner-layer02-start.md`); G-056…G-063 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`).
+**Status:** `IMPLEMENTATION_REVIEW` (Python). **Governance:** G-046, G-047 (`reference/governance/2026-10-11-owner-layer02-start.md`); G-056…G-063 (`reference/governance/2026-10-11-owner-wp02s-memoryscope.md`).
 **State:** `process/state/WP-02S.yaml`.
 
 ## Scope
@@ -32,3 +32,11 @@ WP-02S never blocks WP-02. Work that consumes scope semantics declares `blocked_
 - **Feasibility.** `assurance/layers/02s-feasibility-matrix.md`.
 - **Consumers.** The retrieval layers (06, 15), agent capture (13), agent consolidation (14) and the
   learning layers (07–12) consume these decisions and declare `blocked_by: WP-02S`.
+
+## Assurance trail
+
+| Step | Record |
+|---|---|
+| Contract reviews (Codex) | `2c2e1d08` (CHANGES_REQUIRED: CR-001, CR-002), `f3b86200` (CHANGES_REQUIRED: CR-003), `697e372c` (**APPROVED**) |
+| Owner decisions | G-056…G-063 (packet), G-064 (facet names) |
+| Python implementation | code `5d1a74a5`; `assurance/reviews/WP-02S-python-implementation-claude.md` |
