@@ -8,11 +8,11 @@ workflow:
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
   current_candidate:
-    code: {repo: minion-memory, ref: wp01/rust, sha: b07f33752fbc19b02c8de00e9ebbaa75d0a2f8ea}
-    docs: {repo: minion-memory-docs, ref: wp01/rust-state, sha: 97ab81bfa80377a16124e6d1aba3d6de531fd6b3}
+    code: {repo: minion-memory, ref: wp01/closure, sha: cc3c5d549a43f166bfa1d990d3363887d5e63774}
+    docs: {repo: minion-memory-docs, ref: wp01/closure, sha: 71e2b12e65ae420ecd4fc9cd5579056e5d7d96a6}
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
-  open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
+  open_findings: [WP01-CR-011, NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
   provisionally_closed: [WP01-CR-007, WP01-CR-008, WP01-CR-009, WP01-CR-010]
   convergence:
     episode: CE-01-01
@@ -41,12 +41,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Claude CLOSURE_REVIEW of the Rust Layer 01 candidate (code b07f3375 / docs 97ab81bf; record
-    assurance/reviews/WP-01-rust-implementation-codex.md) against the accepted contract and corpus;
-    record APPROVED or CHANGES_REQUIRED on review/wp01-rust-closure.
+    Execute process/handoffs/WP-01-codex-cr011-review.md: independent targeted review of the WP01-CR-011
+    corpus delta (code cc3c5d54 / docs 71e2b12e); record APPROVED or CHANGES_REQUIRED on
+    review/wp01-cr011. Then Claude completes the Rust CLOSURE_REVIEW on the exact pair.
   updated_by: Claude
-  updated_reason: Codex Rust candidate ready (code b07f3375, docs 97ab81bf); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
+  updated_reason: Claude Rust CLOSURE_REVIEW b1065af9 CHANGES_REQUIRED (WP01-CR-011, corpus; no Rust defect); corpus repaired (cc3c5d54).
   history:
     assurance_index: plans/WP-01.md
