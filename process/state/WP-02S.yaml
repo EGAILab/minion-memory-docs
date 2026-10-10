@@ -3,9 +3,11 @@ workflow:
   work_package: WP-02S
   title: Layer 02 — MemoryScope
   layer: "02"
-  status: PYTHON_IMPLEMENTATION
+  status: IMPLEMENTATION_REVIEW
   requirements: [SCOPE-001, SCOPE-002, SCOPE-003, SCOPE-004, SCOPE-005, SCOPE-006]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp02s/python, sha: 5d1a74a56585c450fd5f6ce8fe7020318cbed914}
+    docs: {repo: minion-memory-docs, ref: wp02s/scoping, sha: e8b5695a62db902ee9cb6419ad07595c378ae696}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-018]
@@ -21,11 +23,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Implement the agreed Layer 02 MemoryScope contract (docs c08c57e4 / code 0c569afb; Codex APPROVED
-    697e372c) in Python through public seams; G3 evidence; hand off for IMPLEMENTATION_REVIEW.
+    Execute process/handoffs/WP-02S-codex-python-implementation-review.md: complete independent review of
+    the WP-02S Python implementation at docs e8b5695a / code 5d1a74a5; record APPROVED or CHANGES_REQUIRED
+    on review/wp02s-python-1.
   updated_by: Claude
-  updated_reason: WP-02S contract APPROVED by Codex round 3 (697e372c; WP02S-CR-001..003 closed); CONTRACT_REVIEW -> PYTHON_IMPLEMENTATION.
+  updated_reason: WP-02S Python implemented (code 5d1a74a5, on WP-02 code 43e0984e); PYTHON_IMPLEMENTATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-02S.md
