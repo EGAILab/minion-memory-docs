@@ -19,8 +19,10 @@ workflow:
     finding_aliases: {WP01-CR-007: WP01-PY-004, WP01-CR-008: WP01-PY-008}
     checkpoint:
       status: PROPOSED FOR IMPLEMENTATION
+      revision: 2
       artifact: assurance/convergence/CE-01-01-classification.md
-      sha: d46dfa1ca378d1e2c97ea0137053f8b86f5afc9b
+      sha: 3d4e83398a4cd0cc3f96b61d0967b9b1cdf63853
+      prior_review: review/wp01-ce1-checkpoint @ 65775db3a744f5b4912eeb0d9fe60cb86616d799 (CHANGES_REQUIRED CE01-CP-001..003)
       characterization: 2cf2b21b6caa25079b28d31594dd6878cfc06258
     open_findings: [WP01-CR-007, WP01-CR-008]
   governance_source:
@@ -34,9 +36,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-01-CE-01-01-codex-checkpoint.md: challenge the proposed CE-01-01 checkpoint
-    (d46dfa1c); record APPROVED or CHANGES_REQUIRED on review/wp01-ce1-checkpoint.
+    Execute process/handoffs/WP-01-CE-01-01-codex-checkpoint-2.md: targeted re-review of checkpoint revision 2
+    (3d4e8339) against CE01-CP-001..003; record APPROVED or CHANGES_REQUIRED on review/wp01-ce1-checkpoint-2.
   updated_by: Claude
-  updated_reason: CE-01-01 characterization challenged and classified; Owner G-039..G-042; checkpoint PROPOSED FOR IMPLEMENTATION.
+  updated_reason: CE-01-01 checkpoint revision 2 resolves Codex CHANGES_REQUIRED (65775db3).
   history:
     assurance_index: plans/WP-01.md
