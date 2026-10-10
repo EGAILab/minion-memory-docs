@@ -561,6 +561,20 @@ def validate_state(state: Any, label: str) -> list[str]:
     if status == "CLOSED":
         if wf.get("open_findings"):
             errors.append(f"{label}: CLOSED with open findings")
+        # WPP01-CR-002: closure must name the exact accepted pair; absent, empty, null or partial
+        # candidate records fail closed (their main ancestry is then checked by check_state).
+        candidate_record = wf.get("current_candidate")
+        complete = isinstance(candidate_record, dict) and all(
+            isinstance(candidate_record.get(side), dict)
+            and isinstance(candidate_record[side].get("sha"), str)
+            and SHA.match(candidate_record[side]["sha"])
+            for side in ("code", "docs")
+        )
+        if not complete:
+            errors.append(
+                f"{label}: CLOSED requires the exact accepted pair: current_candidate.code and "
+                ".docs must both be recorded with a 40-hex sha"
+            )
         if wf.get("requirements") == []:
             review = wf.get("scoping_review")
             if (
@@ -793,9 +807,22 @@ def state_roundtrip(docs: Path, revision: str = "HEAD") -> list[str]:
     errors: list[str] = []
     directory = docs / STATE_DIR
     files = sorted(directory.glob("*.yaml")) if directory.is_dir() else []
-    if not files:
-        return [f"{STATE_DIR}: no state files"]
+    # Inventory first (WPP01-CR-001): a committed state missing from the working tree, or a working
+    # state absent from the commit, is a failed round trip — never silently skipped.
+    status, listing = _git(docs, "ls-tree", "--name-only", f"{revision}:{STATE_DIR}")
+    if status != 0:
+        return [f"{STATE_DIR}: cannot list committed state files in {revision}"]
+    committed_names = {name for name in listing.splitlines() if name.endswith(".yaml")}
+    working_names = {path.name for path in files}
+    for name in sorted(committed_names - working_names):
+        errors.append(f"{STATE_DIR}/{name}: committed in {revision} but missing from the working tree")
+    for name in sorted(working_names - committed_names):
+        errors.append(f"{STATE_DIR}/{name}: present in the working tree but not committed in {revision}")
+    if not committed_names and not working_names:
+        return [*errors, f"{STATE_DIR}: no state files"]
     for path in files:
+        if path.name not in committed_names:
+            continue
         rel = path.relative_to(docs).as_posix()
         try:
             done = subprocess.run(

@@ -98,7 +98,9 @@ Rules (validated by `mneme-process check state` and `state validate`):
 - `INCIDENT` / `INVALID_UNAUTHORIZED` authorize nothing (no hand-off, review, acceptance).
 - SHAs are 40 lowercase hex. `requirements`, `open_findings`, `provisionally_closed` are lists of IDs
   (container shape validated before elements).
-- `CLOSED` requires no open findings and every candidate SHA reachable from `main` (accepted).
+- `CLOSED` requires no open findings, the exact accepted pair recorded (`current_candidate.code`
+  and `.docs` both present with 40-hex SHAs — absent, empty, null or partial records fail closed,
+  WPP01-CR-002), and every candidate SHA reachable from `main` (accepted).
   A scoping/process-only WP (`requirements: []`) additionally requires `scoping_review.outcome:
   APPROVED` (exact token; `approved`, `NOT APPROVED`, `CHANGES_REQUIRED`, null are refused) with
   non-empty `verdict`/`source`. A product WP additionally requires its registry entry to be
@@ -122,7 +124,10 @@ A state transition is committed only when, in order:
 4. the state is re-read **from the git object** (`git show S:process/state/<WP>.yaml`), parsed with
    the same loader, and is semantically equal to the intended object — mechanically:
    `mneme-process state roundtrip --docs <docs> --revision S` (raw git bytes, explicit UTF-8,
-   CRLF/LF differences ignored as a checkout artifact, any other byte difference fails);
+   CRLF/LF differences ignored as a checkout artifact, any other byte difference fails; the
+   committed and working state **inventories** must match first — a committed state missing from
+   the working tree or an uncommitted extra state fails, while a committed deletion is legitimate,
+   WPP01-CR-001);
 5. only then is any dependent action taken (hand-off, review start, acceptance, closure).
 
 A failed step 4 is a FAILED STATE COMMIT: no dependent action; repair by a new commit from the last

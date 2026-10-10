@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
 
 import pytest
 import yaml
@@ -474,3 +475,64 @@ def test_roundtrip_crlf_only_difference_is_not_a_failed_commit(world: World) -> 
     path = world.docs / checks.STATE_DIR / "WP-T.yaml"
     path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
     assert checks.state_roundtrip(world.docs) == []
+
+
+# ------------------------------------------------------- WP-P01 remediation 1 (WPP01-CR-001, CR-002)
+
+
+def _add_other_state(world: World) -> Path:
+    other = world.docs / checks.STATE_DIR / "WP-OTHER.yaml"
+    dump(other, world.state(work_package="WP-OTHER"))
+    world.commit_all(world.docs, "other state")
+    assert checks.state_roundtrip(world.docs) == []
+    return other
+
+
+def test_wpp01_cr001_uncommitted_state_deletion_is_caught(world: World) -> None:
+    _add_other_state(world).unlink()
+    errors = checks.state_roundtrip(world.docs)
+    assert any("WP-OTHER.yaml: committed in HEAD but missing from the working tree" in e for e in errors), (
+        errors
+    )
+
+
+def test_wpp01_cr001_uncommitted_extra_state_is_caught(world: World) -> None:
+    dump(world.docs / checks.STATE_DIR / "WP-NEW.yaml", world.state(work_package="WP-NEW"))
+    errors = checks.state_roundtrip(world.docs)
+    assert any("WP-NEW.yaml: present in the working tree but not committed" in e for e in errors), errors
+
+
+def test_wpp01_cr001_positive_committed_deletion_passes(world: World) -> None:
+    _add_other_state(world).unlink()
+    world.commit_all(world.docs, "retire WP-OTHER state")
+    assert checks.state_roundtrip(world.docs) == []
+
+
+def _closed_with_later_content(world: World) -> dict[str, object]:
+    record = world.docs / "assurance" / "reviews" / "record.md"
+    record.parent.mkdir(parents=True, exist_ok=True)
+    record.write_text("later content\n", encoding="utf-8")
+    world.commit_all(world.docs, "content")
+    return world.state(
+        status="CLOSED",
+        open_findings=[],
+        next_owner=None,
+        next_action=None,
+        scoping_review=_approved_review(),
+    )
+
+
+@pytest.mark.parametrize("variant", ["missing", "empty", "docs-null", "code-null"])
+def test_wpp01_cr002_closed_without_complete_pair_is_caught(world: World, variant: str) -> None:
+    state = _closed_with_later_content(world)
+    workflow = state["workflow"]
+    assert isinstance(workflow, dict)
+    if variant == "missing":
+        del workflow["current_candidate"]
+    elif variant == "empty":
+        workflow["current_candidate"] = {}
+    else:
+        workflow["current_candidate"]["docs" if variant == "docs-null" else "code"] = None
+    _accept_on_main(world)
+    dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
+    assert_caught(world, "state", "CLOSED requires the exact accepted pair")
