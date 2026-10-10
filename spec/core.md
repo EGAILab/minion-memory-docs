@@ -376,51 +376,66 @@ history.
 The core provides typed canonical history primitives (`CanonicalHistory<T profile record>`); each
 profile owns its history record types and payloads, which remain namespaced.
 
-**History envelope (Owner G-048, G-049; `reference/governance/2026-10-11-owner-layer02-start.md`).** Every canonical history record
-is serialized as one envelope, a JSON object:
+**History envelope (Owner G-048, G-049, G-052, G-055; `reference/governance/2026-10-11-owner-layer02-start.md`).** Every canonical history
+record is serialized as one envelope, a JSON object:
 
 ```text
 {record_id, profile, record_type, schema_version, compatibility, recorded_at,
  occurred_at?, payload?, provenance?}
 ```
 
-- **Identity members, present and valid in every schema version.**
-  - `profile` and `record_type` are tokens in the CORE-001 stable-ID lexical domain. The core
-    fixes only that domain. Each profile owns its vocabulary, and a `record_type` is meaningful
-    only within its `profile` (namespacing, R04 §41.1).
-  - `schema_version` is a positive integer edition from 1 to 2^53−1 (one numeric kind, G-023;
-    `1.0` is 1). It identifies the record's schema and is not an artifact version.
-  - `compatibility` is exactly `"required"` or `"ignorable"` (SER-005).
-- **Recognized versus unrecognized.** A `(record_type, schema_version)` pair is *recognized* by a
-  reader when that reader declares it. For a recognized pair, the member set is **closed**: exactly
-  the members above. Any other top-level member is `history.envelope_invalid`, and so is a missing
-  `record_id` or `recorded_at` (G-048).
-  - Envelope-level semantics evolve only through a new `schema_version` and/or `record_type`,
-    never by adding a member to a known schema.
-  - An unrecognized pair is never validated as if it were a known schema; SER-005 compatibility
-    applies to it instead.
+- **Schema identity (G-052).** The triple `(profile, record_type, schema_version)` routes every
+  record and is validated for every record.
+  - `profile` and `record_type` are tokens in the CORE-001 lowercase portable-token grammar,
+    compared exactly. They are vocabulary identifiers, not artifact IDs. Each profile owns its
+    vocabulary, and a `record_type` is meaningful only within its `profile` (namespacing,
+    R04 §41.1).
+  - `schema_version` is a required integral value from 1 to 2^53−1 (one numeric kind, G-023;
+    `1.0` is 1). It is a schema edition, not an artifact version. Version 0 is not an edition and
+    is never a sentinel for unknown, legacy or draft.
+  - A triple that is lexically valid but unrecognized proceeds to profile admission and SER-005
+    compatibility. A malformed token or an out-of-range version is `history.envelope_invalid`.
+- **Compatibility.** `compatibility` is exactly `"required"` or `"ignorable"` (SER-005). It is not
+  part of the routing identity: it is validated only for records admitted to the reader's profile
+  (G-050).
+- **Recognized versus unrecognized.** A reader *recognizes* the `(record_type, schema_version)`
+  pairs it declares for its profile.
+  - For a recognized pair the member set is **closed**: exactly the members above. Any other
+    top-level member, or a missing `record_id` or `recorded_at`, is `history.envelope_invalid`
+    (G-048).
+  - Envelope-level semantics evolve only through a new `schema_version` and/or `record_type`, never
+    by adding a member to a known schema.
+  - An unrecognized pair is never validated against a known closed shape.
 - **Fields of a recognized envelope.**
   - `record_id`: a CORE-001 stable ID.
   - `recorded_at`: required. It is the HIST-004 instant at which the local durable writer recorded
     the record.
   - `occurred_at`: optional. It is the HIST-004 source-event instant. **Absence means unknown**,
     never `null`, epoch or any other sentinel, and a present `null` is `timestamp.invalid`. No
-    reader infers `occurred_at` from `recorded_at`, and no ordering between the two is required,
-    because clock skew and imported sources make it non-authoritative (G-049).
+    reader infers `occurred_at` from `recorded_at`, and no ordering between the two is required
+    (G-049).
   - `payload` and `provenance`: any SER-008 values. Their shapes are governed by the profile's own
     schemas for that `record_type`, not by the core, and admission returns them unchanged
     (HIST-010).
-- **Errors (stage 3, SER-008 G-031), after the generic stages.**
-  1. The identity members are checked first: a non-object envelope, or a missing or invalid
-     identity member, is `history.envelope_invalid`.
-  2. Profile admission and recognition follow (SER-005).
-  3. For a recognized pair, the closed shape is checked next: an unknown member or a missing
-     required member is `history.envelope_invalid`.
-  4. Last, the typed fields are checked in canonical member order (G-034): `occurred_at` and
-     `recorded_at` give `timestamp.invalid`, and `record_id` gives `id.invalid`.
+- **Gated stage-3 validation (G-055).** After stage 1 (decoding) and stage 2 (the generic value
+  domain), an envelope passes four ordered gates, and the first failing gate reports:
+  1. **Identity and routing.** A non-object envelope, or a missing or invalid `profile`,
+     `record_type` or `schema_version`, is `history.envelope_invalid`.
+  2. **Profile admission and schema recognition (SER-005).**
+     - An other-profile record terminates as `excluded`.
+     - For an admitted record, a missing or invalid `compatibility` is `history.envelope_invalid`.
+     - An unrecognized pair terminates as `skip` (ignorable) or `history.unknown_required`
+       (required).
+  3. **Closed shape**, for a recognized same-profile pair: an unknown member, or a missing
+     `record_id` or `recorded_at`, is `history.envelope_invalid`. This gate precedes all timestamp,
+     payload and provenance validation.
+  4. **Typed fields**, in canonical member order (G-034): `occurred_at` and `recorded_at` give
+     `timestamp.invalid`, and `record_id` gives `id.invalid`.
+
+  This is the Layer 02 stage-3 rule for history envelopes. It is recorded in SER-008 alongside
+  G-035's rule for revision records, and does not extend to other records.
 - **Normalized result.** The envelope with both timestamps in HIST-004 canonical form, and all
   values as the exact normalized SER-008 values.
-
 
 ### HIST-003 — Deterministic episode event order
 <a id="hist-003"></a>
@@ -509,15 +524,18 @@ No total global order across devices or episodes is assumed or required.
 *Note:* bounded "since boundary" reads ([R04 §34]) need some durable ordering; how that coexists
 with this rule is unspecified (NF-016).
 
-**HistoryBoundary (Owner G-047, G-051, resolving NF-016; `reference/governance/2026-10-11-owner-layer02-start.md`).**
+**HistoryBoundary (Owner G-047, G-051, G-054, resolving NF-016; `reference/governance/2026-10-11-owner-layer02-start.md`).**
 
 A HistoryBoundary is the closed record `{store_id, position}`.
 - **`store_id`.** A CORE-001 stable ID naming one logical store.
-- **`position`.** An integer from 0 to 2^53−1, where 0 is the position before the store's first
-  record.
-- **What a position is.** It is a **store-local persistence/read cursor only**. It is **not** a
-  global, causal or cross-device event order, and it must never be used as one. Timestamps never
-  substitute for it.
+- **`position`.** An integral value from 0 to 2^53−1 (G-054):
+  - position 0 is the boundary before the store's first physical record;
+  - positive positions denote store-local append progress;
+  - resuming or replaying after boundary N considers the physical records whose positions are
+    greater than N.
+- **What a position is.** It is a **store-local ordering cursor only**. It is **not** a record
+  count, a timestamp, a cross-store sequence, or a global, causal or cross-device event order, and
+  it must never be used as one.
 - **Mixed-profile stores.** Records that a profile reader excludes (G-050) still occupy store
   positions and advance the shared cursor.
 
@@ -534,12 +552,11 @@ Operations:
 Errors (SER-008 G-031):
 - **Generic stages first.** The generic stages run across both arguments first.
 - **Invalid boundary.** Then a boundary with a non-object value, a missing or other member, an
-  invalid `store_id` or a `position` outside the domain is `history.boundary_invalid` (stage 3),
-  checked in declared order `a`, then `b`.
+  invalid `store_id`, or a negative, fractional, string or out-of-range `position` is
+  `history.boundary_invalid` (stage 3), checked in declared order `a`, then `b`.
 - **Incomparable.** Incomparability is reported only once both boundaries are valid.
 - **Arguments in errors.** Argument errors name `a` or `b`. `history.boundary_incomparable` is a
   relation and names no argument.
-
 
 ### HIST-006 — History is append-only
 <a id="hist-006"></a>

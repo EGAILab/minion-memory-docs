@@ -96,3 +96,63 @@ ahead of Rust: Rust is certified at Layer 01, so Python Layer 02 is allowed.
 > stores.Range, distance, minimum/maximum and since-boundary operations likewise require a common
 > store. In a mixed-profile store, records excluded by a profile reader still occupy store positions
 > and advance the shared cursor."
+
+## G-052 — Envelope schema identity domains (WP-02, resolves WP02-CR-001)
+
+> **Q:** WP02-CR-001: what values may the envelope's profile, record_type and schema_version take?
+> (record_id stays a CORE-001 stable ID.)
+>
+> **A:** "Choose 1 — portable tokens plus schema edition ≥1.profile and record_type use the
+> CORE-001 lowercase portable-token domain and are compared exactly. They are distinct vocabulary
+> identifiers, not artifact IDs, despite sharing the same lexical grammar. schema_version is a
+> required integral canonical numeric value in 1..2^53−1.The schema identity is the triple
+> (profile, record_type, schema_version). Lexically valid but unrecognized values proceed through
+> profile-admission and required | ignorable compatibility handling; malformed tokens or
+> out-of-range versions are envelope validation errors. Version zero is not a valid schema edition
+> and must not be used as an unknown, legacy, or draft sentinel."
+
+## G-053 — Closed replay reader with duplicate rejection (WP-02, resolves WP02-CR-002)
+
+> **Q:** WP02-CR-002: the replay reader configuration {profile, recognized: [{record_type,
+> schema_version}]} — how strict?
+>
+> **A:** "Choose 1 — closed configuration with duplicate rejection.ReplayReader and each
+> recognized-schema entry are closed typed records. Unknown or missing members are invalid. After
+> typed normalization, every (record_type, schema_version) pair must be unique; duplicates—including
+> numeric aliases such as 1 and 1.0—produce history.reader_invalid. Implementations may use a set
+> internally only after the public configuration has passed duplicate-free validation."
+
+## G-054 — HistoryBoundary position domain (WP-02, resolves WP02-CR-003)
+
+> **Q:** WP02-CR-003: the HistoryBoundary position (store-local cursor, G-051) — which numeric
+> domain?
+>
+> **A:** "Choose 1 — HistoryBoundary.position is an integral canonical numeric value from 0 through
+> 2^53−1. Position 0 denotes the boundary before the first physical record of the identified store;
+> positive positions denote store-local append progress. Resume/replay after boundary N considers
+> physical records with positions greater than N.Negative, fractional, string, and out-of-range
+> values produce history.boundary_invalid. Position is a local ordering cursor, not a record count,
+> global order, timestamp, or cross-store sequence."
+
+## G-055 — Gated stage-3 validation of history envelopes (WP-02, resolves WP02-CR-005)
+
+> **Q:** WP02-CR-005: when one history envelope has several stage-3 problems at once, which error
+> wins?
+>
+> **A:** "Choose 1 — gated Stage-3 validation.After Stage-1 decoding and Stage-2 generic-value
+> validation, validate history envelopes through four ordered gates: identity/routing members;
+> profile admission and schema recognition; closed shape for a recognized same-profile schema; then
+> remaining typed fields in canonical traversal order.Foreign-profile records terminate as
+> excluded, and unknown ignorable schemas terminate as compatibility skips before the reader applies
+> its recognized envelope shape. For a recognized schema, missing or unknown envelope members
+> produce history.envelope_invalid before timestamp, payload, or provenance validation. Thus an
+> extra member plus an invalid occurred_at reports history.envelope_invalid."
+
+**WP02-CR-004 (author repair, path A from G-050 + G-052 + G-055).**
+- Gate 1 validates the schema-identity triple `(profile, record_type, schema_version)` for every
+  record.
+- `compatibility` is not part of that routing identity. It is validated only for records admitted
+  to the reader's profile (gate 2), because G-050 forbids using it for, or letting it participate in
+  classifying, other-profile records.
+- So an other-profile record whose triple is valid is `excluded`, even if its `compatibility` is
+  missing or invalid.

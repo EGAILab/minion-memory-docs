@@ -50,35 +50,38 @@ declared ignorable may be skipped. Purely informational telemetry may be ignorab
 skipping it cannot change reconstruction of meaning; records that affect evidence, corrections or
 completion are normally required. Unknown required package semantics also fail safely.
 
-**Replay admission (Owner G-048, G-050; `reference/governance/2026-10-11-owner-layer02-start.md`).**
+**Replay admission (Owner G-048, G-050, G-053, G-055; `reference/governance/2026-10-11-owner-layer02-start.md`).**
 `admit_history_record(reader, record)` decides how one reader treats one envelope (HIST-002).
-- **The reader.** The reader is the closed record `{profile, recognized}`. `profile` is a CORE-001
-  token. `recognized` is an array of closed `{record_type, schema_version}` pairs in the envelope
-  domains. Two pairs that are equal after SER-008 normalization are duplicates, so `1` and `1.0`
-  are the same `schema_version`. A duplicate pair, or any other reader value, is
-  `history.reader_invalid`.
-- **Order of decisions.** The generic stages SER-008 G-031 apply first, across `reader` and then
-  `record`; next `history.reader_invalid`; then:
-  1. **Identity.** A missing or invalid identity member is `history.envelope_invalid`. Invalid or
-     absent profile identity is an envelope error, never exclusion.
-  2. **Profile admission (G-050).** If the envelope's `profile` differs from the reader's, the
-     outcome is **`excluded`**. The record is not validated further and not payload-decoded, and
-     `compatibility` is not consulted. It takes no part in this profile's history, projections or
-     derived state.
-  3. **Recognition.**
-     - Unrecognized `(record_type, schema_version)` with `compatibility: "ignorable"`: the outcome
-       is **`skip`**.
-     - Unrecognized with `"required"`: replay stops with the error **`history.unknown_required`**.
-       It is never a partial or silent omission.
-     - An unrecognized envelope is never checked against the closed shape (G-048).
-  4. **Recognized.** The closed shape and typed fields are checked (HIST-002). The outcome is
-     **`decode`**, returning the normalized envelope.
+- **The reader (G-053).** The reader is the closed typed record `{profile, recognized}`.
+  - `profile` is a CORE-001 token.
+  - `recognized` is an array of closed `{record_type, schema_version}` entries in the G-052
+    domains.
+  - Unknown or missing members, at either level, are `history.reader_invalid`.
+  - After normalization every pair must be unique. A duplicate, including a numeric alias such as
+    `1` and `1.0`, is `history.reader_invalid`.
+  - An implementation may use a set internally only after this validation.
+- **Order of decisions.**
+  1. **Generic stages.** SER-008 G-031 applies first, across `reader` and then `record`.
+  2. **Reader.** `history.reader_invalid` is checked next.
+  3. **The record.** The record then passes the HIST-002 gates (G-055):
+     - **Identity and routing.** An invalid `(profile, record_type, schema_version)` is
+       `history.envelope_invalid`. Invalid or absent profile identity is an envelope error, never
+       exclusion.
+     - **Profile admission (G-050).** If the envelope's `profile` differs from the reader's, the
+       outcome is **`excluded`**. Nothing further is validated, the payload is not decoded, and
+       `compatibility` is neither validated nor consulted. Such a record takes no part in this
+       profile's history, projections or derived state.
+     - **Compatibility and recognition.** For an admitted record, a missing or invalid
+       `compatibility` is `history.envelope_invalid`. An unrecognized pair with `"ignorable"`
+       gives **`skip`**. An unrecognized pair with `"required"` stops replay with the error
+       **`history.unknown_required`**, never with a partial or silent omission.
+     - **Recognized.** The closed shape, then the typed fields (HIST-002 gates 3–4). The outcome
+       is **`decode`**, returning the normalized envelope.
 - **Arguments in errors.** `history.reader_invalid`, `history.envelope_invalid` and the generic and
   typed errors name their argument, `reader` or `record`. `history.unknown_required` is a replay
   stop about the admitted record and names no argument.
 - **Visible outcomes.** Only `decode` returns an envelope. `skip` and `excluded` are reported, never
   dropped silently.
-
 
 ### SER-006 — Profile and type identity are explicit
 <a id="ser-006"></a>
@@ -173,7 +176,7 @@ are never aggregated.
 | 2 | ″ | `value.integer_out_of_range` | an integral value outside ±(2^53−1), after the number interpretation below (G-025) |
 | 2 | ″ | `value.lone_surrogate` | a native string or member name containing a surrogate code point |
 | 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` / `artifact.revision_invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules / CORE-003 record shape (G-035) |
-| 3 | Layer 02 history arguments | `history.envelope_invalid` / `history.reader_invalid` / `history.boundary_invalid` | HIST-002 envelope (G-048, G-049) / SER-005 reader / HIST-005 boundary (G-051) |
+| 3 | Layer 02 history arguments | `history.envelope_invalid` / `history.reader_invalid` / `history.boundary_invalid` | HIST-002 envelope (G-048, G-049, G-052; gated per G-055) / SER-005 reader (G-053) / HIST-005 boundary (G-051, G-054) |
 | after 3 | Layer 02 relations | `history.unknown_required` / `history.boundary_incomparable` | SER-005 replay stop for an unrecognized required record / HIST-005 cross-store ordering |
 
 - **Order within a stage (Owner G-034).**
@@ -183,6 +186,11 @@ are never aggregated.
     are found while ordering that map's members, and an unsupported kind found earlier in that
     traversal wins (G-039). A cycle is reported where traversal re-enters an open container
     (G-040).
+  - **Stage 3, gated records.** Two record kinds use ordered gates instead of one stage-3
+    traversal, each by its own Owner decision: CORE-003 revision records check shape before fields
+    (G-035), and history envelopes pass four gates (G-055: identity and routing; profile admission
+    and recognition; closed shape; typed fields in canonical order). No other record inherits
+    either rule.
   - **Stages 2 and 3** operate on the decoded canonical value and use one shared traversal:
     depth-first; object members in SER-009 canonical order (names by UTF-16 code units); for each
     member, its name before its value; arrays by ascending index; a primitive's arguments in

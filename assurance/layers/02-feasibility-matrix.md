@@ -1,8 +1,8 @@
 # Cross-Language Feasibility Matrix — WP-02: history and compatibility envelope
 
 **Template:** `process/templates/cross-language-feasibility-matrix.md`.
-**Status:** DRAFT for WP-02 CONTRACT_REVIEW.
-**Contract:** HIST-002, HIST-005, HIST-010, SER-005 and SER-006 Layer 02 blocks; Owner G-047…G-051.
+**Status:** DRAFT for WP-02 CONTRACT_REVIEW round 2. All domains are now Owner-decided (G-052 to G-055).
+**Contract:** HIST-002, HIST-005, HIST-010, SER-005 and SER-006 Layer 02 blocks; Owner G-047…G-055.
 **Builds on:** the certified Layer 01 (code `cc3c5d54`): value domain, canonical order, stage
 precedence, CORE-001 tokens and HIST-004 timestamps. Both languages already implement these, and
 they are consumed unchanged.
@@ -11,25 +11,25 @@ they are consumed unchanged.
 
 | Value / seam | Contract domain | Python binding | Rust binding | Lossless? | Evidence |
 |---|---|---|---|---|---|
-| envelope | closed object for a recognized pair (G-048); identity members always required | `dict` after the Layer 01 extraction; member-set check | `Value` object after Layer 01 normalization; member-set check | YES | `history-envelope-admission-shape` |
+| envelope | closed object for a recognized pair (G-048); schema-identity triple always validated (G-052); four ordered gates (G-055) | `dict` after the Layer 01 extraction; member-set check | `Value` object after Layer 01 normalization; member-set check | YES | `history-envelope-admission-shape` |
 | `profile`, `record_type` | CORE-001 token domain; vocabulary owned by the profile | `str`, Layer 01 token rule | `String`, Layer 01 token rule | YES (ASCII) | same; `history-profile-exclusion` |
-| `schema_version` | positive integer 1…2^53−1; `1.0` is 1 | exact `int` after normalization | `i128`/`u64` after normalization | YES | `schema_version 1.0` case |
-| `compatibility` | `"required"` \| `"ignorable"` | exact string compare | enum from exact string | YES | replay cases |
+| `schema_version` | integral value 1…2^53−1; 0 is never a sentinel (G-052) | exact `int` after normalization | `i128`/`u64` after normalization | YES | `schema_version 1.0` case |
+| `compatibility` | `"required"` \| `"ignorable"`; validated only after profile admission (G-050) | exact string compare | enum from exact string | YES | replay cases |
 | `record_id` | CORE-001 | Layer 01 `validate_stable_id` rule | Layer 01 rule | YES | `id.invalid` case |
 | `recorded_at` (required), `occurred_at` (optional) | HIST-004 grammar and range; absence means unknown; `null` is invalid (G-049) | Layer 01 normalizer | Layer 01 normalizer | YES | timestamp cases |
 | `payload`, `provenance` | any SER-008 value, returned normalized | normalized exact built-ins | normalized `Value` | YES | HIST-010 case |
-| reader | closed `{profile, recognized[]}`; pairs unique after normalization | set of `(str, int)` | `HashSet<(String, i128)>` or a sorted `Vec` | YES | reader cases |
-| HistoryBoundary | closed `{store_id, position}`; position 0…2^53−1 | `(str, int)` | `(String, u64)` | YES | `history-boundary-local-cursor` |
+| reader | closed `{profile, recognized[]}` with closed entries; duplicates after normalization rejected (G-053) | set of `(str, int)` | `HashSet<(String, i128)>` or a sorted `Vec` | YES | reader cases |
+| HistoryBoundary | closed `{store_id, position}`; position 0…2^53−1, 0 = before the first physical record (G-054) | `(str, int)` | `(String, u64)` | YES | `history-boundary-local-cursor` |
 
 ## 2. Decision-order matrix (no host behaviour may leak)
 
 | Step | Rule | Python | Rust | Hazard |
 |---|---|---|---|---|
 | 1–2 | generic stages across all arguments in declared order (G-031) | `validate_arguments` with declared order | `validate_arguments` slice order | — |
-| 3a | reader shape, then record identity | explicit checks; no exceptions from dict lookups | explicit pattern match | H11 |
-| 3b | profile admission before compatibility (G-050) | compare normalized strings | same | — |
+| 3a | reader shape (G-053), then gate 1: the record's schema-identity triple (G-052) | explicit checks; no exceptions from dict lookups | explicit pattern match | H11 |
+| 3b | gate 2: profile admission, then compatibility, then recognition (G-050, G-055) | compare normalized strings | same | — |
 | 3c | recognition is exact pair membership after normalization | `(type, int)` membership | same | H1 (`1.0` vs `1`) |
-| 3d | closed shape, then typed fields in canonical member order (G-034) | iterate UTF-16-sorted members | same | H5 |
+| 3d | gate 3: closed shape; gate 4: typed fields in canonical member order (G-055) | iterate UTF-16-sorted members | same | H5 |
 | relation | `unknown_required` / `boundary_incomparable` only after the argument stages; no argument named | explicit | explicit | — |
 
 ## 3. Hazard checklist
