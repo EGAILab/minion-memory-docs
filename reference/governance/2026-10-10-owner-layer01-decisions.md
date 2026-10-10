@@ -276,3 +276,33 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > each member, name/key before its value; arrays by ascending index; primitive/declared arguments
 > in declared order.Host map iteration/insertion order is never observable. Equivalent JSON texts
 > and equivalent native maps must therefore produce the same first error code."
+
+## G-035 — CORE-003 revision record shape (WP01-PY-005)
+
+> **Q:** WP01-PY-005: The CORE-003 comparison takes revision records {stable_id, artifact_version?,
+> projection}. The contract doesn't say what happens with a malformed record (missing stable_id or
+> projection, extra members) or which error code it gets. What policy?
+>
+> **A:** "Choose 1 — strict shape with artifact.revision_invalid.CORE-003 accepts a closed
+> RevisionRecord containing required stable_id and projection, plus optional artifact_version.
+> Non-object input, missing required members, or unknown extra members are rejected as
+> artifact.revision_invalid. Only after the record shape is valid are present typed fields
+> validated; an invalid stable_id yields id.invalid, and an invalid present artifact_version yields
+> version.invalid. Generic invalid values remain Stage-2 errors.Absence of artifact_version yields
+> not_applicable only after the complete record has otherwise validated. It must not bypass
+> missing-field or extra-member validation."
+
+## G-036 — Native array binding: list and tuple (WP01-PY-006)
+
+> **Q:** WP01-PY-006: At the native (in-process) API, should a Python tuple be accepted as a JSON
+> array? Lists are accepted; the contract lists bytes, sets, dates and non-string keys as
+> unsupported but doesn't mention tuples.
+>
+> **A:** "Choose 1 — accept Python list and tuple as the same canonical array kind.This is a
+> language-binding rule, not a new Mneme value type. Both preserve element order, are recursively
+> validated by ascending index, and canonicalize identically; Python mutability versus immutability
+> is not part of Mneme semantics. Do not generalize acceptance to arbitrary Sequence/iterable types
+> such as range, generators, bytes, or custom sequence objects.Other language bindings may accept
+> their own natural ordered-array representations (for Rust, e.g. Vec, slices, or arrays) while
+> exposing the same canonical array semantics. A tuple at the generic seam is always an array and
+> must never be inferred as a typed domain record."
