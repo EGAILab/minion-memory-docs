@@ -3,15 +3,15 @@ workflow:
   work_package: WP-02
   title: Layer 02 — history and compatibility envelope
   layer: "02"
-  status: FINAL_CONTRACT_REVIEW
+  status: IMPLEMENTATION_REVIEW
   requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
   current_candidate:
-    code: {repo: minion-memory, ref: wp02/contract, sha: 43e0984e585975719231ba53466a9c78eba796e7}
-    docs: {repo: minion-memory-docs, ref: wp02/contract, sha: d603683a67243cb60d6c747e6d6afb5192634076}
+    code: {repo: minion-memory, ref: wp02/contract, sha: ff9d132ada35a604c6f4bc7f11504b229afece6e}
+    docs: {repo: minion-memory-docs, ref: wp02/contract, sha: 6541f33a989da531cc2f21c6b3169b962c45d808}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-016, NF-026]
-  provisionally_closed: [WP02-CR-001, WP02-CR-002, WP02-CR-003, WP02-CR-004, WP02-CR-005, WP02-CR-006]
+  provisionally_closed: [WP02-CR-001, WP02-CR-002, WP02-CR-003, WP02-CR-004, WP02-CR-005, WP02-CR-006, WP02-CR-007]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer02-start.md
     decision: >
@@ -24,10 +24,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-02-codex-final-review.md: one final complete review of WP-02 (contract,
-    corpus, Python, NF-026 runner integration, records) at docs d603683a / code 43e0984e; record APPROVED or
-    CHANGES_REQUIRED on review/wp02-final. On APPROVED, acceptance under G-009 and RUST_IMPLEMENTATION.
+    Execute process/handoffs/WP-02-codex-final-review-2.md: targeted re-review of WP02-CR-007 at docs
+    6541f33a / code ff9d132a; record APPROVED or CHANGES_REQUIRED on review/wp02-final-2. On APPROVED,
+    acceptance under G-009 and RUST_IMPLEMENTATION.
   updated_by: Claude
-  updated_reason: Codex Python re-review APPROVED (cb439331; WP02-CR-006 closed); remediated candidate -> FINAL_CONTRACT_REVIEW.
+  updated_reason: Codex final review (b910a244) CHANGES_REQUIRED on WP02-CR-007; runner fixed; FINAL_CONTRACT_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-02.md
