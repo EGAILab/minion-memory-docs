@@ -179,3 +179,85 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > grammar.Equality, hashing, persistence, conflict detection and cross-language conformance operate
 > only on the normalized canonical value. Original offset/spelling is not part of timestamp
 > semantics; local-time context, if needed, is separate metadata."
+
+## G-028 — Timestamp input letter case (WP01-CR-001a)
+
+> **Q:** WP01-CR-001a: RFC 3339 allows lowercase 't' and 'z' in timestamps (e.g.
+> 2026-10-10t05:30:00z) but lets an application require uppercase. Which does the Mneme input
+> grammar accept?
+>
+> **A:** "Choose 2 — Accept lowercase t/z and normalize them.Mneme’s public timestamp input grammar
+> accepts both uppercase and lowercase RFC 3339 T/Z designators. Lowercase carries no semantic
+> distinction, so rejecting it would only narrow interoperability without protecting any Mneme
+> invariant. Canonical persisted/wire output remains uppercase T and Z with exactly six fractional
+> digits.This does not mean “accept whatever the host datetime parser accepts”; only the explicitly
+> specified Mneme grammar is valid."
+
+## G-029 — Timestamp year range and UTC overflow (WP01-CR-001b)
+
+> **Q:** WP01-CR-001b: Which calendar years are valid, and what happens when converting an offset to
+> UTC lands outside them (e.g. 9999-12-31T23:59:59-00:01 becomes year 10000)?
+>
+> **A:** "Choose 1 — years 0001 through 9999, with UTC-overflow rejection.Mneme timestamps use the
+> proleptic Gregorian calendar and do not admit year 0000. Both the parsed local civil timestamp and
+> the UTC instant produced after offset normalization must lie within 0001-01-01 through 9999-12-31.
+> If applying the offset crosses either boundary, reject the timestamp as timestamp.invalid; do not
+> clamp, wrap, or preserve an otherwise non-representable offset form.This keeps the canonical YYYY
+> contract exact and avoids introducing astronomical year-zero semantics that neither Mneme profile
+> requires."
+
+## G-030 — Timestamp input grammar is required, not optional (WP01-CR-001c)
+
+> **Q:** WP01-CR-001c: Your G-026 says public APIs MAY accept non-canonical RFC 3339 forms (offsets,
+> 0–5 fractional digits). For two implementations to agree, is that acceptance required or
+> optional?
+>
+> **A:** "Choose 1 — Required.Replace the permissive “MAY accept” language with a normative shared
+> input grammar. Every conforming implementation MUST accept every spelling explicitly included in
+> that grammar and normalize it to the same canonical YYYY-MM-DDTHH:MM:SS.ffffffZ value. Every
+> explicitly excluded form MUST be rejected consistently.Conformance must exercise both accepted
+> non-canonical forms and agreed rejection cases in Python and Rust. Acceptance behavior is part of
+> the cross-language public contract, not an implementation option."
+
+## G-031 — One error under a fixed validation precedence (WP01-CR-003)
+
+> **Q:** WP01-CR-003: When one input is invalid in several ways (e.g. a duplicate key AND an
+> out-of-range integer, or a version that is both a generic out-of-range number and an invalid
+> version), which error must be reported?
+>
+> **A:** "Choose 1 — exactly one error under a fixed validation precedence.Define three ordered
+> stages: (1) JSON/structural decoding, including duplicate keys; (2) generic Mneme value-domain
+> validation; (3) typed/domain-field validation such as version, stable ID, and timestamp rules. A
+> failure in an earlier stage prevents later-stage interpretation.Within one stage, return the first
+> violation under a shared deterministic document traversal order. Python and Rust MUST return the
+> same error code for the same invalid input.Do not aggregate downstream errors from an input whose
+> earlier structural/value interpretation is already invalid."
+
+## G-032 — Operation identity is a namespaced pair (WP-01 review Q1)
+
+> **Q:** Q1 (CORE-012): A canonical commit carries a durable operation identity (operation_id /
+> submission identity / durable source identity, e.g. a Minion-Agent capture ID or a Flashcard
+> submission ID). My draft said it 'follows CORE-001's ID domain' — that was my addition, not your
+> decision. What is an operation identity's domain?
+>
+> **A:** "Choose 3 — Namespaced pair.Define OperationIdentity as {source_namespace,
+> source_operation_id}. source_namespace uses the G-020 portable stable-token domain and identifies
+> the producer uniqueness domain. source_operation_id is a bounded, non-empty opaque string supplied
+> by that producer and compared exactly, with no normalization, case folding, trimming, parsing, or
+> filename restrictions.Uniqueness and idempotency apply to the pair, not either field separately.
+> Do not concatenate the fields into a delimiter-based string in the canonical model.Repeating the
+> same pair for the same logical mutation is an idempotent retry; reusing the same pair for
+> materially different canonical mutation content is a visible conflict, not last-write-wins.If a
+> producer's IDs are only unique within a deployment/instance, its source_namespace must identify
+> that uniqueness domain rather than claiming a broader namespace."
+
+## G-033 — source_operation_id length bound (G-032 follow-up)
+
+> **Q:** G-032 follow-up: what is the length bound for source_operation_id (the opaque
+> producer-supplied string)?
+>
+> **A:** "Choose 1 — 1–256 UTF-8 bytes.Measure the bound on the exact UTF-8 encoding of the opaque
+> producer-supplied string. Reject empty values and values over 256 bytes; never truncate or
+> silently replace the ID with a digest. This bound is intentionally larger than G-020’s stable-ID
+> limit because operation IDs are not filenames and may be composite or URL-like, while still
+> keeping idempotency/index keys bounded across Python, Rust, storage, and exports."
