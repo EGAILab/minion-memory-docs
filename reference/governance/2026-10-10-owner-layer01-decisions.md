@@ -53,3 +53,37 @@ escalation conditions; the WP-01 contract either resolves them by path A/B or re
 Note for the contract: RFC 8785 serializes numbers in ECMAScript form; combined with G-015
 (signed 64-bit integers beyond 2^53) this interaction must be characterized in the WP-01
 feasibility matrix and, if it forces a choice, returned to the Owner.
+
+## G-016 — Integer domain amended to JS-safe integers (amends G-015; resolves G-014/G-015 conflict)
+
+Executed premise probe (`assurance/layers/01-probes/rfc8785-int-domain.md`): the reference RFC 8785
+implementation (`rfc8785` 0.1.4, Python 3.12.8) raises `IntegerDomainError` for every integer of
+magnitude ≥ 2^53, including 2^53 and the signed-64-bit limits G-015 allowed.
+
+> **Q:** Probe result: RFC 8785 (your G-014 hashing choice) cannot represent integers of magnitude
+> ≥ 2^53. The reference library raises an error for every value from 2^53 up to the signed-64-bit
+> limits that G-015 allows. How should Layer 01 resolve this conflict?
+>
+> **A:** JS-safe integers (Recommended) — "Amend G-015: integers limited to ±(2^53−1) everywhere.
+> Hashing stays strict, standard RFC 8785, so Python and Rust can each use or check against
+> independent off-the-shelf implementations. Consequence: integer timestamps can be at most
+> microsecond precision since epoch."
+
+Effect: G-015's integer bound becomes ±(2^53−1); the rest of G-015 (finite binary64 floats, Unicode
+scalar strings, JSON-shaped containers with string keys) is unchanged.
+
+## G-017 — Negative zero normalized
+
+Executed probe: RFC 8785 serializes `-0.0` and `0.0` to identical bytes.
+
+> **Q:** Probe result: canonical JSON writes -0.0 and 0.0 as the same bytes, so the content hash
+> cannot tell them apart. Under G-015 (finite floats allowed), how should negative zero be treated?
+>
+> **A:** Normalize -0 to 0 (Recommended) — "Values are normalized at the seam: -0.0 is stored and
+> returned as 0.0. The domain then matches what hashing can see, and nothing differs invisibly."
+
+## Contract fact recorded with G-014 (authority reading, path A — not a new decision)
+
+RFC 8785 orders object members by UTF-16 code units, not code points (probe: `"\U0001F600"` sorts
+before `"｡"`, the reverse of code-point / UTF-8 byte order). This follows from G-014's choice of
+RFC 8785; the WP-01 contract states it and canonical fixtures must include a discriminating pair.
