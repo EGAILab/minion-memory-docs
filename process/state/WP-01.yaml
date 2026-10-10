@@ -3,11 +3,13 @@ workflow:
   work_package: WP-01
   title: Layer 01 — core identity, versions, provenance, lineage, operation identity, portable value domain
   layer: "01"
-  status: CONTRACT_DRAFT
+  status: CONTRACT_REVIEW
   requirements: [CORE-001, CORE-002, CORE-003, CORE-004, CORE-005, CORE-006, CORE-007, CORE-008,
                  CORE-009, CORE-010, CORE-011, CORE-012, CORE-013, SER-001, SER-002, SER-003, SER-004,
                  SER-007, SER-008, SER-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp01/contract, sha: 4224a45e4606a55d0bfaa08097956a4952ddd512}
+    docs: {repo: minion-memory-docs, ref: wp01/contract, sha: 7d51960ba1343ec7f7dadb7f7ec954610573e5bb}
   dependencies:
     WP-P01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-010, NF-011, NF-012, NF-013, NF-014, NF-015, NF-019, NF-022, NF-024, NF-025]
@@ -22,11 +24,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Repair the Layer 01 contract per Codex review 2b388e62 (WP01-CR-001..004, Q1) using Owner
-    decisions G-028..G-033; re-validate, bind exact SHAs and hand CONTRACT_REVIEW back to Codex.
+    Execute process/handoffs/WP-01-codex-contract-review-2.md: round-2 contract review of docs
+    7d51960b / code 4224a45e; record APPROVED or CHANGES_REQUIRED on review/wp01-contract-2.
   updated_by: Claude
-  updated_reason: Codex review CHANGES_REQUIRED (2b388e62); Owner G-028..G-033 recorded; CONTRACT_REVIEW -> CONTRACT_DRAFT for repair.
+  updated_reason: Contract repaired for review 1 (WP01-CR-001..004, Q1; G-028..G-033); CONTRACT_DRAFT -> CONTRACT_REVIEW round 2.
   history:
     assurance_index: plans/WP-01.md
