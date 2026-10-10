@@ -129,6 +129,36 @@ def _git(repo: Path, *args: str) -> tuple[int, str]:
     return done.returncode, done.stdout.strip()
 
 
+def _git_paths(repo: Path, *args: str) -> tuple[int, list[str]]:
+    """Run a git command that lists paths, losslessly (WPP01-CR-001).
+
+    Requests NUL-delimited output (`-z` must be among `args`) and decodes the raw path bytes as
+    UTF-8, so `core.quotePath` display quoting (e.g. ``"WP-\\303\\234.yaml"``) never reaches a
+    comparison. Undecodable bytes are reported as a failure, not guessed.
+    """
+    try:
+        done = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, check=False, timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return 1, []
+    if done.returncode != 0:
+        return done.returncode, []
+    try:
+        return 0, [part.decode("utf-8") for part in done.stdout.split(b"\0") if part]
+    except UnicodeDecodeError:
+        return 1, []
+
+
+# Candidate sides are bound to their canonical repositories (WPP01-CR-002).
+SIDE_REPOS: dict[str, str] = {"code": "minion-memory", "docs": "minion-memory-docs"}
+# A candidate ref is a plain local branch name: no option-like or range syntax (WP-P01 sweep).
+BRANCH = re.compile(r"^(?!-)(?!.*\.\.)(?!.*//)[A-Za-z0-9._/-]+(?<![./])$")
+
+
+def valid_revision(text: str) -> bool:
+    """A revision accepted from the CLI: HEAD, a full SHA, or a plain branch name."""
+    return text == "HEAD" or bool(SHA.match(text)) or bool(BRANCH.match(text))
+
+
 def _bundle(ctx: Context, errors: list[str]) -> dict[str, Any] | None:
     bundle = _load(ctx.docs / BUNDLE_MANIFEST, errors, BUNDLE_MANIFEST)
     if not isinstance(bundle, dict) or not isinstance(bundle.get("documents"), list):
@@ -602,8 +632,19 @@ def validate_state(state: Any, label: str) -> list[str]:
                     continue
                 if not isinstance(value.get("sha"), str) or not SHA.match(value["sha"]):
                     errors.append(f"{label}: current_candidate.{side}.sha must be 40 lowercase hex")
-                if not isinstance(value.get("ref"), str) or not value["ref"]:
-                    errors.append(f"{label}: current_candidate.{side}.ref must be a branch name")
+                if value.get("repo") != SIDE_REPOS[side]:
+                    errors.append(
+                        f"{label}: current_candidate.{side}.repo must be {SIDE_REPOS[side]!r} "
+                        f"(sides are bound to their repositories), got {value.get('repo')!r}"
+                    )
+                ref = value.get("ref")
+                if not isinstance(ref, str) or not BRANCH.match(ref) or SHA.match(ref):
+                    errors.append(
+                        f"{label}: current_candidate.{side}.ref must be a plain local branch name "
+                        f"(not a SHA, range or option), got {ref!r}"
+                    )
+                elif status == "CLOSED" and ref != "main":
+                    errors.append(f"{label}: CLOSED requires current_candidate.{side}.ref == 'main'")
     quarantine = wf.get("quarantine")
     if not isinstance(quarantine, dict) or not isinstance(
         quarantine.get("derived_from_quarantined_artifact"), bool
@@ -638,7 +679,7 @@ def check_state(ctx: Context) -> list[str]:
     files = sorted(directory.glob("*.yaml")) if directory.is_dir() else []
     if not files:
         return [f"{STATE_DIR}: no work-package state file"]
-    repos = {"minion-memory": ctx.code, "minion-memory-docs": ctx.docs}
+    side_paths = {"code": ctx.code, "docs": ctx.docs}
     for path in files:
         errors.extend(validate_state_file(path, ctx.docs))
         data = _load(path, [], path.name)
@@ -646,13 +687,18 @@ def check_state(ctx: Context) -> list[str]:
         if not isinstance(wf, dict) or not isinstance(wf.get("current_candidate"), dict):
             continue
         for side, cand in wf["current_candidate"].items():
-            if not isinstance(cand, dict) or not isinstance(cand.get("sha"), str):
+            if side not in side_paths or not isinstance(cand, dict) or not isinstance(cand.get("sha"), str):
                 continue
-            repo = repos.get(str(cand.get("repo")))
-            if repo is None:
-                errors.append(f"{path.name}: {side}.repo must be one of {sorted(repos)}")
-                continue
+            # The repository is fixed by the side, never chosen by the record (WPP01-CR-002).
+            if cand.get("repo") != SIDE_REPOS[side]:
+                continue  # reported by validate_state; never resolve a mis-bound side
+            repo = side_paths[side]
             sha, ref = cand["sha"], str(cand.get("ref"))
+            if not BRANCH.match(ref) or SHA.match(ref):
+                continue  # reported by validate_state
+            if _git(repo, "show-ref", "--verify", "--quiet", f"refs/heads/{ref}")[0] != 0:
+                errors.append(f"{path.name}: {side}.ref {ref!r} is not a local branch in {repo.name}")
+                continue
             if _git(repo, "cat-file", "-e", f"{sha}^{{commit}}")[0] != 0:
                 errors.append(f"{path.name}: {side} candidate {sha} does not exist in {repo.name}")
                 continue
@@ -690,8 +736,13 @@ def _state_only_chain(label: str, repo: Path, sha: str, ref: str) -> list[str]:
     if status != 0:
         return [f"{label}: cannot list commits {sha[:12]}..{ref}"]
     for commit in commits.split():
-        _, changed = _git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "-m", commit)
-        extra = sorted({f for f in changed.splitlines() if f and not f.startswith(STATE_ONLY_PATHS)})
+        status, changed = _git_paths(
+            repo, "diff-tree", "-z", "--no-commit-id", "--name-only", "-r", "-m", commit
+        )
+        if status != 0:
+            errors.append(f"{label}: cannot list paths changed by commit {commit[:12]}")
+            continue
+        extra = sorted({f for f in changed if not f.startswith(STATE_ONLY_PATHS)})
         if extra:
             errors.append(
                 f"{label}: commit {commit[:12]} after docs candidate {sha[:12]} on {ref} changes "
@@ -809,10 +860,14 @@ def state_roundtrip(docs: Path, revision: str = "HEAD") -> list[str]:
     files = sorted(directory.glob("*.yaml")) if directory.is_dir() else []
     # Inventory first (WPP01-CR-001): a committed state missing from the working tree, or a working
     # state absent from the commit, is a failed round trip — never silently skipped.
-    status, listing = _git(docs, "ls-tree", "--name-only", f"{revision}:{STATE_DIR}")
+    if not valid_revision(revision):
+        return [f"revision {revision!r} must be HEAD, a 40-hex SHA or a plain branch name"]
+    if _git(docs, "rev-parse", "--verify", "--quiet", f"{revision}^{{commit}}")[0] != 0:
+        return [f"revision {revision!r} does not name a commit"]
+    status, listing = _git_paths(docs, "ls-tree", "-z", "--name-only", f"{revision}:{STATE_DIR}")
     if status != 0:
         return [f"{STATE_DIR}: cannot list committed state files in {revision}"]
-    committed_names = {name for name in listing.splitlines() if name.endswith(".yaml")}
+    committed_names = {name for name in listing if name.endswith(".yaml")}
     working_names = {path.name for path in files}
     for name in sorted(committed_names - working_names):
         errors.append(f"{STATE_DIR}/{name}: committed in {revision} but missing from the working tree")

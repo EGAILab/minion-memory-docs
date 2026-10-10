@@ -100,6 +100,7 @@ class World:
         for repo in (self.docs, self.code):
             repo.mkdir()
             git(repo, "init", "-q", "-b", "wp/test")
+            git(repo, "config", "core.quotePath", "true")  # WPP01-CR-001: pin display quoting
         dump(
             self.docs / checks.BUNDLE_MANIFEST,
             {

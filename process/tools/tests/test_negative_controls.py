@@ -242,7 +242,8 @@ def _approved_review() -> dict[str, str]:
     return {"outcome": "APPROVED", "verdict": "APPROVED", "source": "assurance/reviews/x.md"}
 
 
-def _closed(world: World, **overrides: object) -> None:
+def _closed(world: World, ref: str = "main", **overrides: object) -> None:
+    """A CLOSED state in the correct form: both candidate sides recorded with ref main."""
     fields: dict[str, object] = {
         "status": "CLOSED",
         "open_findings": [],
@@ -251,7 +252,10 @@ def _closed(world: World, **overrides: object) -> None:
         "scoping_review": _approved_review(),
     }
     fields.update(overrides)
-    world.write_state(**fields)
+    state = world.state(**fields)
+    for side in ("code", "docs"):
+        state["workflow"]["current_candidate"][side]["ref"] = ref
+    dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
 
 
 def _accept_on_main(world: World) -> None:
@@ -272,7 +276,18 @@ def test_cr003_closure_with_non_approval_outcome_is_caught(world: World, outcome
     assert_caught(world, "state", "closes only with scoping_review")
 
 
+def _unrelated_main(world: World) -> None:
+    """A main branch that exists but does not contain the candidates (an orphan empty commit)."""
+    for repo in (world.code, world.docs):
+        empty_tree = subprocess.run(
+            ["git", "-C", str(repo), "mktree"], input="", capture_output=True, text=True, check=True
+        ).stdout.strip()
+        orphan = git(repo, "commit-tree", empty_tree, "-m", "unrelated main")
+        git(repo, "branch", "-f", "main", orphan)
+
+
 def test_cr003_closure_without_main_acceptance_is_caught(world: World) -> None:
+    _unrelated_main(world)
     _closed(world)
     assert_caught(world, "state", "is not accepted on main")
 
@@ -536,3 +551,80 @@ def test_wpp01_cr002_closed_without_complete_pair_is_caught(world: World, varian
     _accept_on_main(world)
     dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
     assert_caught(world, "state", "CLOSED requires the exact accepted pair")
+
+
+# ---------------------------------------- WP-P01 remediation 2 (characterized trust surface)
+
+UNICODE_STATE = "WP-Ü.yaml"
+
+
+def test_wpp01_r2_unicode_state_inventory_matches(world: World) -> None:
+    dump(world.docs / checks.STATE_DIR / UNICODE_STATE, world.state(work_package="WP-U"))
+    world.commit_all(world.docs, "unicode state")
+    assert checks.state_roundtrip(world.docs) == []
+
+
+def test_wpp01_r2_unicode_state_uncommitted_deletion_is_caught(world: World) -> None:
+    path = world.docs / checks.STATE_DIR / UNICODE_STATE
+    dump(path, world.state(work_package="WP-U"))
+    world.commit_all(world.docs, "unicode state")
+    path.unlink()
+    errors = checks.state_roundtrip(world.docs)
+    assert any(f"{UNICODE_STATE}: committed in HEAD but missing" in e for e in errors), errors
+
+
+def test_wpp01_r2_unicode_state_path_counts_as_state_only(world: World) -> None:
+    """diff-tree paths are read losslessly: a non-ASCII state path is still a state-only change."""
+    dump(world.docs / checks.STATE_DIR / UNICODE_STATE, world.state(work_package="WP-U"))
+    world.commit_all(world.docs, "unicode state after candidate")
+    assert "state" not in only_failures(world)
+
+
+@pytest.mark.parametrize("variant", ["both-code", "both-docs", "swapped"])
+def test_wpp01_r2_candidate_sides_bound_to_repositories(world: World, variant: str) -> None:
+    state = world.state()
+    cand = state["workflow"]["current_candidate"]
+    code, docs = dict(cand["code"]), dict(cand["docs"])
+    if variant == "both-code":
+        cand["docs"] = dict(code)
+    elif variant == "both-docs":
+        cand["code"] = dict(docs)
+    else:
+        cand["code"], cand["docs"] = docs, code
+    dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
+    assert_caught(world, "state", "sides are bound to their repositories")
+
+
+@pytest.mark.parametrize("ref", ["SHA", "HEAD~0", "--output=x", "wp/test..main", "no-such-branch"])
+def test_wpp01_r2_candidate_ref_must_be_existing_plain_branch(world: World, ref: str) -> None:
+    state = world.state()
+    docs = state["workflow"]["current_candidate"]["docs"]
+    docs["ref"] = docs["sha"] if ref == "SHA" else ref
+    dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
+    expected = "is not a local branch" if ref == "no-such-branch" else "must be a plain local branch name"
+    assert_caught(world, "state", expected)
+
+
+def test_wpp01_r2_sha_ref_cannot_bypass_chain_rule(world: World) -> None:
+    """The sweep witness: ref == candidate SHA made the descendant range empty."""
+    record = world.docs / "assurance" / "reviews" / "record.md"
+    record.parent.mkdir(parents=True, exist_ok=True)
+    record.write_text("content after candidate\n", encoding="utf-8")
+    world.commit_all(world.docs, "content")
+    state = world.state()
+    docs = state["workflow"]["current_candidate"]["docs"]
+    docs["ref"] = docs["sha"]
+    dump(world.docs / checks.STATE_DIR / "WP-T.yaml", state)
+    assert_caught(world, "state", "must be a plain local branch name")
+
+
+def test_wpp01_r2_closed_requires_main_ref(world: World) -> None:
+    _accept_on_main(world)
+    _closed(world, ref="wp/test")
+    assert_caught(world, "state", "CLOSED requires current_candidate.code.ref == 'main'")
+
+
+@pytest.mark.parametrize("revision", ["-x", "--output=x", "HEAD..main", "nope"])
+def test_wpp01_r2_roundtrip_rejects_bad_revision(world: World, revision: str) -> None:
+    errors = checks.state_roundtrip(world.docs, revision)
+    assert errors and ("must be HEAD" in errors[0] or "does not name a commit" in errors[0]), errors

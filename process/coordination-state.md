@@ -98,6 +98,14 @@ Rules (validated by `mneme-process check state` and `state validate`):
 - `INCIDENT` / `INVALID_UNAUTHORIZED` authorize nothing (no hand-off, review, acceptance).
 - SHAs are 40 lowercase hex. `requirements`, `open_findings`, `provisionally_closed` are lists of IDs
   (container shape validated before elements).
+- Candidate sides are **bound to their repositories**: `code.repo` must be `minion-memory` and
+  `docs.repo` must be `minion-memory-docs`; the validator resolves each side's repository from the
+  side, never from the record (WPP01-CR-002).
+- A candidate `ref` is a **plain local branch name** that exists as `refs/heads/<ref>` — not a SHA,
+  `HEAD`, a range, or option-like text (otherwise a `ref` equal to the candidate SHA would make the
+  state-only descendant range empty). A `CLOSED` state uses `ref: main` on both sides.
+- Every path list read from git is NUL-delimited (`-z`) raw bytes decoded as UTF-8, so
+  `core.quotePath` display quoting never reaches a comparison (WPP01-CR-001).
 - `CLOSED` requires no open findings, the exact accepted pair recorded (`current_candidate.code`
   and `.docs` both present with 40-hex SHAs — absent, empty, null or partial records fail closed,
   WPP01-CR-002), and every candidate SHA reachable from `main` (accepted).
