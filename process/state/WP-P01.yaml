@@ -5,7 +5,15 @@ workflow:
   layer: "00"
   status: SCOPING
   requirements: []
-  current_candidate: null
+  current_candidate:
+    code:
+      repo: minion-memory
+      ref: main
+      sha: bb05e3953a044ea8abd9d796675290ad9fe80941
+    docs:
+      repo: minion-memory-docs
+      ref: wpP01/hardening
+      sha: ba1217f76ef311f3ba0df749e43291b75fb2e0b4
   dependencies:
     WP-00: {relation: blocked_by, status: CLOSED}
   open_findings: [WP00-CR-014]
@@ -19,13 +27,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Scope WP-P01: (1) WP00-CR-014 FROZEN-citation guard recognizes positive status labels only,
-    with negated/mention-only controls and a NORMATIVE control citing only an unlabelled section;
-    (2) UTF-8-safe `mneme-process state roundtrip` command; (3) state-chain rule for CLOSED states
-    and post-acceptance record commits; (4) land the WP-00 post-acceptance records on main.
+    Execute process/handoffs/WP-P01-codex-review.md: independent review of WP-P01 at docs ba1217f7
+    (code bb05e395 = main); record on branch review/wpP01-codex-1; verdict APPROVED |
+    CHANGES_REQUIRED | HANDOFF_BLOCKED; notify Claude via Herdr (w6:p1).
   updated_by: Claude
-  updated_reason: Created by WP-00 closure per Owner decision G-011.
+  updated_reason: WP-P01 candidate implemented and gated; handing off for independent review.
   history:
-    assurance_index: assurance/reviews/WP-00-targeted-closure-codex-2.md
+    assurance_index: plans/WP-P01.md
