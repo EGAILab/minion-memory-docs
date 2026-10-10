@@ -3,9 +3,11 @@ workflow:
   work_package: WP-02
   title: Layer 02 — history and compatibility envelope
   layer: "02"
-  status: PYTHON_IMPLEMENTATION
+  status: IMPLEMENTATION_REVIEW
   requirements: [HIST-001, HIST-002, HIST-005, HIST-010, SER-005, SER-006]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp02/contract, sha: 1d7167c85d4516dea6903ada6745139c3ac222f3}
+    docs: {repo: minion-memory-docs, ref: wp02/contract, sha: 7d21a51437509d03417af2f327bc636f2af6b7b1}
   dependencies:
     WP-01: {relation: blocked_by, status: CLOSED}
   open_findings: [NF-016, NF-026]
@@ -20,12 +22,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Implement the agreed Layer 02 envelope contract (docs 6f761081 / code 15b71ca3; Codex APPROVED
-    18902542) in Python through public seams; G3 evidence; hand off for IMPLEMENTATION_REVIEW.
-    NF-026 (Rust runner DRAFT handling) remains with Codex.
+    Execute process/handoffs/WP-02-codex-python-implementation-review.md: complete independent review
+    of the WP-02 Python implementation at docs 7d21a514 / code 1d7167c8 (after NF-026);
+    record APPROVED or CHANGES_REQUIRED on review/wp02-python-1.
   updated_by: Claude
-  updated_reason: WP-02 contract APPROVED by Codex round 2 (18902542; WP02-CR-001..005 closed); CONTRACT_REVIEW -> PYTHON_IMPLEMENTATION.
+  updated_reason: WP-02 Python implemented (code 1d7167c8; G3 evidence 386 passed, 100% statements and branches); PYTHON_IMPLEMENTATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-02.md
