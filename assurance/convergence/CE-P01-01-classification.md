@@ -5,9 +5,29 @@ Claude, 2026-10-10. Governs: G-018. Input: Codex characterization
 (688 rows, reference docs `1422423e`, code `bb05e395`). Production surface is still frozen; this
 artifact changes no code.
 
-**Checkpoint status: `PROPOSED FOR IMPLEMENTATION`.** It is not agreed. It becomes
-`AGREED FOR IMPLEMENTATION` only after Codex records a separate `APPROVED` on this exact
-artifact. Until then, nothing on the frozen surface is edited.
+**Checkpoint status: `PROPOSED FOR IMPLEMENTATION` — revision 2.**
+- Revision 1 (`de153c0`) received `CHANGES_REQUIRED` from Codex
+  (`assurance/reviews/WP-P01-CE-P01-01-checkpoint-codex.md` at `8420760`). All seven required
+  changes are accepted; §0 maps each one to its resolution.
+- This revision is still not agreed. It becomes `AGREED FOR IMPLEMENTATION` only after Codex
+  records a separate `APPROVED` on this exact artifact. Until then, nothing on the frozen surface
+  is edited.
+
+## 0. Response to checkpoint review (revision 1 → 2)
+
+| Required change | Resolution in this revision |
+|---|---|
+| CE1-CP-001 source-key domain | Verified: all 12 bundle keys are uppercase, and `spec.py` `CITATION` uses `[A-Z][A-Z0-9]*`. D14's key grammar is now that citation grammar, bounded at 16 characters: `[A-Z][A-Z0-9]{0,15}`. No key or citation is renamed. New positive control CH11 covers all 12 keys plus `DOC`. C16/V08 keep their success oracle. |
+| CE1-CP-002 linked roots vs nested markers | E10 is now a **KEEP-POS** positive control: a root `.git` file is the linked worktree's own administrative marker. New CH06 (a nested `.git` **file** in a docs subdirectory) was executed and is refused today, so it is a KEEP-NEG control that must stay refused. D16 now states a domain for each inventory. D7 locates `shallow`, `info/grafts` and replace refs through `git rev-parse --git-common-dir` / `--git-path`, never by assuming `<root>/.git/`. |
+| CE1-CP-003 trigger shape | Kept the string domain: `deferred_trigger` is a non-blank string. S229/S258/S259/S262/S266 remain KEEP-POS unchanged. N03–N05 (True, list, blank) remain FIX. No shape migration. |
+| CE1-CP-004 identity gate | D2 now names its gates. File-aware gates enforce stem == `work_package`: `validate_state_file`, `check_state`, `state validate`. Pure-object `validate_state(obj, label)` does not; its label is diagnostic only. `state roundtrip` stays equality-only for content and applies only D1's name/kind domain to inventories. P01a becomes FIX with component oracles. New P01p is a matching-ID positive. |
+| CE1-CP-005 repair vs preserved | S330 → KEEP-POS. M03 → KEEP-POS, defensive with no kill credit; CH01/CH02 are D7's discriminating witnesses. C05 → POLICY: today it runs all eight checks honestly. U07 → accepted on W/L/C, with the DIAG carve-out removed. OPAQUE keeps the existing string-or-null guards. §5 now separates kill-credited controls from regression controls. |
+| CE1-CP-006 revision spellings | D8 now defines accepted CLI spellings separately from the resolution namespace. Composite G rows carry candidate and roundtrip component oracles. CH09 (a local branch named `deadbeef`) is accepted. CH10 (spelling `refs/heads/wp/test`) is POLICY-refused. |
+| CE1-CP-007 cross-entry producer failure | Added CH07 (valid first entry, bad later hash, from Codex's `CP-later-entry-corrected`) as FIX with an all-bytes-unchanged oracle, and CH08 (all-valid multi-entry) as a positive. D14 now states its write-failure scope and limit. |
+
+Revision-2 totals over 700 rows (688 original plus 12 new controls):
+- KEEP-NEG 398, KEEP-POS 105, OPAQUE 84, FIX 99, POLICY 4, LIMIT 6, DIAG 4.
+- FIX by finding: CR-001 30, CR-002 23, CR-003 14, CR-004 4, CR-005 25, CR-006 3.
 
 ## 1. Independent reproduction (challenge, not trust)
 
@@ -70,10 +90,16 @@ contracts owned by coordinator and reviewer, with no product semantics.
     name. It never silently becomes authority and never silently disappears.
   - Matching, uncommitted extras and working deletions keep today's semantics. A committed
     deletion stays legitimate.
-- **D2. Work-package identity.** `work_package` full-matches the ASCII pattern `WP-[A-Z0-9]{1,8}`
-  and equals the file stem. One file per work package; duplicates are impossible by construction.
+- **D2. Work-package identity.** `work_package` full-matches the ASCII pattern `WP-[A-Z0-9]{1,8}`.
   Existing `WP-00`, `WP-P01` and `WP-01` conform. Uppercase-only IDs prevent case collisions on
   case-insensitive hosts, and Windows device names cannot match.
+  - **Gates.** The *file-aware* gates require file stem == `work_package`: `validate_state_file`,
+    `check_state` and `state validate`. This makes one file per work package and makes duplicates
+    impossible.
+  - Pure-object `validate_state(obj, label)` checks the token only; its label is diagnostic and
+    never treated as a path.
+  - `state roundtrip` compares committed and working bytes and inventories. It applies D1's
+    name/kind domain, but no content identity rule.
 - **D3. Path kinds.**
   - Committed entries must have mode `100644` or `100755`. Working entries must be regular files
     (`lstat`; symlinks are not followed).
@@ -95,15 +121,31 @@ contracts owned by coordinator and reviewer, with no product semantics.
   - sets `GIT_NO_REPLACE_OBJECTS=1` and `GIT_GRAFT_FILE` to a non-existent path inside the
     project `.tmp`;
   - refuses, with a named diagnostic, a repository that is shallow or carries `refs/replace/*`
-    or `info/grafts`.
+    or `info/grafts`. These are located through `git rev-parse --is-shallow-repository`,
+    `--git-common-dir` and `--git-path info/grafts`, so linked-worktree roots whose `.git` is a
+    file are handled.
 
   Canonical ancestry is real object ancestry only (Q01, Q02, CH01–CH04, M01–M04).
 - **D8. One resolution per proof.**
   - Each side resolves `refs/heads/<ref>` once to an OID. Ancestry, `rev-list` and per-commit
     `diff-tree` all use that OID. CLOSED resolves `refs/heads/main` the same way.
-  - Roundtrip `--revision` accepts only `HEAD`, a full 40-hex commit OID or a plain branch
-    name, and resolves it once to an OID. That OID is used for both the inventory and every blob
-    read. Abbreviated, tag and remote names are refused (J06–J08, F04, A01–A03, A06).
+  - **Accepted roundtrip `--revision` spellings** (exactly three):
+    1. the literal `HEAD`;
+    2. exactly 40 lowercase hex, always treated as an OID whose own type must be `commit`;
+    3. a plain branch name in the candidate-ref grammar, which excludes `refs/…`, `HEAD`,
+       40-hex forms and option-like or range text.
+  - **Resolution namespace.** A plain name resolves **only** as `refs/heads/<name>`, through
+    the D5 non-symbolic rule. A name that is not a local head is refused. It is never resolved
+    as a tag, a remote or an object abbreviation (J06–J08, G13).
+  - An existing local branch whose name happens to be hex (`deadbeef`, CH09) is accepted as a
+    branch. Qualified spellings such as `refs/heads/wp/test` (CH10) and `refs/remotes/…` are
+    refused.
+  - The spelling is resolved once to an OID, and that OID is used for the inventory and every
+    blob read (F04, A01–A03, A06).
+  - **Composite rows** state two components: candidate-ref acceptance (D5/D11) and roundtrip
+    argument acceptance (this rule). An accepted argument can still fail roundtrip equality on a
+    fixture-intended byte delta (G01, G08, G12); that is reported as equality failure, not
+    argument refusal.
 - **D9. One load per object.** Each state file is read and parsed once per check invocation, and
   every later check uses that validated object (F05).
 - **D10. State-only chain.**
@@ -122,7 +164,9 @@ contracts owned by coordinator and reviewer, with no product semantics.
     `NF-\d{3}|WP[0-9A-Z]+-CR-\d{3}`.
   - CONTRACT_CONVERGENCE: `convergence` is a mapping with a non-blank string `episode` and a
     non-empty list of finding IDs.
-  - WAITING_FOR_TRIGGER: `deferred_trigger` is a mapping with a non-blank string `condition`.
+  - CONTRACT_CONVERGENCE: no episode grammar beyond the non-blank string (S330 is valid).
+  - WAITING_FOR_TRIGGER: `deferred_trigger` is a non-blank string, the established domain.
+    `True`, lists and blank strings are refused.
   - INCIDENT and INVALID_UNAUTHORIZED: `next_owner` **and** `next_action` are null.
   - Owner/action membership is tested only after the type test.
 - **D13. Totality.**
@@ -133,22 +177,56 @@ contracts owned by coordinator and reviewer, with no product semantics.
   - Host setup inability (W cells of P09–P13 and U05/U06/U08/U09; P16 on all hosts) is
     diagnostic-only, never a killed control.
 - **D14. Source producer bound.**
-  - `documents[].key` full-matches `[a-z0-9][a-z0-9._-]*` (no `/`, `\` or `..`).
+  - `documents[].key` full-matches the established citation grammar, bounded at 16 characters:
+    `[A-Z][A-Z0-9]{0,15}`. The 12 bundle keys and fixture `DOC` all match (CH11). No separator
+    or dot is possible, so no key can escape (Z06, Z07).
   - `documents[].file` is a relative path inside `bundle_root` with no `..` and no absolute or
-    drive form.
-  - All entries (types, keys, files, hashes) are validated **before the first write**, and output
-    paths are confirmed inside `reference/source-text` after resolution.
-  - A failed build writes nothing and exits 1.
+    drive form (E12).
+  - **Preflight.** Every entry (types, key, file, hash) is validated, and every output path is
+    resolved and confirmed inside `reference/source-text`, **before the first write**. Any
+    validation failure exits 1 with every existing destination and index byte unchanged and no
+    new file (CH07; Z09).
+  - **Write phase.** Outputs and index are written to sibling temporary files, then replaced in
+    turn.
+  - **Stated limit.** An OS failure *during the replace phase* can leave a mix of old and new
+    files. The build then exits 1, naming every file it had replaced, and a rerun is required.
+    This is not claimed transactional. No control simulates OS write failure beyond one injected
+    failure on the first replace, which must exit 1 with the diagnostic.
 - **D15. CLI scope honesty.**
-  - `--only` with zero names is a usage error.
+  - `--only` with zero names becomes a usage error. This is a policy change: today it honestly
+    runs and reports all eight checks, so it is not a false pass (C05).
   - `state validate --docs D` refuses a path outside `D/process/state`.
   - `state roundtrip` verifies that `--docs` is a non-bare working-tree root before any
     inventory, and the diagnostic says so.
   - Partial commands (C04, U13–U17) keep reporting only their own scope.
-- **D16. Other inventories (findings, spec, source-text, conformance, nested-repo scan).**
-  - Each enumerates by exact case-sensitive suffix on every host.
-  - Case-variant, nested-where-unsupported, directory-named and `.git`-file entries are named
-    errors, not silent skips, and give the same result on W/L/C (E01–E05, E08, E10, E12).
+- **D16. Other inventories — one domain per inventory.** Suffixes are compared case-sensitively
+  and byte-exactly on every host. Results are identical on W/L/C. Kinds are checked with `lstat`
+  (no symlink following):
+  - **Findings** (`assurance/findings/`):
+    - immediate entries only;
+    - members are regular files ending in `.yaml`;
+    - any other entry is an error: a directory, a symlink, or a case-variant such as `.YAML`
+      (E01, E02).
+  - **Spec** (`spec/`):
+    - recursive;
+    - members are regular files ending in `.md`, including the existing `README.md`;
+    - a directory named `*.md`, a symlink or a case-variant suffix is an error;
+    - subdirectories not named `*.md` are traversed (E03, E04).
+  - **Source text** (`reference/source-text/`):
+    - immediate entries only;
+    - members are regular files ending in `.md`;
+    - any other entry is an error, so `.MD` is refused on every host (E05).
+  - **Conformance** (`conformance/<family>/`):
+    - recursive;
+    - members are regular files ending in `.yaml`;
+    - the existing `README.md` exception is retained;
+    - hidden `.yaml` files are ordinary members (E07);
+    - a directory named `*.yaml`, a symlink or another suffix is an error (E06, E08).
+  - **Nested-repository scan.** This is an exact-name and location domain, not a suffix
+    inventory. Any entry named exactly `.git` (file or directory) *below* a repository root is a
+    nested repository (E09, CH06). Each repository root's own `.git`, file or directory, is its
+    administrative marker and is valid (E10). The existing temp/worktree exclusions are
+    unchanged.
 - **Opaque metadata (no change).** These fields keep today's acceptance and are explicitly
   documented as conferring no authority: `title`, `layer`, `authority`, `dependencies`,
   `history`, `governance_source`, `updated_by`, `updated_reason`, `scoping_review` outside a
@@ -170,18 +248,25 @@ so the written contract and validator move together.
      are skipped with a recorded reason, never counted.
    - CH01–CH03 are added as controls; CH03 is checked against the actual `GIT_GRAFT_FILE`
      mechanism.
-3. Negative-control proof: for each FIX group, the pre-fix tooling must fail the new control and
-   the post-fix tooling must pass it, executed through the control runner's own baseline.
+3. **Control accounting.**
+   - Only **FIX** rows are kill-credited. For each one, the frozen tooling must produce the
+     recorded wrong result and the implementation must produce the oracle. Both are executed
+     through the control runner's own baseline.
+   - **POLICY** rows show a deliberate change: old acceptance, new refusal. They are not counted
+     as defect kills.
+   - **KEEP-POS / KEEP-NEG / OPAQUE** rows are regression controls with unchanged oracles, and
+     earn no kill credit (M03 and CH06 included).
+   - **LIMIT / DIAG** rows are labelled and never counted.
+   - Each control records its discriminating property: the input dimension that separates the
+     right implementation from the named wrong one.
 4. Hand-off to Codex for targeted closure against this matrix only. Unrelated WP-P01 semantics
    are not reopened (G-018).
 
-## 6. Row classification (all 688)
+## 6. Row classification (revision 2: 688 original plus 12 new controls = 700)
 
-Totals:
-- KEEP-NEG 397, KEEP-POS 98, OPAQUE 84, FIX 97, POLICY 2, LIMIT 6, DIAG 4.
-- FIX by finding: CR-001 30, CR-002 20, CR-003 14, CR-004 3, CR-005 26, CR-006 4.
-- Generated by `.tmp/work/claude/ce1_classify.py` from the parsed matrix. The script asserts that
-  every row is classified exactly once.
+Totals are as given in §0. The table is generated by `.tmp/work/claude/ce1_classify.py` (revision 2) from the parsed
+matrix. The script asserts that every row is classified exactly once. Rows `P01p` and `CH01`–`CH11` are new controls
+added by this challenge and the checkpoint review.
 
 | ID | Input / case | Disposition | Finding / decision | Agreed oracle |
 |---|---|---|---|---|
@@ -250,20 +335,20 @@ Totals:
 | `S061` | state.workflow.next_action / integer | KEEP-NEG | - | refused |
 | `S062` | state.workflow.next_action / boolean | KEEP-NEG | - | refused |
 | `S063` | state.workflow.next_action / empty-string | KEEP-NEG | - | refused |
-| `S064` | state.workflow.updated_by / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S065` | state.workflow.updated_by / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
+| `S064` | state.workflow.updated_by / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S065` | state.workflow.updated_by / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
 | `S066` | state.workflow.updated_by / empty-map | KEEP-NEG | - | refused |
 | `S067` | state.workflow.updated_by / list | KEEP-NEG | - | refused |
 | `S068` | state.workflow.updated_by / integer | KEEP-NEG | - | refused |
 | `S069` | state.workflow.updated_by / boolean | KEEP-NEG | - | refused |
-| `S070` | state.workflow.updated_by / empty-string | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S071` | state.workflow.updated_reason / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S072` | state.workflow.updated_reason / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
+| `S070` | state.workflow.updated_by / empty-string | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S071` | state.workflow.updated_reason / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S072` | state.workflow.updated_reason / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
 | `S073` | state.workflow.updated_reason / empty-map | KEEP-NEG | - | refused |
 | `S074` | state.workflow.updated_reason / list | KEEP-NEG | - | refused |
 | `S075` | state.workflow.updated_reason / integer | KEEP-NEG | - | refused |
 | `S076` | state.workflow.updated_reason / boolean | KEEP-NEG | - | refused |
-| `S077` | state.workflow.updated_reason / empty-string | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
+| `S077` | state.workflow.updated_reason / empty-string | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
 | `S078` | state.workflow.quarantine / missing | KEEP-NEG | - | refused |
 | `S079` | state.workflow.quarantine / null | KEEP-NEG | - | refused |
 | `S080` | state.workflow.quarantine / empty-map | KEEP-NEG | - | refused |
@@ -271,27 +356,27 @@ Totals:
 | `S082` | state.workflow.quarantine / integer | KEEP-NEG | - | refused |
 | `S083` | state.workflow.quarantine / boolean | KEEP-NEG | - | refused |
 | `S084` | state.workflow.quarantine / empty-string | KEEP-NEG | - | refused |
-| `S085` | state.workflow.convergence / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S086` | state.workflow.convergence / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S087` | state.workflow.convergence / empty-map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S088` | state.workflow.convergence / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S089` | state.workflow.convergence / integer | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S090` | state.workflow.convergence / boolean | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S091` | state.workflow.convergence / empty-string | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S092` | state.workflow.governance_source / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S093` | state.workflow.governance_source / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S094` | state.workflow.governance_source / empty-map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S095` | state.workflow.governance_source / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S096` | state.workflow.governance_source / integer | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S097` | state.workflow.governance_source / boolean | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S098` | state.workflow.governance_source / empty-string | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S099` | state.workflow.history / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S100` | state.workflow.history / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S101` | state.workflow.history / empty-map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S102` | state.workflow.history / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S103` | state.workflow.history / integer | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S104` | state.workflow.history / boolean | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `S105` | state.workflow.history / empty-string | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
+| `S085` | state.workflow.convergence / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S086` | state.workflow.convergence / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S087` | state.workflow.convergence / empty-map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S088` | state.workflow.convergence / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S089` | state.workflow.convergence / integer | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S090` | state.workflow.convergence / boolean | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S091` | state.workflow.convergence / empty-string | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S092` | state.workflow.governance_source / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S093` | state.workflow.governance_source / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S094` | state.workflow.governance_source / empty-map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S095` | state.workflow.governance_source / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S096` | state.workflow.governance_source / integer | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S097` | state.workflow.governance_source / boolean | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S098` | state.workflow.governance_source / empty-string | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S099` | state.workflow.history / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S100` | state.workflow.history / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S101` | state.workflow.history / empty-map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S102` | state.workflow.history / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S103` | state.workflow.history / integer | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S104` | state.workflow.history / boolean | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `S105` | state.workflow.history / empty-string | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
 | `S106` | candidate.code.repo / missing | KEEP-NEG | - | refused |
 | `S107` | candidate.code.repo / null | KEEP-NEG | - | refused |
 | `S108` | candidate.code.repo / empty-map | KEEP-NEG | - | refused |
@@ -516,7 +601,7 @@ Totals:
 | `S327` | convergence.episode / {} | KEEP-NEG | - | refused |
 | `S328` | convergence.episode / '' | KEEP-NEG | - | refused |
 | `S329` | convergence.episode / 7 | FIX | CR-005 | D12: episode non-blank string; open_findings non-empty list of finding IDs |
-| `S330` | convergence.episode / 'finding' | FIX | CR-005 | D12: episode non-blank string; open_findings non-empty list of finding IDs |
+| `S330` | convergence.episode / 'finding' | KEEP-POS | - | non-blank string episode with valid findings: accepted under D12 |
 | `S331` | convergence.open_findings / None | KEEP-NEG | - | refused |
 | `S332` | convergence.open_findings / [] | KEEP-NEG | - | refused |
 | `S333` | convergence.open_findings / True | FIX | CR-005 | D12: episode non-blank string; open_findings non-empty list of finding IDs |
@@ -546,7 +631,7 @@ Totals:
 | `C02` | CLI arguments / check/workspace | KEEP-POS | - | documented success for the stated scope |
 | `C03` | CLI arguments / check/deep | KEEP-POS | - | documented success for the stated scope |
 | `C04` | CLI arguments / check/only-state | LIMIT | - | --only state reports 1/1: honest partial scope, never an approval |
-| `C05` | CLI arguments / check/empty-only | FIX | CR-006 | D15: '--only' with no check names is a usage error (exit 2) |
+| `C05` | CLI arguments / check/empty-only | POLICY | D15 | today runs and reports all 8 checks (no false pass); D15 makes a bare '--only' a usage error, exit 2 |
 | `C06` | CLI arguments / check/unknown-only | KEEP-NEG | - | documented usage/validation failure |
 | `C07` | CLI arguments / validate/default | KEEP-POS | - | documented success for the stated scope |
 | `C08` | CLI arguments / validate/docs | KEEP-POS | - | documented success for the stated scope |
@@ -562,9 +647,9 @@ Totals:
 | `C18` | CLI arguments / usage/missing-code | KEEP-NEG | - | documented usage/validation failure |
 | `C19` | CLI arguments / usage/missing-docs | KEEP-NEG | - | documented usage/validation failure |
 | `C20` | CLI arguments / usage/unknown-option | KEEP-NEG | - | documented usage/validation failure |
-| `P01a` | state inventory filename / 'WP-U.yaml' matching | KEEP-POS | - | canonical <WP-ID>.yaml: matching passes; committed deletion passes |
+| `P01a` | state inventory filename / 'WP-U.yaml' matching | FIX | CR-001 | components: roundtrip [] (byte/inventory equality only); check_state and validate_state_file refuse work_package WP-X in WP-U.yaml (D2) |
 | `P01b` | state inventory filename / 'WP-U.yaml' deleted | KEEP-NEG | - | uncommitted deletion of a canonical state file fails roundtrip |
-| `P01c` | state inventory filename / 'WP-U.yaml' committed deletion | KEEP-POS | - | canonical <WP-ID>.yaml: matching passes; committed deletion passes |
+| `P01c` | state inventory filename / 'WP-U.yaml' committed deletion | KEEP-POS | - | committed deletion passes |
 | `P02a` | state inventory filename / 'WP-UP.YAML' matching | FIX | CR-001 | D1/D2: non-canonical entry in process/state -> 'unsupported state entry' error on every host |
 | `P02b` | state inventory filename / 'WP-UP.YAML' deleted | FIX | CR-001 | committed non-canonical entry reported (and its working deletion fails) on every host |
 | `P02c` | state inventory filename / 'WP-UP.YAML' committed deletion | KEEP-POS | - | committed deletion removes the entry from both views: passes |
@@ -615,30 +700,30 @@ Totals:
 | `E07` | other validator enumeration / scenario-hidden | KEEP-POS | - | hidden but well-formed .yaml scenario is an ordinary corpus member |
 | `E08` | other validator enumeration / scenario-directory-yaml | FIX | CR-001 | D16: every validator inventory enumerates by exact case-sensitive suffix on all hosts; variant/nested/kind entries are errors |
 | `E09` | other validator enumeration / nested-git-dir | KEEP-NEG | - | refused |
-| `E10` | other validator enumeration / git-file-worktree | FIX | CR-001 | D16: a .git file (linked worktree/gitlink) inside a repo is reported like a nested repository |
+| `E10` | other validator enumeration / git-file-worktree | KEEP-POS | - | linked-worktree root: its own root .git file is the administrative marker, valid (D16 root exception) |
 | `E11` | other validator enumeration / docs-equals-code | KEEP-NEG | - | refused |
 | `E12` | other validator enumeration / source-file-traversal | FIX | CR-004 | D14: documents[].file is a relative path inside bundle_root (no '..', no absolute) |
-| `G01` | candidate/CLI ref / 'good' | KEEP-POS | - | plain local branch passes shape and state (roundtrip delta is fixture-intended) |
-| `G02` | candidate/CLI ref / 'symbolic' | POLICY | D5 | symbolic local branch refused as candidate ref |
-| `G03` | candidate/CLI ref / 'tag-only' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G04` | candidate/CLI ref / 'annotated' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G05` | candidate/CLI ref / 'origin/good' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G06` | candidate/CLI ref / 'refs/remotes/origin/good' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G07` | candidate/CLI ref / 'refs/heads/good' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G08` | candidate/CLI ref / 'HEAD' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G09` | candidate/CLI ref / '@' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G10` | candidate/CLI ref / 'HEAD@{0}' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G11` | candidate/CLI ref / 'HEAD~0' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G12` | candidate/CLI ref / full fixture candidate OID | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G13` | candidate/CLI ref / 8-hex fixture candidate abbreviation | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G14` | candidate/CLI ref / 'missing' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G15` | candidate/CLI ref / '-x' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G16` | candidate/CLI ref / 'HEAD..good' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G17` | candidate/CLI ref / 'good\n' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G18` | candidate/CLI ref / 'good^' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G19` | candidate/CLI ref / 'good~' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G20` | candidate/CLI ref / 'good.lock' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
-| `G21` | candidate/CLI ref / 'good//bad' | KEEP-NEG | - | non-branch / malformed ref refused (G17: at the shape gate under D11 full-token match) |
+| `G01` | candidate/CLI ref / 'good' | KEEP-POS | - | candidate: accepted; roundtrip: argument accepted, equality fails on the fixture-intended byte delta |
+| `G02` | candidate/CLI ref / 'symbolic' | POLICY | D5 | candidate: symbolic head refused; roundtrip: same refusal for a symbolic refs/heads name |
+| `G03` | candidate/CLI ref / 'tag-only' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G04` | candidate/CLI ref / 'annotated' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G05` | candidate/CLI ref / 'origin/good' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G06` | candidate/CLI ref / 'refs/remotes/origin/good' | KEEP-NEG | - | candidate refused; roundtrip refuses the qualified spelling (D8 accepts plain names only) |
+| `G07` | candidate/CLI ref / 'refs/heads/good' | KEEP-NEG | - | candidate refused; roundtrip refuses the qualified spelling (D8 accepts plain names only) |
+| `G08` | candidate/CLI ref / 'HEAD' | KEEP-NEG | - | candidate: HEAD refused; roundtrip: argument HEAD accepted, equality fails on the fixture byte delta |
+| `G09` | candidate/CLI ref / '@' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G10` | candidate/CLI ref / 'HEAD@{0}' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G11` | candidate/CLI ref / 'HEAD~0' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G12` | candidate/CLI ref / full fixture candidate OID | KEEP-NEG | - | candidate: SHA-shaped ref refused at shape; roundtrip: full commit OID accepted, fixture inventory fails at that commit |
+| `G13` | candidate/CLI ref / 8-hex fixture candidate abbreviation | KEEP-NEG | - | candidate and roundtrip refused: no refs/heads/<abbr> exists; an abbreviation is never resolved as an object (D8) |
+| `G14` | candidate/CLI ref / 'missing' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G15` | candidate/CLI ref / '-x' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G16` | candidate/CLI ref / 'HEAD..good' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G17` | candidate/CLI ref / 'good\n' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G18` | candidate/CLI ref / 'good^' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G19` | candidate/CLI ref / 'good~' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G20` | candidate/CLI ref / 'good.lock' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
+| `G21` | candidate/CLI ref / 'good//bad' | KEEP-NEG | - | candidate and roundtrip both refused (G17 at the full-token shape gate, D11) |
 | `O01` | candidate SHA object / exact commit OID from fixture | KEEP-POS | - | exact commit OID passes |
 | `O02` | candidate SHA object / annotated-tag object OID from fixture | FIX | CR-002 | D6: candidate OID must name a commit object itself (cat-file -t == commit); tag OID refused |
 | `O03` | candidate SHA object / blob object OID from fixture | KEEP-NEG | - | refused (O05 at the shape gate under D11) |
@@ -680,54 +765,54 @@ Totals:
 | `X006` | state.work_package / bool | KEEP-NEG | - | refused |
 | `X007` | state.work_package / empty | KEEP-NEG | - | refused |
 | `X008` | state.work_package / text | FIX | CR-005 | D2: work_package is a WP-ID token equal to the file stem |
-| `X009` | state.title / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X010` | state.title / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X011` | state.title / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X012` | state.title / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X013` | state.title / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X014` | state.title / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X015` | state.title / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X016` | state.title / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X017` | state.layer / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X018` | state.layer / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X019` | state.layer / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X020` | state.layer / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X021` | state.layer / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X022` | state.layer / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X023` | state.layer / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X024` | state.layer / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X025` | state.authority / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X026` | state.authority / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X027` | state.authority / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X028` | state.authority / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X029` | state.authority / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X030` | state.authority / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X031` | state.authority / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X032` | state.authority / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X033` | state.dependencies / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X034` | state.dependencies / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X035` | state.dependencies / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X036` | state.dependencies / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X037` | state.dependencies / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X038` | state.dependencies / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X039` | state.dependencies / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X040` | state.dependencies / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X041` | state.scoping_review / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X042` | state.scoping_review / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X043` | state.scoping_review / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X044` | state.scoping_review / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X045` | state.scoping_review / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X046` | state.scoping_review / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X047` | state.scoping_review / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X048` | state.scoping_review / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X049` | state.deferred_trigger / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X050` | state.deferred_trigger / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X051` | state.deferred_trigger / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X052` | state.deferred_trigger / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X053` | state.deferred_trigger / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X054` | state.deferred_trigger / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X055` | state.deferred_trigger / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X056` | state.deferred_trigger / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
+| `X009` | state.title / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X010` | state.title / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X011` | state.title / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X012` | state.title / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X013` | state.title / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X014` | state.title / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X015` | state.title / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X016` | state.title / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X017` | state.layer / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X018` | state.layer / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X019` | state.layer / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X020` | state.layer / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X021` | state.layer / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X022` | state.layer / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X023` | state.layer / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X024` | state.layer / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X025` | state.authority / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X026` | state.authority / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X027` | state.authority / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X028` | state.authority / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X029` | state.authority / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X030` | state.authority / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X031` | state.authority / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X032` | state.authority / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X033` | state.dependencies / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X034` | state.dependencies / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X035` | state.dependencies / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X036` | state.dependencies / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X037` | state.dependencies / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X038` | state.dependencies / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X039` | state.dependencies / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X040` | state.dependencies / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X041` | state.scoping_review / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X042` | state.scoping_review / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X043` | state.scoping_review / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X044` | state.scoping_review / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X045` | state.scoping_review / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X046` | state.scoping_review / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X047` | state.scoping_review / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X048` | state.scoping_review / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X049` | state.deferred_trigger / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X050` | state.deferred_trigger / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X051` | state.deferred_trigger / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X052` | state.deferred_trigger / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X053` | state.deferred_trigger / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X054` | state.deferred_trigger / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X055` | state.deferred_trigger / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X056` | state.deferred_trigger / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
 | `X057` | state.quarantine.derived_from_quarantined_artifact / missing | KEEP-NEG | - | refused |
 | `X058` | state.quarantine.derived_from_quarantined_artifact / null | KEEP-NEG | - | refused |
 | `X059` | state.quarantine.derived_from_quarantined_artifact / map | KEEP-NEG | - | refused |
@@ -736,14 +821,14 @@ Totals:
 | `X062` | state.quarantine.derived_from_quarantined_artifact / bool | KEEP-NEG | - | refused |
 | `X063` | state.quarantine.derived_from_quarantined_artifact / empty | KEEP-NEG | - | refused |
 | `X064` | state.quarantine.derived_from_quarantined_artifact / text | KEEP-NEG | - | refused |
-| `X065` | state.history.assurance_index / missing | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X066` | state.history.assurance_index / null | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X067` | state.history.assurance_index / map | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X068` | state.history.assurance_index / list | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X069` | state.history.assurance_index / int | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X070` | state.history.assurance_index / bool | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X071` | state.history.assurance_index / empty | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
-| `X072` | state.history.assurance_index / text | OPAQUE | - | optional metadata outside its governing status: opaque, confers no authority |
+| `X065` | state.history.assurance_index / missing | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X066` | state.history.assurance_index / null | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X067` | state.history.assurance_index / map | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X068` | state.history.assurance_index / list | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X069` | state.history.assurance_index / int | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X070` | state.history.assurance_index / bool | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X071` | state.history.assurance_index / empty | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
+| `X072` | state.history.assurance_index / text | OPAQUE | - | optional metadata: confers no authority; existing type guards (updated_by/updated_reason string-or-null) retained |
 | `X073` | state.requirements / [None] | KEEP-NEG | - | refused |
 | `X074` | state.requirements / [True] | KEEP-NEG | - | refused |
 | `X075` | state.requirements / [7] | KEEP-NEG | - | refused |
@@ -800,7 +885,7 @@ Totals:
 | `V12` | CLI path/option interpretation / ['state', 'validate', 'E:\\AI\\Projec | FIX | CR-006 | D15: with --docs, validate refuses a path outside <docs>/process/state |
 | `M01` | Git ambient repository selector / GIT_DIR | FIX | CR-002 | D7: validator Git runs in a sanitized environment; result equals the no-environment run (valid world passes) |
 | `M02` | Git ambient repository selector / GIT_WORK_TREE | FIX | CR-002 | D7: validator Git runs in a sanitized environment; result equals the no-environment run (valid world passes) |
-| `M03` | Git ambient repository selector / GIT_NAMESPACE | FIX | CR-002 | D7: validator Git runs in a sanitized environment; result equals the no-environment run (valid world passes) |
+| `M03` | Git ambient repository selector / GIT_NAMESPACE | KEEP-POS | - | already equals the sanitized result; defensive control only, no kill credit (CH01/CH02 discriminate D7) |
 | `M04` | Git ambient repository selector / GIT_OBJECT_DIRECTORY | FIX | CR-002 | D7: validator Git runs in a sanitized environment; result equals the no-environment run (valid world passes) |
 | `M05` | local symbolic branch / live symbolic target | POLICY | D5 | symbolic refs/heads entries are refused as candidate refs |
 | `M06` | local symbolic branch / dangling symbolic target | KEEP-NEG | - | dangling symbolic ref refused |
@@ -844,9 +929,9 @@ Totals:
 | `U02` | state-only changed-path comparison / 'process/handoffs/x.md' | KEEP-POS | - | permitted state-only paths pass the chain rule |
 | `U03` | state-only changed-path comparison / 'process/certification-registry.y | KEEP-POS | - | permitted state-only paths pass the chain rule |
 | `U04` | state-only changed-path comparison / 'process/stateevil/x.yaml' | KEEP-NEG | - | non-state path anywhere in the chain fails (per commit, incl. reverted) |
-| `U05` | state-only changed-path comparison / 'process/state/quote".yaml' | KEEP-POS | - | chain rule is path-prefix only (W: DIAG); the name itself is refused by the inventory rule D1, not the chain |
-| `U06` | state-only changed-path comparison / 'process/state/line\n.yaml' | KEEP-POS | - | chain rule is path-prefix only (W: DIAG); the name itself is refused by the inventory rule D1, not the chain |
-| `U07` | state-only changed-path comparison / 'process/state/Unicode-Ü.yaml' | KEEP-POS | - | chain rule is path-prefix only (W: DIAG); the name itself is refused by the inventory rule D1, not the chain |
+| `U05` | state-only changed-path comparison / 'process/state/quote".yaml' | KEEP-POS | - | W: DIAG (unrepresentable); L/C: chain rule is path-prefix only; the name is refused by inventory rule D1, not the chain |
+| `U06` | state-only changed-path comparison / 'process/state/line\n.yaml' | KEEP-POS | - | W: DIAG (unrepresentable); L/C: chain rule is path-prefix only; the name is refused by inventory rule D1, not the chain |
+| `U07` | state-only changed-path comparison / 'process/state/Unicode-Ü.yaml' | KEEP-POS | - | accepted on W/L/C: chain rule is path-prefix only; the name is refused by inventory rule D1, not the chain |
 | `U08` | state-only changed-path comparison / 'other/line\n.md' | KEEP-NEG | - | W: DIAG; L/C: non-state path fails with exact identity |
 | `U09` | state-only changed-path comparison / 'other/quote".md' | KEEP-NEG | - | W: DIAG; L/C: non-state path fails with exact identity |
 | `U10` | state-only changed-path comparison / 'other/Unicode-Ü.md' | KEEP-NEG | - | non-state path anywhere in the chain fails (per commit, incl. reverted) |
@@ -859,9 +944,9 @@ Totals:
 | `U17` | transition-check evidence boundary / INVALID_UNAUTHORIZED -> SCOPING | LIMIT | - | transition-check proves edge legality only; it never proves authority/trigger (documented, exit codes kept) |
 | `N01` | status routing evidence / INCIDENT.next_action='do something' | FIX | CR-005 | D12: INCIDENT/INVALID_UNAUTHORIZED require next_owner and next_action null |
 | `N02` | status routing evidence / INVALID_UNAUTHORIZED.next_action='do somethi | FIX | CR-005 | D12: INCIDENT/INVALID_UNAUTHORIZED require next_owner and next_action null |
-| `N03` | status routing evidence / WAITING_FOR_TRIGGER.deferred_trigger=True | FIX | CR-005 | D12: deferred_trigger is a mapping with a non-blank string 'condition' |
-| `N04` | status routing evidence / WAITING_FOR_TRIGGER.deferred_trigger=['trigg | FIX | CR-005 | D12: deferred_trigger is a mapping with a non-blank string 'condition' |
-| `N05` | status routing evidence / WAITING_FOR_TRIGGER.deferred_trigger='   ' | FIX | CR-005 | D12: deferred_trigger is a mapping with a non-blank string 'condition' |
+| `N03` | status routing evidence / WAITING_FOR_TRIGGER.deferred_trigger=True | FIX | CR-005 | D12: deferred_trigger is a non-blank string (True / list / blank refused) |
+| `N04` | status routing evidence / WAITING_FOR_TRIGGER.deferred_trigger=['trigg | FIX | CR-005 | D12: deferred_trigger is a non-blank string (True / list / blank refused) |
+| `N05` | status routing evidence / WAITING_FOR_TRIGGER.deferred_trigger='   ' | FIX | CR-005 | D12: deferred_trigger is a non-blank string (True / list / blank refused) |
 | `N06` | status routing evidence / CONTRACT_CONVERGENCE.convergence={'episode': | FIX | CR-005 | D12: convergence.episode non-blank token; open_findings non-empty list of finding IDs |
 | `N07` | status routing evidence / SCOPING.next_action='   ' | KEEP-NEG | - | blank next_action refused |
 | `N08` | status routing evidence / BLOCKED_FOR_OWNER.governance_source=None | OPAQUE | - | governance_source carries no machine authority (documented) |
@@ -870,6 +955,18 @@ Totals:
 | `J03` | state-only exact file/domain identity / process/state-extra/file.yaml | KEEP-NEG | - | directory look-alike refused |
 | `J04` | state-only exact file/domain identity / process/handoffs-extra/file.md | KEEP-NEG | - | directory look-alike refused |
 | `J05` | symbolic local ref namespace / heads/symbolic -> tags/target-tag | FIX | CR-002 | D5: symbolic refs refused (so heads/x -> tags/y cannot be followed) |
-| `J06` | roundtrip revision namespace / matching matching-tag | FIX | CR-002 | D8: roundtrip --revision accepts HEAD, a full commit OID or refs/heads/<name> only |
-| `J07` | roundtrip revision namespace / matching 8-hex HEAD abbreviation | FIX | CR-002 | D8: roundtrip --revision accepts HEAD, a full commit OID or refs/heads/<name> only |
-| `J08` | roundtrip revision namespace / matching refs/remotes/origin/matching | FIX | CR-002 | D8: roundtrip --revision accepts HEAD, a full commit OID or refs/heads/<name> only |
+| `J06` | roundtrip revision namespace / matching matching-tag | FIX | CR-002 | D8: roundtrip refuses tag (J06), abbreviation without a local head (J07), qualified remote spelling (J08) |
+| `J07` | roundtrip revision namespace / matching 8-hex HEAD abbreviation | FIX | CR-002 | D8: roundtrip refuses tag (J06), abbreviation without a local head (J07), qualified remote spelling (J08) |
+| `J08` | roundtrip revision namespace / matching refs/remotes/origin/matching | FIX | CR-002 | D8: roundtrip refuses tag (J06), abbreviation without a local head (J07), qualified remote spelling (J08) |
+| `P01p` | state inventory / 'WP-U.yaml' with work_package WP-U | KEEP-POS | - | matching-ID canonical file: roundtrip [] and check_state [] (new positive) |
+| `CH01` | env / GIT_CEILING_DIRECTORIES hides containing repo | FIX | CR-002 | D7: containing repository still refused |
+| `CH02` | env / GIT_REPLACE_REF_BASE hidden replacement | FIX | CR-002 | D7: orphan-main CLOSED still refused |
+| `CH03` | graph / info/grafts with --no-replace-objects only | FIX | CR-002 | D7: graft cannot create ancestry (GIT_GRAFT_FILE disabled + refusal) |
+| `CH04` | graph / shallow boundary removes true ancestry | FIX | CR-002 | D7: shallow repository refused with named diagnostic (Codex CP-CH04-corrected) |
+| `CH05` | blob read / textconv + smudge configured | KEEP-POS | - | raw blob bytes unchanged (git-level; not a gap) |
+| `CH06` | repos / nested .git FILE in a docs subdirectory | KEEP-NEG | - | refused as nested repository (executed: refused today; must stay refused) |
+| `CH07` | sources build / valid first entry, bad hash on later entry | FIX | CR-004 | D14: exit 1; every destination and index byte unchanged; no new output (Codex CP-later-entry-corrected) |
+| `CH08` | sources build / all-valid multi-entry | KEEP-POS | - | exit 0; one derived text per entry plus index |
+| `CH09` | roundtrip / local branch named 'deadbeef' | KEEP-POS | - | plain local branch accepted (resolved as refs/heads/deadbeef), equal content passes |
+| `CH10` | roundtrip / spelling 'refs/heads/wp/test' | POLICY | D8 | accepted today; D8 refuses qualified spellings (plain names only) |
+| `CH11` | sources build / all twelve bundle keys + DOC | KEEP-POS | - | D14 key grammar [A-Z][A-Z0-9]{0,15} accepts every established key |
