@@ -62,3 +62,22 @@ at gate 4.
 The script is in `.tmp/work/claude/py_mutants_wp02.py`.
 
 No POSIX run is claimed.
+
+## Correction after Codex review `a29b0092` (WP02-CR-006)
+
+**The P12 equivalence claim above was wrong.** Layer 01 normalization orders members canonically
+only for **native** input. JSON-text decoding keeps source member order. So gate 4's canonical sort
+is observable, and P12 (typed fields in source order) was a surviving discriminating mutant. Codex's
+witness is a JSON-text record with an invalid `record_id` before `occurred_at: null` in source
+order: the contract gives `timestamp.invalid`, and P12 gives `id.invalid`.
+
+**Repair, at code `43e0984e585975719231ba53466a9c78eba796e7`:**
+- Added public-API controls in `tests/core/test_layer02_history.py`. They cover every source order
+  of the three typed fields, with every combination of two or three invalid ones, through both
+  `JsonText` and native input: 48 cases, plus Codex's witness.
+- No production change.
+- **Planted bugs: 12/12 killed**, with P12 now caught by the canonical-order sweep.
+- **Gates.** 435 passed, 5 xfailed; coverage 740/740 statements and 332/332 branches; ruff, format
+  and mypy strict clean.
+- **Base.** The code base now includes the NF-026 Rust runner fix `b9f42d42`, which Codex
+  authored and Claude reviewed and approved.
