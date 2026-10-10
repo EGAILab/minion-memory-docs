@@ -379,3 +379,14 @@ RFC 8785; the WP-01 contract states it and canonical fixtures must include a dis
 > **A:** "Exact built-ins always (Recommended)" — the selected option read: "Every returned value is
 > a plain built-in (int, float, str, bool, None, list, dict) with no subclass identity or added
 > state, so later code can never call a caller's hook on Mneme output."
+
+## G-043 — Non-dict argument maps (CE01-CP-004)
+
+> **Q:** CE01-CP-004: validate_arguments must read argument maps as base dict entries with no hooks
+> (G-041). How is a NON-dict argument map (UserDict, a custom Mapping) rejected? Today it's accepted
+> and its hooks are called.
+>
+> **A:** "TypeError, caller misuse (Recommended)" — the selected option read: "A documented public
+> precondition: validate_arguments takes a dict (or dict subclass). Anything else raises TypeError
+> immediately, before any argument is inspected, with no hooks. It's a programming error in the
+> caller, kept outside the Mneme value-error vocabulary (which describes data, not call shapes)."

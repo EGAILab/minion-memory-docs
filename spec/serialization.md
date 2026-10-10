@@ -188,6 +188,10 @@ are never aggregated.
     maps (base entries, declared order) (G-041).
   - **Returned values.** They are always exact built-ins (`None`, `bool`, `int`, `float`, `str`,
     `list`, `dict`) without subclass identity or added state (G-042).
+  - **Argument maps.** An argument map passed to a validation entry point is a `dict` or a `dict`
+    subclass, read through base entries. Any other mapping is a caller programming error: it raises
+    `TypeError` immediately, before any argument is inspected and with no hook. It is outside the
+    Mneme value-error vocabulary (G-043).
 - **Precedence example.** An over-large version `9007199254740992` fails stage 2
   (`value.integer_out_of_range`), so it is never interpreted as a version. `0`, `-1`, `1.5` and
   `true` pass stage 2 and fail stage 3 (`version.invalid`).

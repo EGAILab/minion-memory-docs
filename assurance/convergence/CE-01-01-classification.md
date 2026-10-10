@@ -1,9 +1,12 @@
-# CE-01-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 2
+# CE-01-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 3
 
 **Input:** Codex characterization `assurance/convergence/CE-01-01-characterization.md` at `2cf2b21b`
 (25,549 rows; frozen code `eb47635c`). **Governs:** G-037, G-038 and G-039…G-042.
 
-**Checkpoint status: `PROPOSED FOR IMPLEMENTATION` — revision 2.**
+**Checkpoint status: `PROPOSED FOR IMPLEMENTATION` — revision 3.**
+- Revision 2 (`3d4e8339`) received `CHANGES_REQUIRED` from Codex (`ae875102`): CE01-CP-001…003 were
+  resolved, and CE01-CP-004 (non-dict argument-map failure policy, path C) went to the Owner, who
+  decided it as **G-043**. That decision is the only change from revision 2.
 - Revision 1 (`d46dfa1c`) received `CHANGES_REQUIRED` from Codex
   (`assurance/reviews/WP-01-CE-01-01-checkpoint-codex.md`, `65775db3`). All three findings are
   accepted; §0 maps them.
@@ -18,6 +21,9 @@
 | CE01-CP-002: JsonText descriptors | §4.3 now requires reading framework-owned stored state from its genuine storage, bypassing every subclass descriptor, including a `text` property and a `__dict__` property. Controls: D01 (raising `text` property; FIX, since the frozen code leaks RuntimeError) and D02 (raising `__dict__` property; KEEP, guarding against an `obj.__dict__`-based fix). The existing B066 `__getattribute__` control is preserved. |
 | CE01-CP-003: decision-adjusted oracles and accounting | (1) **G-042 everywhere.** I re-executed Codex's embedded driver unchanged except for an added G-042 observer that records whether each returned object is recursively exact built-ins. Statuses reproduce exactly (21,925 OK / 3,545 WRONG), and row IDs and cases align 25,470/25,470. **537** previously passing rows become FIX, because `int`/`float`/`IntEnum`/`IntFlag` subclasses are returned unchanged by `validate`, `normalize` and `validate_version`. Every value-returning row's oracle now states the exact-return requirement; tuples normalize to lists. (2) **Boundary rows** have literal decided oracles and dispositions computed from their executions: 25 FIX, 50 KEEP (including B003, B004, B032 and B072–B075). (3) **Kill accounting.** Kills are required only for FIX rows, whose frozen result differs or fires hooks. KEEP rows, including uncalled raising hooks such as N01323, are preserved regression controls, never forced to fail. |
 | SER-008 obsolete sentence | Removed. Stage-1 ordering is now stated separately for JSON text (source order) and native values (canonical traversal, G-039 precedence, G-040 cycle point). |
+
+| CE01-CP-004: non-dict argument map (rev. 2 review) | **Owner G-043:** `TypeError`, as caller misuse, raised before any argument is inspected and with zero hooks. It is outside the value-error vocabulary. Transcribed in SER-008 ("Argument maps"). Controls CM01 (`UserDict`) and CM02 (custom Mapping) are both FIX: the frozen code accepts them, and CM02 invokes `__len__`/`__iter__`/`__getitem__`. |
+| `decode_json` bytearray (rev. 2 review) | Confirmed by Codex as path A under G-041; unchanged. |
 
 ## 1. Independent reproduction
 
@@ -50,7 +56,7 @@ transcribed in SER-008:
 |---|---|---|
 | C01 native duplicate base names | G-039 | `value.duplicate_key`, native stage 1, while ordering a map's members by base string |
 | C02 byte-buffer subclasses | G-041 | underlying bytes at the raw-hash and JSON-bytes seams; no hook. **Transcription consequence for review:** because G-041 covers "bytes/bytearray subclasses at the JSON-bytes seam", `decode_json` reads bytearray (and its subclasses) as its bytes; rows B016…B028 (even) carry that oracle. |
-| C03 JsonText and argument maps | G-041 | stored text / base dict entries in declared order; no hook. **Reading for review:** a non-`dict` mapping passed to `validate_arguments` cannot be read without hooks. It is a caller programming error (`TypeError`), not a value-domain rejection. |
+| C03 JsonText and argument maps | G-041, G-043 | stored text / base dict entries in declared order; no hook. A non-`dict` mapping raises `TypeError` (caller misuse) before any argument is inspected, with zero hooks (G-043). |
 | C04 cycles | G-040 | `value.cyclic`, native stage 1, where traversal re-enters an open container; shared aliases are legal |
 | C05 returned representation | G-042 | exact built-ins, recursively, with no subclass identity or added state |
 
@@ -68,7 +74,8 @@ transcribed in SER-008:
 3. **Framework-owned state.**
    - `JsonText` text is read from its genuine instance storage, bypassing every subclass descriptor
      (`text` property, `__dict__` property, `__getattribute__`).
-   - Argument maps must be `dict` (or a subclass), read through `dict.items`.
+   - Argument maps must be `dict` (or a subclass), read through `dict.items`; any other mapping
+     raises `TypeError` first, with zero hooks (G-043).
 4. **Normalize first.** One iterative pass produces exact built-ins (G-042). It detects cycles by
    container identity on the active path (G-040) and duplicate base names per map (G-039). After
    it, stages 2–3, serialization, hashing and diagnostics see exact built-ins only.
@@ -77,8 +84,8 @@ transcribed in SER-008:
 
 ## 5. Control accounting
 
-- **FIX: 4,114.** These are 3,545 originally-wrong normative rows, 537 G-042 rows, 25 boundary rows,
-  5 CH rows and 2 controls (M01, D01). Each has a frozen observation that differs from its oracle or
+- **FIX: 4,116.** These are 3,545 originally-wrong normative rows, 537 G-042 rows, 25 boundary rows,
+  5 CH rows and 4 controls (M01, D01, CM01, CM02). Each has a frozen observation that differs from its oracle or
   fires hooks; these are the kill witnesses.
 - **KEEP: 21,440.** These are 21,388 normative rows, 50 boundary rows and 2 controls (M02, D02).
   They are regression controls that already satisfy their oracle, preserved and never forced to
@@ -88,7 +95,7 @@ transcribed in SER-008:
   driver `ce0101_driver.py`, with the G-042 patch documented in `ce0101_patch_driver.py`. Codex's
   original Windows/Linux equality covers the unchanged observations.
 
-## 6. Row classification (25,558 = 25,549 characterized + 5 CH + 4 controls)
+## 6. Row classification (25,560 = 25,549 characterized + 5 CH + 6 controls)
 
 Generated by `.tmp/work/claude/ce0101_classify_v2.py`; every ID is classified exactly once.
 
@@ -25652,3 +25659,5 @@ Generated by `.tmp/work/claude/ce0101_classify_v2.py`; every ID is classified ex
 | M02 | KEEP | G-037 | non-subclass with forged metaclass __mro__: error value.unsupported_type; zero user hooks | regression control: kills an __mro__-based classification |
 | D01 | FIX | G-041 | JsonText subclass with raising text property, stored text '1': value {'value': 1}; zero user hooks | kill: frozen leaks RuntimeError via the property |
 | D02 | KEEP | G-041 | JsonText subclass with raising __dict__ property, stored text '1': value {'value': 1}; zero user hooks | regression control: kills reading stored state through obj.__dict__ |
+| CM01 | FIX | G-043 | UserDict argument map {'a': 1, 'b': 2}: TypeError before any argument is inspected; zero user hooks | kill: frozen accepts and returns the values |
+| CM02 | FIX | G-043 | custom Mapping argument map {'a': 1}: TypeError before any argument is inspected; zero user hooks | kill: frozen accepts and invokes __len__/__iter__/__getitem__ |
