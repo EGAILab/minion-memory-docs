@@ -179,3 +179,23 @@ Credentials live only under `.tmp/work`, never in the repositories.
 > that define those semantic concepts; any associated indexes are derived/rebuildable read models
 > rather than canonical-store semantics.Record all three dispositions explicitly in the
 > requirement/feasibility matrix so PERS-007 is decomposed rather than left partially satisfied."
+
+## G-088 — Route after convergence trigger A on WP04-CR-008
+
+**Context.** WP04-CR-008 survived Codex's Python implementation reviews `bb3dfa2c` and `391fca64`.
+After the first remediation, two incompatible schemas still pass open: an `UNLOGGED` records table,
+and a non-deterministic collation on `store_id`. WP04-CR-009…011 are resolved.
+
+> **Q:** Convergence trigger A has fired on WP-04 (WP04-CR-008 survived two independent reviews). My
+> schema check at open matches column and constraint shapes, but Codex showed two incompatible schemas
+> that still pass: an UNLOGGED records table (not crash-safe, so the durability barrier is void) and a
+> non-bytewise collation on store_id (two distinct IDs collide). The other three findings are
+> resolved. Per our workflow, convergence is the default; a targeted fix needs an explicit reason. How
+> should WP-04 proceed? (Either route waits for the Minion-Agent host reservation before new test
+> batches.)
+>
+> **A:** "Narrow convergence (Recommended)" — the selected option read: "As G-038: a convergence
+> episode limited to the v1 catalog trust boundary (which catalog properties v1 durability and
+> identity depend on: persistence, collations, indexes, triggers, rules, inheritance, generated
+> columns, etc.). Codex characterizes it, I classify, Codex approves the checkpoint, I implement once,
+> Codex closes. CR-009..011 stay closed."
