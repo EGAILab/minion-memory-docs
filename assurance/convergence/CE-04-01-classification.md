@@ -8,7 +8,8 @@
 - the agreed contract (docs `d857fcc2`), now transcribed with those decisions in
   `spec/persistence.md`, "Reference backend".
 
-**Checkpoint status: `PROPOSED FOR IMPLEMENTATION`, revision 2.**
+**Checkpoint status: `AGREED FOR IMPLEMENTATION`, revision 2** (Codex `APPROVED`,
+`assurance/reviews/WP-04-CE-04-01-checkpoint-codex-2.md`, `bfb6cad3`). Earlier history:
 - Revision 1 (`41d5b253`) received `CHANGES_REQUIRED` from Codex
   (`assurance/reviews/WP-04-CE-04-01-checkpoint-codex.md`, `1ffec311`). Claude accepts all three
   findings and both clarifications; §0 maps them.
