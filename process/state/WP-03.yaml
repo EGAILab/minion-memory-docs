@@ -3,7 +3,7 @@ workflow:
   work_package: WP-03
   title: Layer 03 — canonical HistoryProjector and lineage resolution
   layer: "03"
-  status: IMPLEMENTATION_REVIEW
+  status: FINAL_CONTRACT_REVIEW
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
   current_candidate:
     code: {repo: minion-memory, ref: wp03/contract, sha: dd55fb4f0abec262d7ba0dab64f28a74840b84c3}
@@ -24,9 +24,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-03-codex-python-implementation-review-2.md: targeted re-review of WP03-CR-006
-    at docs 6fe9115d / code dd55fb4f; record APPROVED or CHANGES_REQUIRED on review/wp03-python-2.
+    Execute process/handoffs/WP-03-codex-final-review.md: one final complete review of WP-03 at docs
+    6fe9115d / code dd55fb4f; record APPROVED or CHANGES_REQUIRED on review/wp03-final. On APPROVED,
+    acceptance under G-009 and RUST_IMPLEMENTATION.
   updated_by: Claude
-  updated_reason: Codex Python review 1 (7d328f95) CHANGES_REQUIRED on WP03-CR-006; routing triple fixed; IMPLEMENTATION_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: Codex Python re-review APPROVED (2df90f22; WP03-CR-006 closed); remediated candidate -> FINAL_CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-03.md
