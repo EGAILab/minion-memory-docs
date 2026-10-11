@@ -73,8 +73,8 @@ work_packages:
     title: Layer 04 — canonical history store
     layer: "04"
     requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-    contract: {status: DRAFT}
-    python: {status: NOT_IMPLEMENTED}
+    contract: {status: AGREED, agreed_code_sha: 1f4438763c91fb95a4e88d86ac96302d9830cdb3, agreed_docs_sha: d857fcc27d54a44738d870473062f16ba3af493c}
+    python: {status: IN_PROGRESS}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-04.md

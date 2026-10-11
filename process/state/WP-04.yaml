@@ -3,11 +3,9 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: CONTRACT_REVIEW
+  status: PYTHON_IMPLEMENTATION
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp04/contract, sha: 1f4438763c91fb95a4e88d86ac96302d9830cdb3}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: d857fcc27d54a44738d870473062f16ba3af493c}
+  current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -22,10 +20,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Independent CONTRACT_REVIEW 4 of the revised WP-04 contract (response record WP-04-contract-review-codex-response-claude.md).
+    Implement the agreed Layer 04 contract (docs d857fcc2 / code 1f443876; Codex APPROVED 67ba6632) in
+    Python on the PostgreSQL reference backend; G3 evidence; hand off for IMPLEMENTATION_REVIEW.
   updated_by: Claude
-  updated_reason: WP-04 contract revision 3 for WP04-CR-007 (open isolation); CONTRACT_DRAFT -> CONTRACT_REVIEW.
+  updated_reason: WP-04 contract APPROVED by Codex round 4 (67ba6632; WP04-CR-001..007 closed); CONTRACT_REVIEW -> PYTHON_IMPLEMENTATION.
   history:
     assurance_index: plans/WP-04.md
