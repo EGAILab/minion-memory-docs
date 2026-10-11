@@ -3,15 +3,15 @@ workflow:
   work_package: WP-03
   title: Layer 03 — canonical HistoryProjector and lineage resolution
   layer: "03"
-  status: FINAL_CONTRACT_REVIEW
+  status: IMPLEMENTATION_REVIEW
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
   current_candidate:
     code: {repo: minion-memory, ref: wp03/contract, sha: dd55fb4f0abec262d7ba0dab64f28a74840b84c3}
-    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: 6fe9115d91715c3e8732235a43936bd1b29a9d76}
+    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: c36e0f5cb6dc2e7e92327bb9db358af0cdd31995}
   dependencies:
     WP-02: {relation: blocked_by, status: CLOSED}
   open_findings: []
-  provisionally_closed: [WP03-CR-001, WP03-CR-002, WP03-CR-003, WP03-CR-004, WP03-CR-005, WP03-CR-006]
+  provisionally_closed: [WP03-CR-001, WP03-CR-002, WP03-CR-003, WP03-CR-004, WP03-CR-005, WP03-CR-006, WP03-CR-007]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer03-start.md
     decision: >
@@ -24,10 +24,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-03-codex-final-review.md: one final complete review of WP-03 at docs
-    6fe9115d / code dd55fb4f; record APPROVED or CHANGES_REQUIRED on review/wp03-final. On APPROVED,
+    Execute process/handoffs/WP-03-codex-final-review-2.md: targeted re-review of WP03-CR-007 at docs
+    c36e0f5c / code dd55fb4f; record APPROVED or CHANGES_REQUIRED on review/wp03-final-2. On APPROVED,
     acceptance under G-009 and RUST_IMPLEMENTATION.
   updated_by: Claude
-  updated_reason: Codex Python re-review APPROVED (2df90f22; WP03-CR-006 closed); remediated candidate -> FINAL_CONTRACT_REVIEW.
+  updated_reason: Codex final review (88b8bb3f) CHANGES_REQUIRED on WP03-CR-007 (docs only); plan and feasibility matrix repaired; FINAL_CONTRACT_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-03.md
