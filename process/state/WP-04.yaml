@@ -28,9 +28,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Claude
   next_action: >
-    Implement the agreed CE-04-01 checkpoint once (assurance/convergence/CE-04-01-classification.md rev. 2)
-    from code 63462513; full suite, mutants and G3 after Minion-Agent host clear; then hand to Codex for closure.
+    After Minion-Agent host clear: run the full suite, the CE-04-01 witness module, planted violations
+    (.tmp/work/claude/py_mutants_ce0401.py and the unchanged WP-04 set) and G3 coverage on code b657081b;
+    write the implementation record and hand to Codex for CE-04-01 closure.
   updated_by: Claude
-  updated_reason: Codex CE-04-01 checkpoint review 2 APPROVED (bfb6cad3); checkpoint AGREED FOR IMPLEMENTATION; Claude implements once.
+  updated_reason: CE-04-01 single implementation pass committed (code b657081b, uncertified candidate); full gates wait for host clear.
   history:
     assurance_index: plans/WP-04.md
