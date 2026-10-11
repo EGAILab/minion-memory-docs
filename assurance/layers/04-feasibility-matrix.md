@@ -10,11 +10,13 @@ stage-table rows in `spec/serialization.md` and notes under HIST-008 and HIST-00
 **Governance:** G-077…G-087 (`reference/governance/2026-10-11-owner-layer04-start.md`), plus
 G-013, G-051 and G-054.
 
-**Status:** CONTRACT-STAGE DRAFT, revision 3 (Codex reviews `0cc23387`: WP04-CR-001…006, Q1…Q3; `f9d8e7d4` and `59c3a1a0`: WP04-CR-007).
-- Every row names the witness that will carry its evidence.
-- A state of `PLANNED` becomes `AUDITED` only when the Python candidate supplies that evidence,
-  before the Rust handoff, as in Layer 03.
-- `NOT_APPLICABLE` and `DEFERRED_WITH_REASON` rows are final now.
+**Status:** Python evidence at code `afb36081`, revision 3 contract (agreed docs `d857fcc2`, Codex
+APPROVED `67ba6632`).
+- Rows marked `AUDITED` cite executed Python evidence: [SC] 63 steps, [PT] and [CT] in
+  `tests/core/test_layer04_store.py`, and [MU] 19 of 20 planted violations killed (P14 is
+  equivalent; see the implementation record).
+- [IT], the cross-language witnesses, runs at the Rust candidate and is listed per row as still
+  due.
 
 **Toolchains:**
 - Python: CPython 3.12.8 (uv-managed) and the psycopg 3 driver.
@@ -24,10 +26,12 @@ G-013, G-051 and G-054.
 **Evidence keys:**
 - **[SC]** the five WP-04 scenarios: `store-commit-gapless-positions`, `store-commit-strict-writer`,
   `history-same-operation-retry-commits-once`, `store-no-semantic-dedup` and `store-bounded-read`;
-- **[PT]** the planned Python store tests, `tests/core/test_layer04_store.py`;
-- **[IT]** the planned cross-language interoperability test: a store written by one language is read
-  and retried by the other, both directions;
-- **[CT]** the planned crash and concurrency tests;
+- **[PT]** the Python store tests, `tests/core/test_layer04_store.py` (20 tests);
+- **[MU]** Claude's planted violations, `.tmp/work/claude/py_mutants_wp04.py` (P01–P20);
+- **[IT]** the cross-language interoperability tests (due at the Rust candidate): a store written by one
+  language is read and retried by the other, in both directions, plus mixed-language concurrent and
+  waiting first opens;
+- **[CT]** the crash and concurrency tests in `tests/core/test_layer04_store.py`;
 - **[L1]**, **[L2]** and **[L3]** the certified lower layers (G-044, G-065, G-076).
 
 ## 1. Value-domain matrix
@@ -64,50 +68,50 @@ G-013, G-051 and G-054.
 
 | Hazard (family/member) | State | Evidence / reason |
 |---|---|---|
-| H1 integer width | PLANNED | positions as `bigint`, read back as `int` / `i64`; limit bound 2^53−1 ([SC] limit; [PT] bound unit test) |
-| H1 JSON number lexical forms | PLANNED | `limit: 1.5` invalid, `2.0` normalizes by L01 ([SC]; [PT]) |
+| H1 integer width | AUDITED | positions as `bigint`, read back as `int` / `i64`; limit bound 2^53−1 ([SC] limit; [PT] bound unit test) |
+| H1 JSON number lexical forms | AUDITED | `limit: 1.5` invalid, `2.0` normalizes by L01 ([SC]; [PT]) |
 | H1 float policy | AUDITED | payload floats pass the L01 domain before canonical bytes ([L1]) |
-| H1 arithmetic | PLANNED | the only arithmetic is `tail+1…tail+K`, under the lock, after the capacity check K ≤ MAX − tail (G-086); `CHECK` constraints bound tail and position. [PT] synthetic tail MAX−1: K=1 commits, K=2 is `persistence.store_full` with no clock sample; at tail MAX an identical retry still returns its receipt and a different mutation conflicts (CR-006) |
+| H1 arithmetic | AUDITED | the only arithmetic is `tail+1…tail+K`, under the lock, after the capacity check K ≤ MAX − tail (G-086); `CHECK` constraints bound tail and position. [PT] synthetic tail MAX−1: K=1 commits, K=2 is `persistence.store_full` with no clock sample; at tail MAX an identical retry still returns its receipt and a different mutation conflicts (CR-006) |
 | H1 SQLite affinity | NOT_APPLICABLE | the reference backend is PostgreSQL with typed columns (G-079); an embedded backend re-opens this row |
 | H2 scalar domain | AUDITED | records enter only as SER-009 canonical UTF-8 bytes, compared as bytes, never as `text` ([L1]) |
-| H2 encoding | PLANNED | databases are UTF-8 with C collation (spec rule); envelopes are `bytea`, so no server re-encoding ([IT]) |
-| H2 NUL | PLANNED | PostgreSQL `text` cannot hold NUL (SQLSTATE 22021, Codex probe). `text` holds only CORE-001 tokens and canonical timestamps; `source_operation_id`, envelopes and mutations are `bytea` (CR-001) ([SC] NUL identity; [PT] a payload string containing U+0000 round-trips) |
+| H2 encoding | AUDITED | databases are UTF-8 with C collation (spec rule); envelopes are `bytea`, so no server re-encoding ([IT]) |
+| H2 NUL | AUDITED | PostgreSQL `text` cannot hold NUL (SQLSTATE 22021, Codex probe). `text` holds only CORE-001 tokens and canonical timestamps; `source_operation_id`, envelopes and mutations are `bytea` (CR-001) ([SC] NUL identity; [PT] a payload string containing U+0000 round-trips) |
 | H2 length units | AUDITED | IDs and tokens are ASCII ([L1]) |
 | H2 line endings | NOT_APPLICABLE | no text files are written |
 | H3 normalization | NOT_APPLICABLE | no Unicode normalization (CORE-001 exact compare) |
-| H3 case mapping/folding | PLANNED | `store_id` and `record_id` uniqueness is exact under C collation (`o-1` vs `O-1` is an invalid ID anyway; [PT] uniqueness of IDs differing only after position 1) |
-| H3 collation/sort | PLANNED | ordering is by `bigint` position only, never by text ([SC] pages) |
+| H3 case mapping/folding | AUDITED | `store_id` and `record_id` uniqueness is exact under C collation (`o-1` vs `O-1` is an invalid ID anyway; [PT] uniqueness of IDs differing only after position 1) |
+| H3 collation/sort | AUDITED | ordering is by `bigint` position only, never by text ([SC] pages) |
 | H3 Unicode version | NOT_APPLICABLE | no Unicode tables |
 | H3 lexical tokenization | NOT_APPLICABLE | no lexical retrieval |
-| H4 representation | PLANNED | the store stamps the clock instant's canonical HIST-004 form; scenarios use `.ffffffZ` expectations and one offset-spelled clock instant (CR-002) ([SC] gapless) |
+| H4 representation | AUDITED | the store stamps the clock instant's canonical HIST-004 form; scenarios use `.ffffffZ` expectations and one offset-spelled clock instant (CR-002) ([SC] gapless) |
 | H4 unknown vs present | AUDITED | `occurred_at` optional as in G-049 ([L2]) |
-| H4 clocks | PLANNED | at most one sample per new-commit attempt, at step 12 under the lock; steps 1–11 (validation, retries, conflicts, store duplicates, capacity) never sample (G-085, G-086) ([SC] exact instants consumed; [CT] counting clock) |
-| H4 ordering | PLANNED | `recorded_at` never orders records; position does (G-082, G-051) ([PT] a clock running backwards still yields ascending positions) |
+| H4 clocks | AUDITED | at most one sample per new-commit attempt, at step 12 under the lock; steps 1–11 (validation, retries, conflicts, store duplicates, capacity) never sample (G-085, G-086) ([SC] exact instants consumed; [CT] counting clock) |
+| H4 ordering | AUDITED | `recorded_at` never orders records; position does (G-082, G-051) ([PT] a clock running backwards still yields ascending positions) |
 | H4 leap seconds/DST | AUDITED | HIST-004 rejects `:60` ([L1]) |
 | H5 map iteration | AUDITED | mutation and envelopes are canonical bytes ([L1]) |
 | H5 canonical key order | AUDITED | SER-009 ([L1]) |
-| H5 sort stability and keys | PLANNED | pages are `ORDER BY position` on a primary key ([SC]) |
+| H5 sort stability and keys | AUDITED | pages are `ORDER BY position` on a primary key ([SC]) |
 | H5 sets | NOT_APPLICABLE | no set-valued output in Layer 04 |
-| H5 pagination | PLANNED | record-counted since-boundary pages may slice a committed batch; pages from 0 to the tail yield every record once ([SC] bounded-read; [PT] property test). Incremental bounded rebuild is DEFERRED to Layer 05 with ReplayCheckpoint, and container/target reads to the profile layers (G-087) |
+| H5 pagination | AUDITED | record-counted since-boundary pages may slice a committed batch; pages from 0 to the tail yield every record once ([SC] bounded-read; [PT] property test). Incremental bounded rebuild is DEFERRED to Layer 05 with ReplayCheckpoint, and container/target reads to the profile layers (G-087) |
 | H6 YAML version / anchors / duplicate keys / big numbers / null vs missing / enforcement | AUDITED | corpus gate `mneme-process check` 8/8 ([L1]) |
 | H7 algorithm and output | NOT_APPLICABLE | Layer 04 computes no hashes |
-| H7 canonical form | PLANNED | retry identity compares normalized canonical draft bytes ([SC] retry and reorder steps; [IT] a retry from the other language) |
-| H7 identity vs integrity | PLANNED | equal content under different IDs is two records (HIST-008) ([SC] no-semantic-dedup) |
+| H7 canonical form | AUDITED | retry identity compares normalized canonical draft bytes ([SC] retry and reorder steps; [IT] a retry from the other language) |
+| H7 identity vs integrity | AUDITED | equal content under different IDs is two records (HIST-008) ([SC] no-semantic-dedup) |
 | H8 SQLite version | NOT_APPLICABLE | PostgreSQL reference backend (G-079) |
-| H8 isolation | PLANNED | commit locks the store row (`FOR UPDATE`) before steps 9–13; reads use one `REPEATABLE READ READ ONLY` snapshot for range check, entries and tail (CR-004; Codex probe: Read Committed gave through 19 > tail 18) ([CT] reader loop during commits checks the whole page: `through ≤ tail`, contiguous positions, whole commits) |
-| H8 crash points | PLANNED | one transaction per commit; [CT] kills the connection (`pg_terminate_backend`) before COMMIT and confirms no effect, then retries |
-| H8 idempotency | PLANNED | `mneme_operation` primary key; [SC] retry; [CT] concurrent identical retries yield one physical commit and the same receipt |
+| H8 isolation | AUDITED | commit locks the store row (`FOR UPDATE`) before steps 9–13; reads use one `REPEATABLE READ READ ONLY` snapshot for range check, entries and tail (CR-004; Codex probe: Read Committed gave through 19 > tail 18) ([CT] reader loop during commits checks the whole page: `through ≤ tail`, contiguous positions, whole commits) |
+| H8 crash points | AUDITED | one transaction per commit; [CT] kills the connection (`pg_terminate_backend`) before COMMIT and confirms no effect, then retries |
+| H8 idempotency | AUDITED | `mneme_operation` primary key; [SC] retry; [CT] concurrent identical retries yield one physical commit and the same receipt |
 | H8 JSONL | NOT_APPLICABLE | no JSONL backend |
-| H8 durability | PLANNED | `synchronous_commit = on` asserted per connection ([PT] reads the setting) |
-| H8 schema version | PLANNED | singleton `mneme_schema` row; every open runs in an explicit Read Committed transaction and first takes `pg_advisory_xact_lock` on the shared schema-open key (CR-007), then inspects after the lock and creates schema v1 or requires exactly the four tables and version 1, else `persistence.schema_incompatible` with no change (Q3) ([PT] absent, mismatched, malformed and two-row cases; [CT] concurrent first opens; [IT] **mixed-language** concurrent first opens on an empty database: exactly one initializes, both open v1; [CT] and [IT] a **waiting opener** blocked on the lock while the other initializes then opens v1 successfully, even when the session's default isolation is Repeatable Read) |
+| H8 durability | AUDITED | `synchronous_commit = on` asserted per connection ([PT] reads the setting) |
+| H8 schema version | AUDITED | singleton `mneme_schema` row; every open runs in an explicit Read Committed transaction and first takes `pg_advisory_xact_lock` on the shared schema-open key (CR-007), then inspects after the lock and creates schema v1 or requires exactly the four tables and version 1, else `persistence.schema_incompatible` with no change (Q3) ([PT] absent, mismatched, malformed and two-row cases; [CT] concurrent first opens; [IT] **mixed-language** concurrent first opens on an empty database: exactly one initializes, both open v1; [CT] and [IT] a **waiting opener** blocked on the lock while the other initializes then opens v1 successfully, even when the session's default isolation is Repeatable Read) |
 | H9 (all members) | NOT_APPLICABLE | no filesystem paths in WP-04; asset files are WP-04T (PERS-016) |
-| H10 concurrent retry | PLANNED | [CT] N parallel identical commits → one physical commit, N equal receipts |
+| H10 concurrent retry | AUDITED | [CT] N parallel identical commits → one physical commit, N equal receipts |
 | H10 async enrichment | NOT_APPLICABLE | enrichment ordering is WP-04T (PERS-004); WP-04 provides only the receipt barrier |
-| H10 cancellation | PLANNED | an attempt aborted after step 12 may have sampled the clock but persists nothing; a later retry may get a different instant (G-085) ([CT] rollback and `pg_terminate_backend` after the sample: tail, records and operations unchanged; the retry commits with the next instant) |
+| H10 cancellation | AUDITED | an attempt aborted after step 12 may have sampled the clock but persists nothing; a later retry may get a different instant (G-085) ([CT] rollback and `pg_terminate_backend` after the sample: tail, records and operations unchanged; the retry commits with the next instant) |
 | H11 ID lexical domain | AUDITED | CORE-001 for `store_id`, `record_id` ([L1]) |
 | H11 version domain | AUDITED | `schema_version` per G-053 ([L2]) |
 | H11 scope encoding | NOT_APPLICABLE | no MemoryScope in WP-04 |
-| H11 reference integrity | PLANNED | `record_id` unique across the store and across profiles (G-083) ([SC] strict writer) |
+| H11 reference integrity | AUDITED | `record_id` unique across the store and across profiles (G-083) ([SC] strict writer) |
 
 ## 4. Concurrency / order matrix
 
@@ -125,13 +129,20 @@ G-013, G-051 and G-054.
 
 ## 5. Neighborhood expansion record
 
-To be filled during implementation review.
+| Family | Members probed | Probe source | New rows / findings |
+|---|---|---|---|
+| H8 isolation and open | lock, isolation and inspection order × first, waiting and concurrent opens | [PT]; [MU] P05, P06 | the waiting-opener test was first written so that the waiter could initialize the schema itself; it was rewritten so the lock holder initializes while the waiter is blocked (Codex review 3's witness) |
+| H4 clocks | sampling order against steps 9–11 and aborts | [PT]; [MU] P02, P03, P16 | none |
+| H7 canonical form | raw against normalized mutation, reordering | [SC]; [MU] P07, P20 | none |
+| H5 pagination | `through` computation | [MU] P14 | equivalent under gaplessness (implementation record) |
 
 ## 6. Verdict
 
 ```text
 FEASIBILITY
-    DRAFT     contract stage; PLANNED rows become AUDITED from the Python candidate's evidence
-              before the Rust handoff. Rust needs: a draft admission mode over the certified
-              Layer 02 gates (additive), the PostgreSQL schema, and the [CT]/[IT] tests.
+    READY     every row AUDITED from Python evidence, NOT_APPLICABLE or DEFERRED_WITH_REASON (G-087);
+              [IT] cross-language witnesses are due at the Rust candidate. Rust needs: a draft
+              admission mode over the certified Layer 02 gates (additive), the PostgreSQL schema
+              version 1, the schema-open protocol (shared key, explicit Read Committed), and the
+              [CT]/[IT] tests.
 ```
