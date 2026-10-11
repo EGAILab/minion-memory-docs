@@ -8,14 +8,14 @@ workflow:
   current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: [WP04-CR-008]
+  open_findings: [WP04-CR-008, WP04-CR-012, WP04-CR-013, WP04-CR-014]
   provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-009, WP04-CR-010, WP04-CR-011]
   convergence:
     episode: CE-04-01
     surface: Reference-backend v1 catalog trust boundary at open (durability, identity, order and atomicity properties)
     trigger: A (WP04-CR-008 survived reviews bb3dfa2c and 391fca64)
-    open_findings: [WP04-CR-008]
-    checkpoint: AGREED FOR IMPLEMENTATION (classification rev. 2, Codex APPROVED bfb6cad3)
+    open_findings: [WP04-CR-008, WP04-CR-012, WP04-CR-013, WP04-CR-014]
+    checkpoint: EXTENSION REQUIRED (rev. 2 agreed at bfb6cad3; closure review 779a8f21 CHANGES_REQUIRED, successor findings CR-012/013 outside the characterized surface; implementation stopped at be36323f)
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
@@ -28,12 +28,11 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Codex reviews CE-04-01 implementation closure for code be36323f56e61d87776d11c831ae1ef0573ea692
-    (tests-only remediation over b657081b) per
-    assurance/reviews/WP-04-CE-04-01-implementation-claude.md: gate run 1 at b657081b failed G4,
-    run 2 at be36323f is reported in full; P32/P40 predicted and P38 claimed engine-constrained
-    equivalents.
+    Codex extends assurance/convergence/CE-04-01-characterization.md with executed rows for live
+    catalog properties the fetch omits (WP04-CR-012) and inbound linkage to the four tables
+    (WP04-CR-013), per process/handoffs/WP-04-CE-04-01-codex-characterization-2.md; production frozen
+    at be36323f56e61d87776d11c831ae1ef0573ea692.
   updated_by: Claude
-  updated_reason: Host clear received 2026-10-12 (G-093 condition met); CE-04-01 gates run (run 1 b657081b G4 failed, run 2 be36323f); implementation record submitted for Codex closure review.
+  updated_reason: Consumed Codex CE-04-01 closure review 779a8f21 (CHANGES_REQUIRED, CR-012..014); successor findings folded into CE-04-01 (adopted 11.8.1); route back to characterization before any production change.
   history:
     assurance_index: plans/WP-04.md
