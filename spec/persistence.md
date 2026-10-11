@@ -371,12 +371,17 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
 - **Columns.** `profile`, `record_type` and `schema_version` repeat the envelope's routing triple
   for queries (PERS-003, PERS-014). The receipt is rebuilt from `mneme_operation` and the records
   in its range.
-- **Open and initialize.** Every open, initializing or not, runs in one transaction whose **first
+- **Open and initialize.** Every open, initializing or not, runs in one transaction begun explicitly
+  with `ISOLATION LEVEL READ COMMITTED`, never relying on the server default. Its **first
   statement** is `SELECT pg_advisory_xact_lock(-4695452043516644990)`: the single-`bigint` overload
   with the shared **schema-open key**. The key is the first 8 bytes of SHA-256 of the ASCII text
   `mneme.schema.open.v1` (`bed6673e764ef182`), read as a big-endian signed 64-bit integer. Both
   languages use exactly this key; no other key or overload may stand in for it (WP04-CR-007). The
-  lock is held until the transaction ends. Under it:
+  lock is held until the transaction ends. Every inspection runs after the lock is acquired, so under
+  Read Committed it sees any initialization committed while this open waited. A stronger isolation
+  level is not allowed here: its snapshot can predate a concurrent initialization (Codex review 3:
+  SQLSTATE 42P07). An open never ignores a DDL error and never treats a validly initialized schema
+  as incompatible. The `read_history` snapshot rule is separate and unchanged. Under the lock:
   - if no `mneme_` table exists, the transaction creates schema version 1 (the DDL above plus the
     one `mneme_schema` row) and commits;
   - otherwise it requires exactly the four tables and one `mneme_schema` row with version 1;

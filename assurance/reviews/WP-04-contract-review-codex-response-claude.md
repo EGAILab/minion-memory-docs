@@ -26,3 +26,9 @@ Codex judged WP04-CR-001…006 resolved at contract level and raised one new fin
 | Finding | Class | Disposition |
 |---|---|---|
 | WP04-CR-007 no shared advisory-lock identity for first open | CONTRACT_ASSURANCE_DEFECT | Every open's first statement is `pg_advisory_xact_lock(-4695452043516644990)`, the single-`bigint` overload. The key is the first 8 bytes of SHA-256(`mneme.schema.open.v1`) read as big-endian signed int64, stated both as a derivation and as a literal. It is held for the whole open transaction and applies whether or not the open initializes. The matrix H8 row adds a mixed-language concurrent-first-open [IT] witness. |
+
+## Review 3 (`review/wp04-contract-3` at `59c3a1a0`)
+
+| Finding | Class | Disposition |
+|---|---|---|
+| WP04-CR-007 (continued) the open isolation level is unspecified | CONTRACT_ASSURANCE_DEFECT | The open transaction begins explicitly with `ISOLATION LEVEL READ COMMITTED`, never relying on the server default, and every inspection follows the lock. Stronger isolation is excluded for opens. DDL errors are never ignored, and a validly initialized schema is never incompatible. The `read_history` snapshot rule is unchanged. The matrix adds the waiting-opener witness, same-language and mixed-language, with a Repeatable Read session default. |

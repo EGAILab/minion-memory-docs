@@ -10,7 +10,7 @@ stage-table rows in `spec/serialization.md` and notes under HIST-008 and HIST-00
 **Governance:** G-077…G-087 (`reference/governance/2026-10-11-owner-layer04-start.md`), plus
 G-013, G-051 and G-054.
 
-**Status:** CONTRACT-STAGE DRAFT, revision 2 (Codex reviews `0cc23387`: WP04-CR-001…006, Q1…Q3; `f9d8e7d4`: WP04-CR-007).
+**Status:** CONTRACT-STAGE DRAFT, revision 3 (Codex reviews `0cc23387`: WP04-CR-001…006, Q1…Q3; `f9d8e7d4` and `59c3a1a0`: WP04-CR-007).
 - Every row names the witness that will carry its evidence.
 - A state of `PLANNED` becomes `AUDITED` only when the Python candidate supplies that evidence,
   before the Rust handoff, as in Layer 03.
@@ -99,7 +99,7 @@ G-013, G-051 and G-054.
 | H8 idempotency | PLANNED | `mneme_operation` primary key; [SC] retry; [CT] concurrent identical retries yield one physical commit and the same receipt |
 | H8 JSONL | NOT_APPLICABLE | no JSONL backend |
 | H8 durability | PLANNED | `synchronous_commit = on` asserted per connection ([PT] reads the setting) |
-| H8 schema version | PLANNED | singleton `mneme_schema` row; every open first takes `pg_advisory_xact_lock` on the shared schema-open key (CR-007), then creates schema v1 or requires exactly the four tables and version 1, else `persistence.schema_incompatible` with no change (Q3) ([PT] absent, mismatched, malformed and two-row cases; [CT] concurrent first opens; [IT] **mixed-language** concurrent first opens on an empty database: exactly one initializes, both open v1) |
+| H8 schema version | PLANNED | singleton `mneme_schema` row; every open runs in an explicit Read Committed transaction and first takes `pg_advisory_xact_lock` on the shared schema-open key (CR-007), then inspects after the lock and creates schema v1 or requires exactly the four tables and version 1, else `persistence.schema_incompatible` with no change (Q3) ([PT] absent, mismatched, malformed and two-row cases; [CT] concurrent first opens; [IT] **mixed-language** concurrent first opens on an empty database: exactly one initializes, both open v1; [CT] and [IT] a **waiting opener** blocked on the lock while the other initializes then opens v1 successfully, even when the session's default isolation is Repeatable Read) |
 | H9 (all members) | NOT_APPLICABLE | no filesystem paths in WP-04; asset files are WP-04T (PERS-016) |
 | H10 concurrent retry | PLANNED | [CT] N parallel identical commits → one physical commit, N equal receipts |
 | H10 async enrichment | NOT_APPLICABLE | enrichment ordering is WP-04T (PERS-004); WP-04 provides only the receipt barrier |
