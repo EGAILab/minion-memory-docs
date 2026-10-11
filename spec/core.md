@@ -664,12 +664,20 @@ behavior is evidence. The only automatic historical deduplication allowed is ide
 the same durable operation identity (CORE-012). Derived artifacts (Knowledge duplicate candidates,
 MemoryRecord consolidation) follow their own artifact-specific policies and never change this rule.
 
+**Layer 04 (WP-04).** The canonical store enforces this rule: it never deduplicates by content, and
+the only automatic deduplication is the idempotent retry of one operation identity
+(`spec/persistence.md`, Layer 04 canonical history store contract).
+
 ### HIST-009 — Durability barrier before lossy compaction
 <a id="hist-009"></a>
 - **Profile:** core · **Source status:** GUARDRAIL · **Sources:** [IAA §A13]
 
 Any compaction, pruning or archival operation must first ensure that irrecoverable observations
 and required historical context are durably persisted.
+
+**Layer 04 (WP-04).** A `commit_history` receipt is returned only once the batch is durable. That is the
+committed durability barrier that compaction, pruning or archival (WP-04T and later) must consult
+(`spec/persistence.md`).
 
 ### HIST-010 — System-provided information keeps its origin
 <a id="hist-010"></a>

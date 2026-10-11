@@ -180,6 +180,8 @@ are never aggregated.
 | 3 | Layer 02 history arguments | `history.envelope_invalid` / `history.reader_invalid` / `history.boundary_invalid` | HIST-002 envelope (G-048, G-049, G-052; gated per G-055) / SER-005 reader (G-053) / HIST-005 boundary (G-051, G-054) |
 | 3 | Layer 03 projection arguments | `history.stream_invalid` / `lineage.invalid` | PROJ-001 stream / HIST-007 relation list |
 | after 3 | Layer 03 relations | `history.duplicate_record_id` (entry, with position) / `lineage.invalid` (late graph checks) | PROJ-001 conflicting record reuse (G-073) / HIST-007 endpoints, self-links, cycles (G-071, G-072) |
+| 3 | Layer 04 store arguments | `persistence.batch_invalid` / `persistence.limit_invalid` / `persistence.record_unrecognized` | commit batch shape / read limit / a draft the writer does not decode (G-083), `spec/persistence.md` |
+| after 3 | Layer 04 commit | `history.duplicate_record_id` / `persistence.operation_conflict` | a record ID already in the batch or store (G-083) / a different mutation under a committed operation identity (G-013, G-082) |
 | after 3 | Layer 02 relations | `history.unknown_required` / `history.boundary_incomparable` | SER-005 replay stop for an unrecognized required record / HIST-005 cross-store ordering |
 
 - **Order within a stage (Owner G-034).**

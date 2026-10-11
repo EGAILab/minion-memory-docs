@@ -151,3 +151,145 @@ MVP.
 
 Asset file writes use staging/rename or equivalent integrity checks so persisted references never
 point to half-written files.
+
+---
+
+## Layer 04 canonical history store contract (WP-04)
+
+Owner G-077…G-084 (`reference/governance/2026-10-11-owner-layer04-start.md`), with G-013, G-047, G-051 and G-054. The contract is
+**backend-neutral** (G-079): it fixes repository semantics only. The PostgreSQL reference backend
+and its shared schema are at the end of this section.
+
+### Store and writer
+
+- **Store.** A *store* is one logical canonical history store, identified by a CORE-001 `store_id`.
+  - It may hold records of any profile; each record's `profile` stays explicit (PERS-014).
+  - A new store is empty, with tail position 0.
+  - Committed records receive **gapless store-local positions** 1, 2, 3, …, which are permanent and
+    never reused or reassigned (G-080).
+  - Positions are a store-local cursor, never a global, causal or cross-device order (G-051).
+- **Writer.** A *writer* declares its schema as a Layer 02 replay reader `{profile, recognized}`
+  (G-053 rules).
+- **Append-only API (PERS-012).** The repository exposes only `commit_history`, `read_history` and
+  `store_tail`. There is no update, delete or generic save operation.
+
+### `commit_history(store, writer, operation, records)`
+
+**Arguments:**
+- **`operation`** is a CORE-012 operation identity (G-032/G-033).
+- **`records`** is a non-empty array of **record drafts**. A draft is a closed history envelope
+  *without* `recorded_at`:
+  `{record_id, profile, record_type, schema_version, compatibility, occurred_at?, payload?, provenance?}`.
+  Callers never supply `recorded_at` (G-082).
+
+**Validation** happens before any effect, and every failure rejects the whole batch with no
+effect (PERS-005):
+1. **Generic stages** run across `writer`, `operation` and `records` (G-031).
+2. **Writer.** `writer` must be a valid reader, else `history.reader_invalid`.
+3. **Operation.** `operation` must be valid, else `operation_identity.invalid`.
+4. **Batch.** `records` must be a non-empty array, else `persistence.batch_invalid`.
+5. **Each draft, in batch order** (G-083), is admitted through the Layer 02 gates (G-055) by the
+   writer's reader, as the envelope it would become. A draft that already carries `recorded_at` is
+   `history.envelope_invalid`.
+   - Envelope, typed and generic errors keep their codes.
+   - An outcome other than `decode` is `persistence.record_unrecognized`: `excluded` (a foreign
+     profile), `skip`, or `history.unknown_required`. Write outcomes are strict; reader outcomes
+     are not acceptable writes.
+   - Profile-owned payload validation applies once a profile defines it (Layers 07+ and 13+).
+6. **Repeated IDs.** Two drafts in one batch with the same `record_id` are
+   `history.duplicate_record_id`.
+
+Errors name their argument: `writer`, `operation` or `records`.
+
+**Commit** happens under the store's single serialization boundary (G-084). The steps are atomic
+and linearized with every other commit to the store:
+- **Already committed operation.** If the store has already committed `operation`, its
+  **mutation** is compared: the SER-009 canonical bytes of the submitted draft array, in order,
+  excluding everything store-generated (G-082).
+  - Equal: the **original receipt** is returned unchanged, and nothing is appended.
+  - Different: `persistence.operation_conflict`, a visible conflict that is never last-write-wins
+    (G-013).
+- **New operation.** Otherwise:
+  - any draft whose `record_id` already exists in the store, under any profile or operation, is
+    `history.duplicate_record_id` (G-083);
+  - the store samples its **clock once**, giving one canonical HIST-004 `recorded_at` for the
+    whole batch;
+  - it assigns the consecutive positions `tail+1 … tail+n` in draft order (G-080);
+  - it appends the stamped envelopes and persists the receipt.
+- **Receipt.** The commit returns the **receipt** only after the batch is durable. That is the
+  **committed durability barrier** (HIST-009, PERS-004) that WP-04T consumes.
+- **Failed or aborted commits** persist nothing: no position, no timestamp, no receipt (G-082).
+- **Concurrent identical retries** produce exactly one physical commit, and every caller gets the
+  same receipt (G-084).
+
+**Receipt** (a closed record):
+
+```text
+{"store_id": ..., "operation": {source_namespace, source_operation_id},
+ "first_position": <int>, "last_position": <int>, "recorded_at": <canonical timestamp>,
+ "records": [<the committed envelopes, in position order>]}
+```
+
+### `read_history(store, since, limit)`
+
+- **Arguments.**
+  - `since` is a HistoryBoundary. Its `store_id` must be this store's, else
+    `history.boundary_incomparable` (G-051).
+  - Its `position` must not exceed the tail, else `history.boundary_invalid`.
+  - `limit` is an integer from 1 to 2^53−1, else `persistence.limit_invalid`.
+- **Result.** `{"entries": [{"position", "record"}...], "through": <HistoryBoundary>,
+  "tail": <HistoryBoundary>}`.
+  - `entries` holds the committed records with positions greater than `since`, ascending, at most
+    `limit` of them.
+  - `through` is the boundary at the last returned position, or `since` if none was returned.
+  - `tail` is the store's tail at read time.
+- **No partial batches.** A read never observes part of a batch.
+- **Bounded replay (PERS-007).** Reading in pages from boundary 0 and projecting
+  (`project_history`) equals projecting one full read.
+
+### `store_tail(store)`
+
+Returns the HistoryBoundary `{store_id, position}` of the last committed record, or position 0 for
+an empty store.
+
+### No semantic deduplication (HIST-008)
+
+The store never merges or drops records because their content is equal or similar. Records with
+different `record_id`s are always distinct. The only automatic deduplication is the idempotent
+retry of one operation identity (PERS-006).
+
+### Clock and test seams
+
+The store's clock is injectable (G-082). A conformance scenario declares a store with a fixed
+sequence of clock instants; each *new* commit consumes exactly one. Retries and failed commits
+consume none.
+
+### Reference backend: PostgreSQL shared schema (G-079, G-081)
+
+Both languages implement the store on one PostgreSQL schema, so a store written by either is
+readable by the other. Schema version 1, normative for the reference backend:
+
+```sql
+CREATE TABLE mneme_schema   (version integer NOT NULL);
+CREATE TABLE mneme_store    (store_id text PRIMARY KEY, tail bigint NOT NULL DEFAULT 0);
+CREATE TABLE mneme_record   (store_id text NOT NULL REFERENCES mneme_store,
+                             position bigint NOT NULL, record_id text NOT NULL,
+                             profile text NOT NULL, record_type text NOT NULL,
+                             schema_version bigint NOT NULL,
+                             source_namespace text NOT NULL, source_operation_id text NOT NULL,
+                             envelope bytea NOT NULL,            -- SER-009 canonical bytes
+                             PRIMARY KEY (store_id, position),
+                             UNIQUE (store_id, record_id));
+CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
+                             source_namespace text NOT NULL, source_operation_id text NOT NULL,
+                             mutation bytea NOT NULL,            -- SER-009 bytes of the draft array
+                             first_position bigint NOT NULL, last_position bigint NOT NULL,
+                             recorded_at text NOT NULL,
+                             PRIMARY KEY (store_id, source_namespace, source_operation_id));
+```
+
+- **Commit.** One transaction that locks the store row first (`SELECT … FOR UPDATE`). That is the
+  serialization boundary, and the transaction runs with `synchronous_commit = on`.
+- **Columns.** `profile`, `record_type` and `schema_version` repeat the envelope's routing triple
+  for queries (PERS-003, PERS-014).
+- **Tablespace.** Test databases live in the tablespace from G-081.
