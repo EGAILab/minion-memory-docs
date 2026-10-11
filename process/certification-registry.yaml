@@ -59,3 +59,13 @@ work_packages:
     cross_language: {status: CERTIFIED_CLOSED}
     evidence: plans/WP-02S.md
     governance: reference/governance/2026-10-11-owner-layer02-certification.md
+  WP-03:
+    title: Layer 03 — canonical HistoryProjector and lineage resolution
+    layer: "03"
+    requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
+    contract: {status: DRAFT}
+    python: {status: NOT_IMPLEMENTED}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
+    evidence: plans/WP-03.md
+    governance: reference/governance/2026-10-11-owner-layer03-start.md

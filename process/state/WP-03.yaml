@@ -1,0 +1,30 @@
+workflow:
+  schema_version: 2
+  work_package: WP-03
+  title: Layer 03 — canonical HistoryProjector and lineage resolution
+  layer: "03"
+  status: CONTRACT_DRAFT
+  requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
+  current_candidate: null
+  dependencies:
+    WP-02: {relation: blocked_by, status: CLOSED}
+  open_findings: []
+  provisionally_closed: []
+  governance_source:
+    artifact: reference/governance/2026-10-11-owner-layer03-start.md
+    decision: >
+      G-066 start Layer 03; G-067 scope (canonical HistoryProjector + shared lineage resolver; Layer 04
+      owns durable append); G-068 profile-owned lineage encoding, Core-owned semantics; G-069
+      set-valued current heads, no tie-break; G-070 atomic failure on an unknown required record.
+    scope: [WP-03]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Claude
+  next_action: >
+    Draft the Layer 03 contract (spec, scenarios, feasibility) from G-066..G-070 and the authority audit;
+    hand to Codex for CONTRACT_REVIEW.
+  updated_by: Claude
+  updated_reason: Opened under Owner G-066..G-070.
+  history:
+    assurance_index: plans/WP-03.md
