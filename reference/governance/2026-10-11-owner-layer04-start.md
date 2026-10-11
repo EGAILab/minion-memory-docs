@@ -136,3 +136,46 @@ Credentials live only under `.tmp/work`, never in the repositories.
 - The service's default template collation name (`English_World.1252`) fails a case-sensitive check on
   Windows, so databases are created from `template0` with UTF-8 and the `C` collation, as the contract
   records.
+
+## G-085 — Aborted commits may have sampled the clock (WP04-CR-005)
+
+> **Q:** WP04-CR-005: a commit samples the injectable clock under the store lock, but the
+> transaction can still abort after sampling (e.g. crash or rollback). The database can undo the
+> write but not 'un-call' the clock. What should the contract promise about clock samples?
+>
+> **A:** "Choose 1 — aborted commits may have sampled the clock.A new valid commit attempt may
+> sample the injected clock once after validation/idempotency checks and under the store
+> serialization boundary. If the transaction subsequently aborts or crashes, the clock read is not
+> reversible, but no recorded_at, position, operation receipt, or history record is persisted. The
+> sampled instant has no semantic status.Validation failures, already-committed idempotent retries,
+> and pre-commit operation conflicts do not sample the clock. A later retry after an aborted
+> attempt may sample a different instant; only the timestamp belonging to the eventually successful
+> atomic commit becomes canonical."
+
+## G-086 — A full store rejects only new commits that cannot fit (WP04-CR-006)
+
+> **Q:** WP04-CR-006: positions are capped at 2^53−1 (the shared integer domain). What happens when
+> a new batch would exceed it?
+>
+> **A:** "Choose 1 — reject only new commits that cannot fit; committed retries remain
+> replayable.For an unseen operation, a batch of K records may commit only when K <= (2^53−1) -
+> current_tail. Otherwise the store returns persistence.store_full atomically, without sampling the
+> clock, allocating positions, persisting a receipt, or writing any records. Positions never wrap,
+> clamp, reuse, or partially append.Operation-idempotency resolution precedes the capacity check: an
+> identical retry of an already committed operation always returns its original receipt and
+> assigned positions, even when the store is now full; reuse of that identity with different
+> content returns the existing operation-conflict result."
+
+## G-087 — PERS-007 decomposed with explicit owners (Codex WP-04 review Q2)
+
+> **Q:** Codex's Q2: PERS-007 also asks for reads by container (e.g. an episode) or by target, and
+> for memory-bounded incremental rebuild (checkpoint plus tail). WP-04 provides raw since-boundary
+> paging only. Where should the rest be handled?
+>
+> **A:** "Choose 1 — defer with explicit owners.WP-04 owns only the generic canonical-store part of
+> PERS-007: bounded since-boundary paging over physical committed history.Memory-bounded incremental
+> rebuild belongs to Layer 05 together with ReplayCheckpoint, checkpoint compatibility, and
+> checkpoint-plus-tail projection.Container- and target-oriented reads belong to the profile layers
+> that define those semantic concepts; any associated indexes are derived/rebuildable read models
+> rather than canonical-store semantics.Record all three dispositions explicitly in the
+> requirement/feasibility matrix so PERS-007 is decomposed rather than left partially satisfied."

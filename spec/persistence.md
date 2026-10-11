@@ -156,80 +156,113 @@ point to half-written files.
 
 ## Layer 04 canonical history store contract (WP-04)
 
-Owner G-077…G-084 (`reference/governance/2026-10-11-owner-layer04-start.md`), with G-013, G-047, G-051 and G-054. The contract is
-**backend-neutral** (G-079): it fixes repository semantics only. The PostgreSQL reference backend
-and its shared schema are at the end of this section.
+Owner G-077…G-087 (`reference/governance/2026-10-11-owner-layer04-start.md`), with G-013, G-031,
+G-033, G-051, G-054 and G-055. The contract is **backend-neutral** (G-079): it fixes repository
+semantics only. The PostgreSQL reference backend and its shared schema are at the end of this
+section.
 
-### Store and writer
+### Store, backend and writer
 
 - **Store.** A *store* is one logical canonical history store, identified by a CORE-001 `store_id`.
   - It may hold records of any profile; each record's `profile` stays explicit (PERS-014).
   - A new store is empty, with tail position 0.
   - Committed records receive **gapless store-local positions** 1, 2, 3, …, which are permanent and
-    never reused or reassigned (G-080).
+    never reused or reassigned (G-080). The largest position is MAX = 2^53−1 (G-054, G-086).
   - Positions are a store-local cursor, never a global, causal or cross-device order (G-051).
+- **Backend handle.** An implementation opens a *backend handle* (for the reference backend, a
+  database) with an injectable **clock**. The clock is a callable `clock(store_id)` that yields a
+  HIST-004 timestamp; the store stamps that instant's **canonical** HIST-004 form (G-082). A clock
+  that yields a value HIST-004 rejects is a defect of the clock, not a store outcome. Opening is
+  per-language API; the reference backend's open rule is at the end of this section.
 - **Writer.** A *writer* declares its schema as a Layer 02 replay reader `{profile, recognized}`
   (G-053 rules).
-- **Append-only API (PERS-012).** The repository exposes only `create_store`, `commit_history`,
-  `read_history` and `store_tail`. There is no update, delete or generic save operation.
-- **Store lifecycle.**
-  - `create_store(store_id)` creates an empty store (tail 0). If the ID already exists, it fails with
-    `persistence.store_exists`.
-  - Every other operation on a `store_id` the backend does not hold fails with
-    `persistence.store_unknown`.
-  - Both checks follow the argument checks. Stores are never deleted through this API.
+- **Append-only API (PERS-012).** The repository exposes exactly four operations: `create_store`,
+  `commit_history`, `read_history` and `store_tail`. There is no update, delete or generic save
+  operation, and stores are never deleted through this API.
 
-### `commit_history(store, writer, operation, records)`
+### Arguments, seams and errors (all four operations)
 
-**Arguments:**
-- **`operation`** is a CORE-012 operation identity (G-032/G-033).
-- **`records`** is a non-empty array of **record drafts**. A draft is a closed history envelope
-  *without* `recorded_at`:
-  `{record_id, profile, record_type, schema_version, compatibility, occurred_at?, payload?, provenance?}`.
-  Callers never supply `recorded_at` (G-082).
+- Every argument is a public structured input. `store_id` is a value (a CORE-001 ID), not a handle;
+  it is validated like every other argument.
+- Each structured argument is accepted either as a native value or as JSON text (the Layer 01
+  seams), and the evaluation order below is the same for both.
+- **Generic stages first (G-031).** Stage 1 (decoding) and stage 2 (value domain) run across all
+  arguments in declared order before any stage-3 check; the first failure reports.
+- Every Layer 04 error names its argument where the list below gives one, and **never carries a
+  position** (the Layer 03 entry position does not apply to store operations).
 
-**Validation** happens before any effect, and every failure rejects the whole batch with no
-effect (PERS-005):
-1. **Generic stages** run across `writer`, `operation` and `records` (G-031).
-2. **Writer.** `writer` must be a valid reader, else `history.reader_invalid`.
-3. **Operation.** `operation` must be valid, else `operation_identity.invalid`.
-4. **Batch.** `records` must be a non-empty array, else `persistence.batch_invalid`.
-5. **Each draft, in batch order** (G-083), is admitted through the Layer 02 gates (G-055) by the
-   writer's reader, as the envelope it would become. A draft that already carries `recorded_at` is
-   `history.envelope_invalid`.
-   - Envelope, typed and generic errors keep their codes.
-   - An outcome other than `decode` is `persistence.record_unrecognized`: `excluded` (a foreign
-     profile), `skip`, or `history.unknown_required`. Write outcomes are strict; reader outcomes
-     are not acceptable writes.
-   - Profile-owned payload validation applies once a profile defines it (Layers 07+ and 13+).
-6. **Repeated IDs.** Two drafts in one batch with the same `record_id` are
-   `history.duplicate_record_id`.
+### `create_store(store_id)`
 
-Errors name their argument: `writer`, `operation` or `records`.
+1. Generic stages over `store_id`.
+2. `store_id`: CORE-001, else `id.invalid` (argument `store_id`).
+3. If the backend already holds the store: `persistence.store_exists` (argument `store_id`).
+4. Otherwise an empty store (tail 0) is durably created.
 
-**Commit** happens under the store's single serialization boundary (G-084). The steps are atomic
-and linearized with every other commit to the store:
-- **Already committed operation.** If the store has already committed `operation`, its
-  **mutation** is compared: the SER-009 canonical bytes of the submitted draft array, in order,
-  after Layer 02 normalization (for example, `occurred_at` spellings of one instant compare
-  equal), excluding everything store-generated (G-082).
-  - The writer's schema is not part of the mutation.
-  - Reordered drafts are a different mutation.
-  - Equal: the **original receipt** is returned unchanged, and nothing is appended.
-  - Different: `persistence.operation_conflict` (argument `operation`), a visible conflict that is
-    never last-write-wins (G-013).
-- **New operation.** Otherwise:
-  - any draft whose `record_id` already exists in the store, under any profile or operation, is
-    `history.duplicate_record_id` (G-083);
-  - the store samples its **clock once**, giving one canonical HIST-004 `recorded_at` for the
-    whole batch;
-  - it assigns the consecutive positions `tail+1 … tail+n` in draft order (G-080);
-  - it appends the stamped envelopes and persists the receipt.
-- **Receipt.** The commit returns the **receipt** only after the batch is durable. That is the
+### `store_tail(store_id)`
+
+1. Generic stages; 2. `store_id` as above; 3. unknown store: `persistence.store_unknown`
+(argument `store_id`).
+4. Returns the HistoryBoundary `{store_id, position}` of the last committed record (0 if empty).
+
+### `commit_history(store_id, writer, operation, records)`
+
+`operation` is a CORE-012 operation identity `{source_namespace, source_operation_id}` (G-032,
+G-033). `records` is a non-empty array of **record drafts**: history envelopes *without*
+`recorded_at`, which callers never supply (G-082).
+
+**Draft admission (G-083, over G-055).** A draft passes the four Layer 02 gates exactly as an
+envelope does, by the writer's reader, with one difference: the closed member set of a recognized
+draft is the envelope's set **minus `recorded_at`**.
+- **D1, identity and routing:** as gate 1 (`history.envelope_invalid`).
+- **D2, admission and recognition:** `excluded`, `skip` and `history.unknown_required` are reader
+  outcomes, not acceptable writes; each is **`persistence.record_unrecognized`**. A missing or
+  invalid `compatibility` on an admitted draft is `history.envelope_invalid`, as in gate 2.
+- **D3, closed shape:** an unknown member — **including a supplied `recorded_at`** — or a missing
+  `record_id` is `history.envelope_invalid`.
+- **D4, typed fields** in canonical member order (G-034): `occurred_at` gives `timestamp.invalid`,
+  `record_id` gives `id.invalid`.
+- The normalized draft is the draft with `occurred_at` in canonical HIST-004 form and all values as
+  normalized SER-008 values.
+- Profile-owned payload validation joins D4 once a profile defines it (Layers 07+ and 13+).
+
+**Order of evaluation.** The first failure reports, and every failure has no effect at all
+(PERS-005):
+1. Generic stages across `store_id`, `writer`, `operation`, `records`, in that order.
+2. `store_id`: CORE-001, else `id.invalid` (argument `store_id`).
+3. `writer`: a valid reader, else `history.reader_invalid` (argument `writer`).
+4. `operation`: valid, else `operation_identity.invalid` (argument `operation`).
+5. `records`: a non-empty array, else `persistence.batch_invalid` (argument `records`).
+6. Each draft in array order through D1–D4 (argument `records`).
+7. Two drafts with the same `record_id`: `history.duplicate_record_id` (argument `records`).
+8. Unknown store: `persistence.store_unknown` (argument `store_id`).
+
+Steps 9–13 run under the store's **single serialization boundary** (G-084), atomically and
+linearized with every other commit to the store:
+
+9. **Idempotency.** If the store has committed `operation` before, compare the **mutation**: the
+   SER-009 canonical bytes of the array of normalized drafts, in order (G-082). The writer is not
+   part of the mutation; reordered drafts are a different mutation.
+   - Equal: return the **original receipt** unchanged. Nothing is appended and the clock is not
+     sampled, even if the store is now full (G-086).
+   - Different: `persistence.operation_conflict` (argument `operation`), never last-write-wins
+     (G-013). The clock is not sampled (G-085).
+10. A draft whose `record_id` already exists in the store, under any profile or operation:
+    `history.duplicate_record_id` (argument `records`) (G-083).
+11. **Capacity.** With K drafts, if K > MAX − tail: `persistence.store_full` (no argument). No
+    clock sample, no position, no receipt, no record (G-086).
+12. **Clock.** Sample the clock once; its canonical instant is `recorded_at` for every record of
+    the batch.
+13. Assign positions `tail+1 … tail+K` in draft order (G-080); append the stamped envelopes; persist
+    the receipt; advance the tail; make the transaction durable; return the receipt.
+
+- **Durability barrier.** The receipt is returned only after the batch is durable: the
   **committed durability barrier** (HIST-009, PERS-004) that WP-04T consumes.
-- **Failed or aborted commits** persist nothing: no position, no timestamp, no receipt (G-082).
-- **Concurrent identical retries** produce exactly one physical commit, and every caller gets the
-  same receipt (G-084).
+- **Aborts (G-085).** An attempt that aborts or crashes after step 12 may have sampled the clock;
+  the sampled instant has no semantic status and nothing is persisted (no `recorded_at`, position,
+  receipt or record). Steps 1–11 never sample. A later attempt may sample a different instant;
+  only the successful commit's instant becomes canonical.
+- **Concurrent identical retries** produce exactly one physical commit; every caller gets the same
+  receipt (G-084).
 
 **Receipt** (a closed record):
 
@@ -239,29 +272,34 @@ and linearized with every other commit to the store:
  "records": [<the committed envelopes, in position order>]}
 ```
 
-### `read_history(store, since, limit)`
+### `read_history(store_id, since, limit)`
 
-- **Arguments.**
-  - `since` is a HistoryBoundary. Its `store_id` must be this store's, else
-    `history.boundary_incomparable` (G-051).
-  - Its `position` must not exceed the tail, else `history.boundary_invalid`.
-  - `limit` is an integer from 1 to 2^53−1, else `persistence.limit_invalid`.
-  - Errors name their argument, `since` or `limit`. A boundary is first validated as a Layer 02
-    HistoryBoundary (`history.boundary_invalid`); only then is it compared with the store.
-- **Result.** `{"entries": [{"position", "record"}...], "through": <HistoryBoundary>,
-  "tail": <HistoryBoundary>}`.
-  - `entries` holds the committed records with positions greater than `since`, ascending, at most
-    `limit` of them.
-  - `through` is the boundary at the last returned position, or `since` if none was returned.
-  - `tail` is the store's tail at read time.
-- **No partial batches.** A read never observes part of a batch.
-- **Bounded replay (PERS-007).** Reading in pages from boundary 0 and projecting
-  (`project_history`) equals projecting one full read.
+**Order of evaluation:**
+1. Generic stages across `store_id`, `since`, `limit`, in that order.
+2. `store_id`: CORE-001, else `id.invalid` (argument `store_id`).
+3. `since`: a valid HIST-005 HistoryBoundary, else `history.boundary_invalid` (argument `since`).
+4. `limit`: an integer from 1 to MAX, else `persistence.limit_invalid` (argument `limit`).
+5. Unknown store: `persistence.store_unknown` (argument `store_id`).
+6. Against **one read snapshot** (below): `since.store_id` other than `store_id` is
+   `history.boundary_incomparable` (argument `since`) (G-051); `since.position` greater than the
+   snapshot tail is `history.boundary_invalid` (argument `since`).
 
-### `store_tail(store)`
+**Result:** `{"entries": [{"position", "record"}...], "through": <HistoryBoundary>,
+"tail": <HistoryBoundary>}`:
+- `entries`: the committed records with positions greater than `since.position`, ascending, at
+  most `limit` of them.
+- `through`: the boundary at the last returned position, or `since` if none was returned.
+- `tail`: the snapshot's tail.
 
-Returns the HistoryBoundary `{store_id, position}` of the last committed record, or position 0 for
-an empty store.
+**Snapshot and paging (PERS-005, PERS-007):**
+- The range check, `entries`, `through` and `tail` all come from **one consistent snapshot** of
+  committed history. A snapshot contains each commit entirely or not at all; it never contains
+  part of an in-progress or aborted commit. So `through ≤ tail` always holds.
+- `limit` counts **records**. A page may end inside a committed batch; the next page, read from its
+  `through`, continues with the rest. Slicing a committed batch across pages is not partial
+  visibility.
+- Reading pages from boundary 0 until `through` equals `tail` yields every record exactly once, in
+  position order.
 
 ### No semantic deduplication (HIST-008)
 
@@ -269,46 +307,74 @@ The store never merges or drops records because their content is equal or simila
 different `record_id`s are always distinct. The only automatic deduplication is the idempotent
 retry of one operation identity (PERS-006).
 
-### Clock and test seams
+### PERS-007 decomposition (G-087)
 
-- **Clock.** The store's clock is injectable (G-082). Each *new* commit consumes exactly one
-  instant. Retries and failed commits consume none.
-- **Scenario runs.** Layer 04 conformance scenarios are stateful:
-  - every scenario runs its steps in order against one fresh, empty backend;
-  - a `create_store` step declares the store's clock as a finite list of canonical instants.
+| Part of PERS-007 | Owner |
+|---|---|
+| bounded since-boundary paging over physical committed history | **WP-04** (this contract) |
+| memory-bounded incremental rebuild: checkpoint plus tail, an incremental projector | **Layer 05** with ReplayCheckpoint (PERS-009…011) |
+| reads by container (e.g. an episode) or by target | **the profile layers** that define those concepts; any index is a derived, rebuildable read model, not canonical-store semantics |
+
+### Scenario and test seams
+
+- **Scenario runs.** Layer 04 conformance scenarios are stateful: each scenario runs its steps in
+  order against one fresh backend with no stores.
+- **Clock fixtures.** A `create_store` step's `clock` is runner configuration, not an argument: the
+  finite list of instants the runner's clock yields, in order, for commits to that store. Each
+  new-commit attempt that reaches step 12 consumes one (G-085).
+- **JSON seams.** A step may give a structured argument `<name>` as JSON text in `<name>_json`.
 - **Backends.** The corpus is backend-neutral (G-079). Each implementation runs it against every
   backend it ships, and certification requires the PostgreSQL reference backend.
-- **Outside the corpus.** Crash, abort, concurrency and cross-language interoperability are proven
-  by implementation tests listed in the WP-04 feasibility matrix, not by corpus steps.
+- **Outside the corpus.** Crash, abort, concurrency, capacity (G-086; 2^53 records cannot be
+  written) and cross-language interoperability are proven by implementation tests listed in the
+  WP-04 feasibility matrix.
 
 ### Reference backend: PostgreSQL shared schema (G-079, G-081)
 
 Both languages implement the store on one PostgreSQL schema, so a store written by either is
-readable by the other. Schema version 1, normative for the reference backend:
+readable and retryable by the other. Schema version 1, normative for the reference backend:
 
 ```sql
-CREATE TABLE mneme_schema   (version integer NOT NULL);
-CREATE TABLE mneme_store    (store_id text PRIMARY KEY, tail bigint NOT NULL DEFAULT 0);
-CREATE TABLE mneme_record   (store_id text NOT NULL REFERENCES mneme_store,
-                             position bigint NOT NULL, record_id text NOT NULL,
-                             profile text NOT NULL, record_type text NOT NULL,
-                             schema_version bigint NOT NULL,
-                             source_namespace text NOT NULL, source_operation_id text NOT NULL,
-                             envelope bytea NOT NULL,            -- SER-009 canonical bytes
-                             PRIMARY KEY (store_id, position),
-                             UNIQUE (store_id, record_id));
+CREATE TABLE mneme_schema    (singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),
+                              version integer NOT NULL);
+CREATE TABLE mneme_store     (store_id text PRIMARY KEY,
+                              tail bigint NOT NULL DEFAULT 0
+                                   CHECK (tail BETWEEN 0 AND 9007199254740991));
+CREATE TABLE mneme_record    (store_id text NOT NULL REFERENCES mneme_store,
+                              position bigint NOT NULL
+                                   CHECK (position BETWEEN 1 AND 9007199254740991),
+                              record_id text NOT NULL,
+                              profile text NOT NULL, record_type text NOT NULL,
+                              schema_version bigint NOT NULL,
+                              envelope bytea NOT NULL,             -- SER-009 canonical bytes
+                              PRIMARY KEY (store_id, position),
+                              UNIQUE (store_id, record_id));
 CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
-                             source_namespace text NOT NULL, source_operation_id text NOT NULL,
-                             mutation bytea NOT NULL,            -- SER-009 bytes of the draft array
-                             first_position bigint NOT NULL, last_position bigint NOT NULL,
-                             recorded_at text NOT NULL,
-                             PRIMARY KEY (store_id, source_namespace, source_operation_id));
+                              source_namespace text NOT NULL,
+                              source_operation_id bytea NOT NULL,  -- exact UTF-8 bytes (G-033)
+                              mutation bytea NOT NULL,             -- SER-009 bytes, normalized drafts
+                              first_position bigint NOT NULL, last_position bigint NOT NULL,
+                              recorded_at text NOT NULL,           -- canonical HIST-004
+                              PRIMARY KEY (store_id, source_namespace, source_operation_id));
 ```
 
-- **Commit.** One transaction that locks the store row first (`SELECT … FOR UPDATE`). That is the
-  serialization boundary, and the transaction runs with `synchronous_commit = on`.
+- **Text columns** hold only CORE-001 tokens (`store_id`, `record_id`, `profile`, `record_type`,
+  `source_namespace`) and canonical timestamps: ASCII, never NUL. Everything else that is an
+  arbitrary SER-008 string is in `bytea`: `source_operation_id` as its exact UTF-8 bytes (so
+  `"\u0000"` is representable and equality is bytewise, per G-033), and envelopes and mutations as
+  canonical bytes.
+- **Commit.** One transaction that first locks the store row (`SELECT … FOR UPDATE`); that lock is
+  the serialization boundary. Steps 9–13 run under it, and the transaction commits with
+  `synchronous_commit = on`.
+- **Read.** One `REPEATABLE READ READ ONLY` transaction (or a single statement) supplies the
+  snapshot for step 6, the entries and the tail.
 - **Columns.** `profile`, `record_type` and `schema_version` repeat the envelope's routing triple
-  for queries (PERS-003, PERS-014).
-- **Databases.** Created with `TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`, so text
-  comparison is bytewise and independent of the host locale. Test databases live in the tablespace from
-  G-081.
+  for queries (PERS-003, PERS-014). The receipt is rebuilt from `mneme_operation` and the records
+  in its range.
+- **Open and initialize.** Opening a database creates schema version 1 in one transaction, under a
+  transaction-level advisory lock, if no `mneme_` table exists. Otherwise it requires exactly the
+  four tables and one `mneme_schema` row with version 1; anything else fails the open with
+  `persistence.schema_incompatible` and changes nothing.
+- **Databases.** Created with `TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`, so
+  text comparison is bytewise and independent of the host locale. Test databases live in the
+  tablespace from G-081.
