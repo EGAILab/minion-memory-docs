@@ -80,3 +80,49 @@ the Owner.
 
 All project test databases are created in the tablespace `mneme_ts` at `.tmp/pgdata` on E:.
 Credentials live only under `.tmp/work`, never in the repositories.
+
+## G-082 — The store owns recorded_at; retry identity excludes store-generated fields (WP-04)
+
+> **Q:** Who sets recorded_at? G-049 defines it as 'when the local durable writer
+> committed/recorded the history record'. This also decides what an idempotent retry compares (a
+> retry after a crash naturally carries a later wall-clock time).
+>
+> **A:** "Choose 1 — the store owns recorded_at.Callers submit canonical record content without
+> recorded_at. For a previously unseen durable operation, the store samples an injectable clock once
+> during the atomic commit and assigns the resulting canonical UTC timestamp to every record in that
+> batch.Idempotency compares the normalized canonical caller-supplied mutation, excluding
+> store-generated recorded_at, positions, and receipt metadata. A matching retry returns the original
+> records, timestamp, positions, and receipt; a differing mutation under the same operation identity
+> is a visible conflict.Failed or aborted commits persist neither timestamps nor positions.
+> recorded_at is wall-clock metadata and does not replace the store-local position order."
+
+## G-083 — Commits require writer-schema recognition and store-unique record IDs (WP-04)
+
+> **Q:** What does the store validate when a batch is committed?
+>
+> **A:** "Choose 1 — canonical commits require full writer-schema recognition and globally unique
+> per-store record IDs.Every submitted record must belong to the writer’s declared profile, use a
+> record type/schema version recognized by that writer, and pass the complete applicable Layer-02 and
+> profile-owned validation before becoming canonical. excluded and skipped_ignorable are reader
+> outcomes and are not acceptable write outcomes. Any invalid, foreign-profile, or unrecognized
+> record rejects the entire atomic batch.record_id is unique across the logical store, including
+> across profiles. Reuse under a different operation rejects the batch even when content is
+> identical. An idempotent retry does not append again; it returns the original committed records,
+> timestamp and positions.Unknown required/ignorable records remain possible when an older reader
+> later encounters records validly committed by a newer writer. Ordinary append therefore remains
+> strict without sacrificing forward compatibility."
+
+## G-084 — Concurrent commits are safely serialized (WP-04, PERS-015)
+
+> **Q:** PERS-015: the MVP assumes one local active writer. What must the store do if two writers
+> commit to the same store concurrently?
+>
+> **A:** "Choose 1 — commits to one logical history store are safely serialized.Concurrent commits
+> are linearized into a single store-local commit order. Each successful commit receives one gapless
+> consecutive position range, and uniqueness/idempotency checks, position allocation, recorded_at
+> assignment, append, receipt persistence and tail advancement occur under the same atomic
+> serialization boundary.Concurrent retries of the same OperationIdentity and same canonical
+> mutation produce exactly one physical commit and return the same original receipt to all callers.
+> Conflicting mutations or duplicate record IDs never use last-write-wins.This is local concurrency
+> safety only; it does not define distributed synchronization, cross-store merge, or cross-device
+> ordering."
