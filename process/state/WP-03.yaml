@@ -6,12 +6,12 @@ workflow:
   status: CONTRACT_REVIEW
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
   current_candidate:
-    code: {repo: minion-memory, ref: wp03/contract, sha: 2bc2ee126a4c4086d848c099698522bfad5ce09e}
-    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: e25190267ce242c558309af462d86071421b7d2e}
+    code: {repo: minion-memory, ref: wp03/contract, sha: 619540ae8ef15d7e8f639fd2c10e86c036888124}
+    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: b514c16d2822f610a93d71368606f89ff91a4745}
   dependencies:
     WP-02: {relation: blocked_by, status: CLOSED}
   open_findings: []
-  provisionally_closed: [WP03-CR-001, WP03-CR-002, WP03-CR-003, WP03-CR-004]
+  provisionally_closed: [WP03-CR-001, WP03-CR-002, WP03-CR-003, WP03-CR-004, WP03-CR-005]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer03-start.md
     decision: >
@@ -24,9 +24,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-03-codex-contract-review-2.md: CONTRACT_REVIEW round 2 of WP-03 at docs
-    e2519026 / code 2bc2ee12; record APPROVED or CHANGES_REQUIRED on review/wp03-contract-2.
+    Execute process/handoffs/WP-03-codex-contract-review-3.md: targeted re-review of WP03-CR-005 at docs
+    b514c16d / code 619540ae; record APPROVED or CHANGES_REQUIRED on review/wp03-contract-3.
   updated_by: Claude
-  updated_reason: Codex review 1 (c3775768) CHANGES_REQUIRED; Owner G-071..G-074; CR-003 repaired; CONTRACT_REVIEW -> CONTRACT_DRAFT -> CONTRACT_REVIEW.
+  updated_reason: Codex review 2 (3e3dfec0) closed CR-001..004 and raised CR-005; Owner G-075; repaired.
   history:
     assurance_index: plans/WP-03.md
