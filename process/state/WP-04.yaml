@@ -21,17 +21,18 @@ workflow:
     decision: >
       G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
       backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
-      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics; G-088 convergence CE-04-01; G-089..G-092 CE-04-01 catalog contract, database environment, PostgreSQL 14, trust scope.
+      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics; G-088 convergence CE-04-01; G-089..G-092 CE-04-01 catalog contract, database environment, PostgreSQL 14, trust scope; G-093 gates wait for host clear.
     scope: [WP-04]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Claude
   next_action: >
-    After Minion-Agent host clear: run the full suite, the CE-04-01 witness module, planted violations
-    (.tmp/work/claude/py_mutants_ce0401.py and the unchanged WP-04 set) and G3 coverage on code b657081b;
-    write the implementation record and hand to Codex for CE-04-01 closure.
+    Execution condition (G-093): start only after Minion-Agent reports host clear. Then run
+    .tmp/work/claude/ce0401_gates.sh fresh at candidate code b657081b96d67f7c2202c7fa541e1dceb09c8222,
+    fill assurance/reviews/WP-04-CE-04-01-implementation-claude.md with the literal results, and hand
+    to Codex for CE-04-01 closure.
   updated_by: Claude
-  updated_reason: CE-04-01 single implementation pass committed (code b657081b, uncertified candidate); full gates wait for host clear.
+  updated_reason: Owner G-093 - remain in CONTRACT_CONVERGENCE; CE-04-01 gates bound to b657081b, executed only after host clear; implementation record drafted (results pending).
   history:
     assurance_index: plans/WP-04.md

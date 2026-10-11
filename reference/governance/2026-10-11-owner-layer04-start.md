@@ -230,3 +230,20 @@ Owner in one question set. The answers below are the Owner's typed text, verbati
 > **Q:** C06: what trust scope do the v1 guarantees assume? Open can only check the schema at open time; it can't stop an administrator changing the schema or editing rows later, and some broken states (disabled FK triggers, catalog edits) need superuser.
 >
 > **A:** Selected "Open-time, trusted engine (Recommended)", with the Owner's text: "Choose 1 — v1 uses an open-time validated, trusted-engine model.open() verifies the PostgreSQL environment and the complete certified v1 catalog contract before returning a usable store handle. Thereafter, WP-04 guarantees assume that the mneme_ schema and canonical rows are modified only through the certified Minion-Memory API and that PostgreSQL's genuine catalog/transaction semantics remain trustworthy.Out-of-band DDL, direct row edits, disabled internal constraints/triggers, manual catalog manipulation, and other administrator/superuser interference after open() are outside the certification boundary. The store does not revalidate the full schema on every operation or scan all historical rows at open.A later integrity-check/repair facility may explicitly audit stored data, but it is a separate capability and does not alter the v1 trust model."
+
+## G-093 — CE-04-01 gates under the Minion-Agent host reservation
+
+**Context.** The CE-04-01 single implementation pass is committed at code `b657081b`. Its gates
+(about 150 fresh-schema witnesses, the full suite, planted violations, coverage) are heavy disk work,
+and Minion-Agent asked that heavy batches wait for "host clear" while its Rust gates (#199) run.
+
+> **Q1:** How should I proceed?
+>
+> **A1:** "Choose 1 — wait for host clear.Preserve the shared-host reservation. CE-04-01 moves to WAITING_FOR_TRIGGER with trigger host clear; do not start the ~150 fresh-schema witnesses, full suite, mutation batch, or coverage until the reservation is released. Use the wait to finalize the implementation record, exact gate commands, mutant/witness map, expected evidence format, and Rust handoff notes. Once host clear arrives, run the full declared gate set fresh at code b657081b and bind all evidence to that exact SHA."
+>
+> **Q2:** The validator rejects CONTRACT_CONVERGENCE -> WAITING_FOR_TRIGGER (and that state can only
+> resume into SCOPING). How should I record the wait?
+>
+> **A2:** "Choose 1 — remain in CONTRACT_CONVERGENCE. Do not transition state. Record next_owner = Claude, bind the pending CE-04-01 gates to candidate b657081b, and add an explicit execution condition that the heavy gate batch may begin only after Minion-Agent reports host clear. This is an operational scheduling condition, not a workflow-state change or Owner blocker."
+
+A2 refines A1's state wording; the status stays `CONTRACT_CONVERGENCE`.
