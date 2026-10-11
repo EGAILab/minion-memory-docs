@@ -584,7 +584,7 @@ appended with derived_from / supersedes / reinterprets provenance identifying it
 version. Historical interpretations remain auditable. A "current preferred" interpretation is a
 projection, not an in-place rewrite.
 
-**Lineage (Owner G-068, G-069, G-071…G-074; `reference/governance/2026-10-11-owner-layer03-start.md`).**
+**Lineage (Owner G-068, G-069, G-071…G-075; `reference/governance/2026-10-11-owner-layer03-start.md`).**
 
 Lineage between history records is a relation list. Each relation is a closed record with exactly
 one typed target (G-072):
@@ -593,6 +593,8 @@ one typed target (G-072):
 {"from_record_id": "<id>", "relation": "<kind>", "to_record_id": "<id>"}
 {"from_record_id": "<id>", "relation": "derived_from",
  "to_artifact": {"stable_id": "<id>", "artifact_version": <edition>}}
+{"from_record_id": "<id>", "relation": "derived_from",
+ "to_artifact": {"content_hash": "<64 lowercase hex>"}}
 ```
 
 - **Producer.** The relation list comes from the profile decoder: the links live in the profile's
@@ -605,9 +607,14 @@ one typed target (G-072):
   - `reinterprets`: `from` is an interpretation of the observation `to`.
   - `derived_from`: a provenance link; it does not affect resolution.
   - `supersedes`, `corrects` and `reinterprets` form the *resolution* family.
-- **Typed targets.** Only `derived_from` may use `to_artifact`. Its target is an external immutable
-  artifact: a CORE-001 `stable_id` with a CORE-002 `artifact_version`. An external artifact is never
-  written as a record ID.
+- **Typed targets (G-075).** Only `derived_from` may use `to_artifact`. Its target is an external
+  immutable artifact, as exactly one of two closed, mutually exclusive identities:
+  - a versioned identity `{stable_id, artifact_version}`, a CORE-001 ID with a CORE-002 edition;
+  - a content-addressed identity `{content_hash}`, in the exact CORE-011 canonical SHA-256 form
+    (64 lowercase hex characters).
+
+  A bare `stable_id` is forbidden, because it does not pin immutable content, and an external
+  artifact is never written as a record ID.
 - **Repeated relations.** Two relations that are equal after normalization are one relation:
   multiplicity has no meaning (G-072).
 - **Early (shape) checks, before any entry is admitted.** Each gives `lineage.invalid`, argument
@@ -616,8 +623,9 @@ one typed target (G-072):
   - an element is not a closed object;
   - `from_record_id` is not a CORE-001 ID;
   - `relation` is not exactly one of the four kind strings;
-  - the target is not exactly one of `to_record_id` (a CORE-001 ID) or `to_artifact` (closed, as
-    above);
+  - the target is not exactly one of `to_record_id` (a CORE-001 ID) or `to_artifact`;
+  - `to_artifact` is not exactly one of the two closed identities (G-075): a missing edition, both
+    forms, neither form, an unknown member or a malformed hash;
   - `to_artifact` is used with a kind other than `derived_from`.
 - **Late (graph) checks, after every entry is admitted.** Each gives `lineage.invalid`, argument
   `relations`, and atomically fails the projection:
@@ -629,9 +637,10 @@ one typed target (G-072):
   There is no combined rule across the two families.
 - **Available records.** Available means decoded in this projection. In Layer 05 it also includes a
   compatible base or checkpoint state (G-072). Skipped and excluded records are not available.
-- **Unresolved derivations.** A `derived_from` target that is unavailable (an artifact, or a record
-  outside the projection) is kept and reported as an *unresolved derivation*. It is never dropped,
-  and it does not fail the projection (G-072).
+- **Unresolved derivations.** A `derived_from` target that is unavailable is kept and reported as an
+  *unresolved derivation*: a record outside the projection, or any external artifact, because Layer
+  03 has no artifact resolver. It is never dropped or rewritten, does not affect current heads, and
+  does not fail the projection (G-072, G-075).
 - **Current heads (G-069).** The current heads are the decoded records targeted by no `supersedes`
   or `corrects` relation. "Current" is set-valued: several heads are a valid divergent state, and a
   later record may supersede several heads to converge them.
@@ -744,7 +753,8 @@ purpose-neutral projection.
 - **Presentation order.**
   - `relations` and `unresolved_derivations` are ordered by the `from` record's position, then the
     relation kind, then the target: available records by position, then record targets by ID, then
-    artifacts by `(stable_id, artifact_version)`.
+    versioned artifacts by `(stable_id, artifact_version)`, then content-addressed artifacts by
+    `content_hash`.
   - `interpretations` is ordered by the observation's position, and lists every observation that
     any `reinterprets` relation targets.
   - All ordering is presentation only, and never selects (G-069).

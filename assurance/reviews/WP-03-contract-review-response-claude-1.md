@@ -31,3 +31,20 @@ The Owner decided the three path-C findings on 2026-10-11, recorded verbatim as 
     outside the vocabulary, bad endpoint spelling), a late graph error that does not, and conflicting
     reuse preceding lineage errors.
 - **Result shape.** Every projection now also carries `duplicates` and `unresolved_derivations`.
+
+## Round 2 (Codex `3e3dfec0`)
+
+CR-001…004 are closed by Codex. The new **WP03-CR-005** (path C) was decided by the Owner as
+**G-075**:
+- an external `derived_from` target is exactly one of `{stable_id, artifact_version}` or
+  `{content_hash}` (the CORE-011 SHA-256 form);
+- a bare ID, both forms, neither form, unknown members or a malformed hash are `lineage.invalid`;
+- these targets are kept as unresolved derivations.
+
+The HIST-007 typed-target text and presentation order are updated. There are five new controls
+(54 DRAFT steps):
+- a content-hash target kept as an unresolved derivation;
+- a bare ID;
+- both forms together;
+- an uppercase hash;
+- edition 0.

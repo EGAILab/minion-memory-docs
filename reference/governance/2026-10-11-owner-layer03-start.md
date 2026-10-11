@@ -133,3 +133,18 @@ Layer 03 is allowed.
 > relation, e-1 remains a historical interpretation, e-2 is a current record but not an
 > interpretation of o-1, and o-1 has no current interpretation. Core exposes that result and never
 > infers the missing association."
+
+## G-075 — External derivation target identities (resolves WP03-CR-005)
+
+> **Q:** WP03-CR-005: a derived_from link may point at an external immutable artifact (G-072).
+> Which artifact identities may that typed target carry? (Sources identify assets by stable ID +
+> version OR by content hash: R04 §4, KNOW-009.)
+>
+> **A:** "Choose 1 — an external derived_from target is either a versioned artifact identity
+> {stable_id, artifact_version} or a content-addressed identity {content_hash}. The alternatives are
+> mutually exclusive and closed.A missing edition, both forms together, neither form, or unknown
+> members produce lineage.invalid. Bare stable IDs are forbidden because they do not pin immutable
+> content. The content hash must use the exact CORE-011 canonical SHA-256 form.Layer 03 preserves
+> these references as unresolved external derivations unless an explicit artifact resolver is
+> available. They do not affect current-head resolution and are never silently dropped or
+> rewritten."
