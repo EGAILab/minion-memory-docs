@@ -3,29 +3,27 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: CONTRACT_REVIEW
+  status: CONTRACT_DRAFT
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp04/contract, sha: e48c61e14ad936703bd8531b1f1eb76091fce195}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: 2d9cca7815bff12cd4b68c089bfb458cc3276e2b}
+  current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: []
+  open_findings: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006]
   provisionally_closed: []
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
       G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
       backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
-      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:.
+      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics.
     scope: [WP-04]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Independent CONTRACT_REVIEW of the WP-04 canonical history store contract, scenarios and feasibility matrix.
+    Revise the WP-04 contract for WP04-CR-001..006 (Codex review 0cc23387); CR-005, CR-006 and Q2 decided by the Owner as G-085..G-087.
   updated_by: Claude
-  updated_reason: WP-04 contract drafted under Owner G-077..G-084; CONTRACT_DRAFT -> CONTRACT_REVIEW.
+  updated_reason: Codex contract review 1 (0cc23387) CHANGES_REQUIRED; CONTRACT_REVIEW -> CONTRACT_DRAFT.
   history:
     assurance_index: plans/WP-04.md
