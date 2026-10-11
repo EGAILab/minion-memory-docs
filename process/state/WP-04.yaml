@@ -3,30 +3,33 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: IMPLEMENTATION_REVIEW
+  status: CONTRACT_CONVERGENCE
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp04/contract, sha: 634625135851cccc188fe726acb86990911ebddb}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: f16bb44a5e53f02ef6074a68466aab87ce5fdc54}
+  current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: []
-  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-008, WP04-CR-009, WP04-CR-010, WP04-CR-011]
+  open_findings: [WP04-CR-008]
+  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-009, WP04-CR-010, WP04-CR-011]
+  convergence:
+    episode: CE-04-01
+    surface: Reference-backend v1 catalog trust boundary at open (durability, identity, order and atomicity properties)
+    trigger: A (WP04-CR-008 survived reviews bb3dfa2c and 391fca64)
+    open_findings: [WP04-CR-008]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
       G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
       backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
-      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics.
+      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics; G-088 convergence CE-04-01.
     scope: [WP-04]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Independent re-review of the WP-04 Python remediation (WP04-CR-008..011) at docs f16bb44a / code 63462513;
-    record APPROVED or CHANGES_REQUIRED on review/wp04-python-2.
+    Execute process/handoffs/WP-04-CE-04-01-codex-characterization.md: characterize the reference-backend
+    v1 catalog trust boundary at open as an executed matrix; Claude then challenges and classifies it.
   updated_by: Claude
-  updated_reason: WP-04 Python remediated for WP04-CR-008..011 (code 63462513); REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: Codex Python re-review CHANGES_REQUIRED (391fca64); trigger A fired on WP04-CR-008; Owner G-088 (narrow convergence); IMPLEMENTATION_REVIEW -> CONTRACT_CONVERGENCE CE-04-01.
   history:
     assurance_index: plans/WP-04.md
