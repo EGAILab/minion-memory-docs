@@ -3,11 +3,9 @@ workflow:
   work_package: WP-03
   title: Layer 03 — canonical HistoryProjector and lineage resolution
   layer: "03"
-  status: IMPLEMENTATION_REVIEW
+  status: RUST_IMPLEMENTATION
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp03/contract, sha: dd55fb4f0abec262d7ba0dab64f28a74840b84c3}
-    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: c36e0f5cb6dc2e7e92327bb9db358af0cdd31995}
+  current_candidate: null
   dependencies:
     WP-02: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -15,19 +13,20 @@ workflow:
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer03-start.md
     decision: >
-      G-066 start Layer 03; G-067 scope (canonical HistoryProjector + shared lineage resolver; Layer 04
-      owns durable append); G-068 profile-owned lineage encoding, Core-owned semantics; G-069
-      set-valued current heads, no tie-break; G-070 atomic failure on an unknown required record.
+      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact pair (final
+      review 88b8bb3f, re-review 165b07da): docs main = c36e0f5c, code main = dd55fb4f. Layer 03 semantics
+      G-066..G-075.
+    standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-03]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-03-codex-final-review-2.md: targeted re-review of WP03-CR-007 at docs
-    c36e0f5c / code dd55fb4f; record APPROVED or CHANGES_REQUIRED on review/wp03-final-2. On APPROVED,
-    acceptance under G-009 and RUST_IMPLEMENTATION.
+    Execute process/handoffs/WP-03-codex-rust-implementation.md: Rust Layer 03 HistoryProjector and lineage
+    against the accepted contract and the 2 ACTIVE projection scenarios (not against Python); hand the Rust
+    candidate to Claude for CLOSURE_REVIEW.
   updated_by: Claude
-  updated_reason: Codex final review (88b8bb3f) CHANGES_REQUIRED on WP03-CR-007 (docs only); plan and feasibility matrix repaired; FINAL_CONTRACT_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: WP-03 accepted onto main under G-009 (Codex APPROVED 165b07da; docs main c36e0f5c, code main dd55fb4f); FINAL review chain -> RUST_IMPLEMENTATION (no candidate under review).
   history:
     assurance_index: plans/WP-03.md
