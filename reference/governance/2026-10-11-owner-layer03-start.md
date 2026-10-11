@@ -76,3 +76,60 @@ Layer 03 is allowed.
 > but no partial semantic projection is returned or published. Existing projections remain valid
 > only at their previously completed history boundary. Foreign-profile records remain excluded and
 > unknown ignorable records remain skippable under Layer 02 rules."
+
+## G-071 — Self-links and cycles (resolves WP03-CR-001, part a)
+
+> **Q:** WP03-CR-001a: which self-links and cycles are invalid lineage? (G-068 already makes
+> self-links and cycles in supersession relations errors. The vocabulary is supersedes, corrects,
+> reinterprets, derived_from.)
+>
+> **A:** "Choose 1 — all lineage self-links are invalid. The combined resolution graph formed by
+> supersedes, corrects, and reinterprets MUST be acyclic, including cycles that mix those relation
+> types. The derived_from graph MUST independently be acyclic. A violation produces lineage.invalid
+> and atomically fails projection.This decision does not yet impose one combined acyclicity rule
+> across resolution and derivation relations; any cross-family consistency rule requires an explicit
+> additional contract decision."
+
+## G-072 — Endpoints, typed targets and repeated relations (resolves WP03-CR-001, part b)
+
+> **Q:** WP03-CR-001b: links whose endpoint is not a record in this projection, and repeated
+> identical links. (derived_from may legitimately point at non-history artifacts, e.g. a Knowledge
+> unit.)
+>
+> **A:** "Choose 1 — resolution-affecting relations are strict, while derived_from may retain
+> unresolved external targets.supersedes, corrects, and reinterprets must reference history records
+> available to the effective projection, including compatible base/checkpoint state. A missing
+> endpoint produces lineage.invalid and atomically fails projection.derived_from may reference a
+> history record or an external immutable artifact. An unavailable target is preserved and reported
+> as an unresolved derivation reference; it is never silently dropped and does not by itself fail
+> projection.Relation targets must be typed so external artifacts are not disguised as record IDs.
+> Exact duplicate normalized relations collapse to one Core edge because relation multiplicity has no
+> semantic meaning."
+
+## G-073 — Repeated record IDs (resolves WP03-CR-002)
+
+> **Q:** WP03-CR-002: the stream contains two records with the same record_id. (Durable idempotent
+> retry is Layer 04; R04 §36 forbids semantic deduplication of observations.)
+>
+> **A:** "Choose 1 — identical canonical occurrences coalesce; conflicting reuse fails.Within an
+> effective projection, one record_id denotes one logical record. Repeated occurrences with the same
+> complete canonical envelope are coalesced at the first occurrence, while all later physical
+> positions are retained as derived duplicate-occurrence metadata and still advance the store
+> boundary. They have no additional semantic effect.Reusing a record_id with different canonical
+> envelope content produces history.duplicate_record_id at the first conflicting later position and
+> atomically fails projection. Records with different IDs are never deduplicated merely because their
+> content is equal or similar."
+
+## G-074 — Interpretation membership is direct only (resolves WP03-CR-004)
+
+> **Q:** WP03-CR-004: e-1 reinterprets o-1, and e-2 supersedes e-1 without its own reinterprets link.
+> Is e-2 a current interpretation of o-1?
+>
+> **A:** "Choose 1 — interpretation membership is established only by a record’s own direct
+> reinterprets links.supersedes, corrects, and derived_from do not propagate or inherit
+> interpretation targets. A replacement that is intended to remain an interpretation of an
+> observation must repeat the relevant reinterprets link through its profile-owned encoding.
+> Consequently, when e-1 reinterprets o-1 and e-2 supersedes e-1 without its own reinterprets o-1
+> relation, e-1 remains a historical interpretation, e-2 is a current record but not an
+> interpretation of o-1, and o-1 has no current interpretation. Core exposes that result and never
+> infers the missing association."

@@ -584,43 +584,66 @@ appended with derived_from / supersedes / reinterprets provenance identifying it
 version. Historical interpretations remain auditable. A "current preferred" interpretation is a
 projection, not an in-place rewrite.
 
-**Lineage (Owner G-068, G-069; `reference/governance/2026-10-11-owner-layer03-start.md`).**
+**Lineage (Owner G-068, G-069, G-071…G-074; `reference/governance/2026-10-11-owner-layer03-start.md`).**
 
-Lineage between history records is a relation list. Each relation is a closed record:
+Lineage between history records is a relation list. Each relation is a closed record with exactly
+one typed target (G-072):
 
 ```text
 {"from_record_id": "<id>", "relation": "<kind>", "to_record_id": "<id>"}
+{"from_record_id": "<id>", "relation": "derived_from",
+ "to_artifact": {"stable_id": "<id>", "artifact_version": <edition>}}
 ```
 
-- **Producer.** The relation list comes from the profile decoder: the links themselves live in the
-  profile's versioned payload, never in provenance, and the closed envelope is unchanged (G-048).
+- **Producer.** The relation list comes from the profile decoder: the links live in the profile's
+  versioned payload, never in provenance, and the closed envelope is unchanged (G-048).
   `from_record_id` is normally the containing envelope's `record_id`. Consumers never parse payload
   lineage themselves.
 - **Vocabulary** (core-owned, closed in Layer 03):
   - `supersedes`: `from` replaces `to` as a current head.
   - `corrects`: `from` is a correction of `to` (HIST-006) and replaces it as a current head.
   - `reinterprets`: `from` is an interpretation of the observation `to`.
-  - `derived_from`: a provenance link that does not affect resolution.
-  - `supersedes`, `corrects` and `reinterprets` are *resolution-affecting*. (Author choice, flagged
-    for review: `reinterprets` counts because it defines interpretation groups.)
-- **Valid lineage.** The relation list is invalid, with `lineage.invalid`, when:
-  - a relation kind is outside the vocabulary;
-  - either endpoint is not a record decoded in this projection, including a skipped or excluded
-    record (author choice: dangling links are invalid);
-  - an endpoint is a self-link;
-  - the same triple appears twice;
-  - the resolution-affecting relations contain a cycle.
-  Invalid lineage is surfaced as this error and never repaired (G-067).
-- **Current heads (G-069).** The current heads are the decoded records that no `supersedes` or
-  `corrects` relation targets. "Current" is set-valued: several heads are a valid divergent state,
-  and a later record may supersede several heads to converge them.
-- **Interpretations.** For each observation `o` that is the target of a `reinterprets` relation,
-  its *current interpretations* are the records that reinterpret `o` and are current heads.
+  - `derived_from`: a provenance link; it does not affect resolution.
+  - `supersedes`, `corrects` and `reinterprets` form the *resolution* family.
+- **Typed targets.** Only `derived_from` may use `to_artifact`. Its target is an external immutable
+  artifact: a CORE-001 `stable_id` with a CORE-002 `artifact_version`. An external artifact is never
+  written as a record ID.
+- **Repeated relations.** Two relations that are equal after normalization are one relation:
+  multiplicity has no meaning (G-072).
+- **Early (shape) checks, before any entry is admitted.** Each gives `lineage.invalid`, argument
+  `relations`:
+  - `relations` is not an array;
+  - an element is not a closed object;
+  - `from_record_id` is not a CORE-001 ID;
+  - `relation` is not exactly one of the four kind strings;
+  - the target is not exactly one of `to_record_id` (a CORE-001 ID) or `to_artifact` (closed, as
+    above);
+  - `to_artifact` is used with a kind other than `derived_from`.
+- **Late (graph) checks, after every entry is admitted.** Each gives `lineage.invalid`, argument
+  `relations`, and atomically fails the projection:
+  - `from_record_id` is not a record available to the projection;
+  - a resolution-family target is not a record available to the projection (G-072);
+  - a self-link of any kind (G-071);
+  - a cycle in the resolution family taken together, including mixed kinds (G-071);
+  - a cycle among `derived_from` relations between available records (G-071).
+  There is no combined rule across the two families.
+- **Available records.** Available means decoded in this projection. In Layer 05 it also includes a
+  compatible base or checkpoint state (G-072). Skipped and excluded records are not available.
+- **Unresolved derivations.** A `derived_from` target that is unavailable (an artifact, or a record
+  outside the projection) is kept and reported as an *unresolved derivation*. It is never dropped,
+  and it does not fail the projection (G-072).
+- **Current heads (G-069).** The current heads are the decoded records targeted by no `supersedes`
+  or `corrects` relation. "Current" is set-valued: several heads are a valid divergent state, and a
+  later record may supersede several heads to converge them.
+- **Interpretations (G-074).** An observation `o` has interpretations only through records with
+  their own direct `reinterprets o` relation. `supersedes`, `corrects` and `derived_from` never
+  propagate that membership. So the current interpretations of `o` are the records that directly
+  reinterpret `o` and are current heads. The set may be empty, and the core never infers a missing
+  association.
 - **No ordering ever decides currency.** No `recorded_at`, store position, record ID or container
   order is ever used to pick among heads. A purpose-specific consumer may apply a documented,
   versioned selection policy, recording its selection provenance and keeping every candidate
   (PROJ-002).
-
 
 ### HIST-008 — No semantic deduplication of canonical observations
 <a id="hist-008"></a>
@@ -671,7 +694,7 @@ scheduler, diagnostics, backup/research export and audit tooling) rather than in
 decoding raw payloads. No subsystem may invent a second incompatible interpretation of history
 envelopes. Unknown required semantics fail safely on that path.
 
-**Canonical HistoryProjector (Owner G-067, G-070; `reference/governance/2026-10-11-owner-layer03-start.md`).**
+**Canonical HistoryProjector (Owner G-067, G-070, G-073; `reference/governance/2026-10-11-owner-layer03-start.md`).**
 
 `project_history(reader, stream, relations)` is the single semantic path from stored records to a
 purpose-neutral projection.
@@ -687,43 +710,49 @@ purpose-neutral projection.
     and the error code.)
 - **`relations`** is the decoder's lineage list (HIST-007).
 
-**Order of evaluation:**
+**Order of evaluation.** Each step fails atomically and no partial result is ever returned (G-070):
 1. **Generic stages.** Stages 1–2 run across `reader`, `stream` and `relations` (G-031).
-2. **Argument shapes.** Then `history.reader_invalid`, `history.stream_invalid`, and the shape of
-   `relations` (`lineage.invalid`), in that order.
-3. **Entries.** Each entry is admitted in position order through the Layer 02 gates (G-055):
+2. **Argument shapes.** Then `history.reader_invalid`, `history.stream_invalid`, and the early
+   lineage shape checks (HIST-007), in that order.
+3. **Entries.** Each entry is admitted in position order through the Layer 02 gates (G-055). The
+   first failing entry wins:
    - `decode` adds the normalized envelope;
    - `skip` and `excluded` add nothing, but the position still counts (G-050, G-051);
-   - any error **fails the whole projection atomically** (G-070), whether `history.unknown_required`
-     or an envelope, typed or generic error. The error names the entry's store `position`. For
-     `unknown_required` its detail gives the routing identity `(profile, record_type,
-     schema_version)`. No partial projection is returned.
-4. **Duplicate IDs.** Two decoded records with the same `record_id` are
-   `history.duplicate_record_id`, naming the later position. (Author choice, flagged: idempotent
-   retry is Layer 04, so a projection treats a duplicate ID as corrupt history.)
-5. **Lineage.** The lineage is validated and resolved (HIST-007).
+   - `history.unknown_required`, or any envelope, typed or generic error, fails the projection. The
+     error carries the entry's store `position`; for `unknown_required` its detail gives the routing
+     identity `(profile, record_type, schema_version)`.
+   - **Repeated `record_id` (G-073).** One `record_id` denotes one logical record. A later decoded
+     occurrence whose complete canonical envelope (SER-009 bytes) equals the first one's is
+     coalesced: it is recorded as a *duplicate occurrence*, advances the boundary and has no other
+     effect. A later occurrence with different canonical content is `history.duplicate_record_id`
+     at that position. Records with different IDs are never deduplicated, however similar.
+4. **Lineage.** The late lineage checks run, then resolution (HIST-007).
 
 **Result** (a closed record, purpose-neutral):
 
 ```text
-{"through":   {"store_id": ..., "position": <last entry position, 0 if none>},
- "records":   [<decoded envelopes, in position order>],
- "skipped":   [<positions>],  "excluded": [<positions>],
- "relations": [<the validated relations, ordered by (from position, relation, to position)>],
- "current":   [<record_ids of current heads, in position order>],
+{"through":    {"store_id": ..., "position": <last entry position, 0 if none>},
+ "records":    [<decoded envelopes, one per record_id, in first-position order>],
+ "skipped":    [<positions>],  "excluded": [<positions>],
+ "duplicates": [{"position": <later position>, "record_id": <id>}, ...],
+ "relations":  [<the distinct validated relations>],
+ "unresolved_derivations": [<the derived_from relations whose target is unavailable>],
+ "current":    [<record_ids of current heads, in position order>],
  "interpretations": [{"observation": <record_id>, "current": [<record_ids>]}, ...]}
 ```
 
-`interpretations` is ordered by the observation's position. All ordering in the result is
-presentation only (store order); it never selects (G-069).
-
-**Errors.** Argument errors name `reader`, `stream` or `relations`. Entry errors also carry the
-entry's `position`. `history.unknown_required` keeps Layer 02's convention: it names no argument,
-but it carries the `position`.
-
-**Determinism (HIST-001).** Equal inputs give equal results, whatever the order of `relations`
-and of object members. The projection is rebuildable from the stream and the decoder output alone.
-
+- **Presentation order.**
+  - `relations` and `unresolved_derivations` are ordered by the `from` record's position, then the
+    relation kind, then the target: available records by position, then record targets by ID, then
+    artifacts by `(stable_id, artifact_version)`.
+  - `interpretations` is ordered by the observation's position, and lists every observation that
+    any `reinterprets` relation targets.
+  - All ordering is presentation only, and never selects (G-069).
+- **Errors.** Argument errors name `reader`, `stream` or `relations`. Entry errors also carry the
+  entry's `position`. `history.unknown_required` keeps Layer 02's convention: it names no argument,
+  but it carries the `position`.
+- **Determinism (HIST-001).** Equal inputs give equal results, whatever the order of `relations`
+  and of object members. The projection is rebuildable from the stream and the decoder output alone.
 
 ### PROJ-002 — Purpose-specific projections
 <a id="proj-002"></a>
