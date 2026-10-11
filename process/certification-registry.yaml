@@ -63,8 +63,8 @@ work_packages:
     title: Layer 03 — canonical HistoryProjector and lineage resolution
     layer: "03"
     requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
-    contract: {status: IN_REVIEW}
-    python: {status: NOT_IMPLEMENTED}
+    contract: {status: AGREED, agreed_code_sha: 619540ae8ef15d7e8f639fd2c10e86c036888124, agreed_docs_sha: b514c16d2822f610a93d71368606f89ff91a4745}
+    python: {status: IN_PROGRESS}
     rust: {status: NOT_IMPLEMENTED}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-03.md
