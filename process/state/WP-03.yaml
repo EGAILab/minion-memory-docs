@@ -3,9 +3,11 @@ workflow:
   work_package: WP-03
   title: Layer 03 — canonical HistoryProjector and lineage resolution
   layer: "03"
-  status: CONTRACT_DRAFT
+  status: CONTRACT_REVIEW
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp03/contract, sha: d3ae16680ed8694eaba3384daf582eda408d397f}
+    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: eb2bd5d982dd1224789dbc832effc3527bbd6dfa}
   dependencies:
     WP-02: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -20,11 +22,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Draft the Layer 03 contract (spec, scenarios, feasibility) from G-066..G-070 and the authority audit;
-    hand to Codex for CONTRACT_REVIEW.
+    Execute process/handoffs/WP-03-codex-contract-review.md: independent CONTRACT_REVIEW of the Layer 03
+    HistoryProjector and lineage contract at docs eb2bd5d9 / code d3ae1668; record APPROVED or
+    CHANGES_REQUIRED on review/wp03-contract-1.
   updated_by: Claude
-  updated_reason: Opened under Owner G-066..G-070.
+  updated_reason: WP-03 contract drafted from G-066..G-070; CONTRACT_DRAFT -> CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-03.md
