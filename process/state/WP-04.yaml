@@ -1,0 +1,29 @@
+workflow:
+  schema_version: 2
+  work_package: WP-04
+  title: Layer 04 — canonical history store
+  layer: "04"
+  status: CONTRACT_DRAFT
+  requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
+  current_candidate: null
+  dependencies:
+    WP-03: {relation: blocked_by, status: CLOSED}
+  open_findings: []
+  provisionally_closed: []
+  governance_source:
+    artifact: reference/governance/2026-10-11-owner-layer04-start.md
+    decision: >
+      G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
+      backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
+      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:.
+    scope: [WP-04]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Claude
+  next_action: >
+    Authority audit and Owner decisions for the canonical store; draft the WP-04 contract; set up PostgreSQL access per G-081.
+  updated_by: Claude
+  updated_reason: Opened under Owner G-077..G-081.
+  history:
+    assurance_index: plans/WP-04.md

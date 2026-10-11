@@ -1,0 +1,30 @@
+workflow:
+  schema_version: 2
+  work_package: WP-04T
+  title: Layer 04 — storage tiers, enrichment ordering, local-first, assets
+  layer: "04"
+  status: SCOPING
+  requirements: [PERS-001, PERS-002, PERS-003, PERS-004, PERS-013, PERS-016]
+  current_candidate: null
+  dependencies:
+    WP-03: {relation: blocked_by, status: CLOSED}
+    WP-04: {relation: blocked_by, status: CONTRACT_DRAFT}
+  open_findings: []
+  provisionally_closed: []
+  governance_source:
+    artifact: reference/governance/2026-10-11-owner-layer04-start.md
+    decision: >
+      G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
+      backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
+      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:.
+    scope: [WP-04T]
+  deferred_trigger: null
+  quarantine:
+    derived_from_quarantined_artifact: false
+  next_owner: Claude
+  next_action: >
+    Scope after the WP-04 seam is agreed (G-078); never blocks WP-04.
+  updated_by: Claude
+  updated_reason: Opened under Owner G-077..G-081.
+  history:
+    assurance_index: plans/WP-04T.md

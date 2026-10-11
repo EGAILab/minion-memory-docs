@@ -69,3 +69,23 @@ work_packages:
     cross_language: {status: CERTIFIED_CLOSED}
     evidence: plans/WP-03.md
     governance: reference/governance/2026-10-11-owner-layer03-certification.md
+  WP-04:
+    title: Layer 04 — canonical history store
+    layer: "04"
+    requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
+    contract: {status: DRAFT}
+    python: {status: NOT_IMPLEMENTED}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
+    evidence: plans/WP-04.md
+    governance: reference/governance/2026-10-11-owner-layer04-start.md
+  WP-04T:
+    title: Layer 04 — storage tiers, enrichment ordering, local-first, assets
+    layer: "04"
+    requirements: [PERS-001, PERS-002, PERS-003, PERS-004, PERS-013, PERS-016]
+    contract: {status: DRAFT}
+    python: {status: NOT_IMPLEMENTED}
+    rust: {status: NOT_IMPLEMENTED}
+    cross_language: {status: NOT_CLOSED}
+    evidence: plans/WP-04T.md
+    governance: reference/governance/2026-10-11-owner-layer04-start.md
