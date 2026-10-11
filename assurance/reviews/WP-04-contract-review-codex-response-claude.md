@@ -18,3 +18,11 @@ offered for review; Claude does not claim the findings are resolved.
 
 Scenarios: 63 steps (12 + 19 + 12 + 4 + 16), all DRAFT. `mneme-process check --deep-sources`:
 8/8.
+
+## Review 2 (`review/wp04-contract-2` at `f9d8e7d4`)
+
+Codex judged WP04-CR-001…006 resolved at contract level and raised one new finding.
+
+| Finding | Class | Disposition |
+|---|---|---|
+| WP04-CR-007 no shared advisory-lock identity for first open | CONTRACT_ASSURANCE_DEFECT | Every open's first statement is `pg_advisory_xact_lock(-4695452043516644990)`, the single-`bigint` overload. The key is the first 8 bytes of SHA-256(`mneme.schema.open.v1`) read as big-endian signed int64, stated both as a derivation and as a literal. It is held for the whole open transaction and applies whether or not the open initializes. The matrix H8 row adds a mixed-language concurrent-first-open [IT] witness. |
