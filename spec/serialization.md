@@ -178,6 +178,8 @@ are never aggregated.
 | 3 — typed fields | typed arguments and fields | `version.invalid` / `id.invalid` / `timestamp.invalid` / `operation_identity.invalid` / `artifact.revision_invalid` | CORE-002 / CORE-001 / HIST-004 / CORE-012 rules / CORE-003 record shape (G-035) |
 | 3 | Layer 02 scope arguments | `scope.invalid` / `scope.query_invalid` | MemoryScope value (G-056) / allowed-scope query (G-058, G-061), `spec/scope.md` |
 | 3 | Layer 02 history arguments | `history.envelope_invalid` / `history.reader_invalid` / `history.boundary_invalid` | HIST-002 envelope (G-048, G-049, G-052; gated per G-055) / SER-005 reader (G-053) / HIST-005 boundary (G-051, G-054) |
+| 3 | Layer 03 projection arguments | `history.stream_invalid` / `lineage.invalid` | PROJ-001 stream / HIST-007 relation list |
+| after 3 | Layer 03 relations | `history.duplicate_record_id` / `lineage.invalid` (graph) | PROJ-001 decoded-record identity / HIST-007 endpoints, self-links, duplicates, cycles |
 | after 3 | Layer 02 relations | `history.unknown_required` / `history.boundary_incomparable` | SER-005 replay stop for an unrecognized required record / HIST-005 cross-store ordering |
 
 - **Order within a stage (Owner G-034).**

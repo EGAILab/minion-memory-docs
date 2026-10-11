@@ -565,6 +565,16 @@ Errors (SER-008 G-031):
 Normal behavior appends to canonical history and never mutates prior records in place. A
 correction is a new record that references the original rather than an in-place edit.
 
+**Layer 03 contract (WP-03; Owner G-067; `reference/governance/2026-10-11-owner-layer03-start.md`).**
+- **Corrections append.** A correction is a new history record that the profile decoder links to
+  the original with a `corrects` relation (HIST-007). It never edits the original, and both remain
+  in every projection.
+- **Projection never mutates.** `project_history` (PROJ-001) never mutates, drops or reorders its
+  inputs.
+- **Layer 04 enforces.** Durable append enforcement, transactions, idempotency and prevention of
+  historical mutation belong to Layer 04 (PERS-*).
+
+
 ### HIST-007 — Reinterpretation appends overlays
 <a id="hist-007"></a>
 - **Profile:** core · **Source status:** FROZEN · **Sources:** [FND §14] [FND §19] [IAA §A16] [MVP §6] [R03 §13] [R03 §27.4] [R04 §35]
@@ -573,6 +583,44 @@ Evolution adds interpretations; it never rewrites observation history. A later i
 appended with derived_from / supersedes / reinterprets provenance identifying its producer and
 version. Historical interpretations remain auditable. A "current preferred" interpretation is a
 projection, not an in-place rewrite.
+
+**Lineage (Owner G-068, G-069; `reference/governance/2026-10-11-owner-layer03-start.md`).**
+
+Lineage between history records is a relation list. Each relation is a closed record:
+
+```text
+{"from_record_id": "<id>", "relation": "<kind>", "to_record_id": "<id>"}
+```
+
+- **Producer.** The relation list comes from the profile decoder: the links themselves live in the
+  profile's versioned payload, never in provenance, and the closed envelope is unchanged (G-048).
+  `from_record_id` is normally the containing envelope's `record_id`. Consumers never parse payload
+  lineage themselves.
+- **Vocabulary** (core-owned, closed in Layer 03):
+  - `supersedes`: `from` replaces `to` as a current head.
+  - `corrects`: `from` is a correction of `to` (HIST-006) and replaces it as a current head.
+  - `reinterprets`: `from` is an interpretation of the observation `to`.
+  - `derived_from`: a provenance link that does not affect resolution.
+  - `supersedes`, `corrects` and `reinterprets` are *resolution-affecting*. (Author choice, flagged
+    for review: `reinterprets` counts because it defines interpretation groups.)
+- **Valid lineage.** The relation list is invalid, with `lineage.invalid`, when:
+  - a relation kind is outside the vocabulary;
+  - either endpoint is not a record decoded in this projection, including a skipped or excluded
+    record (author choice: dangling links are invalid);
+  - an endpoint is a self-link;
+  - the same triple appears twice;
+  - the resolution-affecting relations contain a cycle.
+  Invalid lineage is surfaced as this error and never repaired (G-067).
+- **Current heads (G-069).** The current heads are the decoded records that no `supersedes` or
+  `corrects` relation targets. "Current" is set-valued: several heads are a valid divergent state,
+  and a later record may supersede several heads to converge them.
+- **Interpretations.** For each observation `o` that is the target of a `reinterprets` relation,
+  its *current interpretations* are the records that reinterpret `o` and are current heads.
+- **No ordering ever decides currency.** No `recorded_at`, store position, record ID or container
+  order is ever used to pick among heads. A purpose-specific consumer may apply a documented,
+  versioned selection policy, recording its selection provenance and keeping every candidate
+  (PROJ-002).
+
 
 ### HIST-008 — No semantic deduplication of canonical observations
 <a id="hist-008"></a>
@@ -623,6 +671,60 @@ scheduler, diagnostics, backup/research export and audit tooling) rather than in
 decoding raw payloads. No subsystem may invent a second incompatible interpretation of history
 envelopes. Unknown required semantics fail safely on that path.
 
+**Canonical HistoryProjector (Owner G-067, G-070; `reference/governance/2026-10-11-owner-layer03-start.md`).**
+
+`project_history(reader, stream, relations)` is the single semantic path from stored records to a
+purpose-neutral projection.
+
+**Arguments:**
+- **`reader`** is the Layer 02 replay reader (SER-005, G-053).
+- **`stream`** is the closed record `{store_id, entries}`.
+  - `store_id` is a CORE-001 stable ID.
+  - `entries` is an array of closed `{position, record}` entries, with positions integral and
+    strictly increasing from 1. Position 0 is the boundary before the first record (G-054), never an
+    entry.
+  - Any other stream value is `history.stream_invalid`. (Author choice, flagged: the stream shape
+    and the error code.)
+- **`relations`** is the decoder's lineage list (HIST-007).
+
+**Order of evaluation:**
+1. **Generic stages.** Stages 1–2 run across `reader`, `stream` and `relations` (G-031).
+2. **Argument shapes.** Then `history.reader_invalid`, `history.stream_invalid`, and the shape of
+   `relations` (`lineage.invalid`), in that order.
+3. **Entries.** Each entry is admitted in position order through the Layer 02 gates (G-055):
+   - `decode` adds the normalized envelope;
+   - `skip` and `excluded` add nothing, but the position still counts (G-050, G-051);
+   - any error **fails the whole projection atomically** (G-070), whether `history.unknown_required`
+     or an envelope, typed or generic error. The error names the entry's store `position`. For
+     `unknown_required` its detail gives the routing identity `(profile, record_type,
+     schema_version)`. No partial projection is returned.
+4. **Duplicate IDs.** Two decoded records with the same `record_id` are
+   `history.duplicate_record_id`, naming the later position. (Author choice, flagged: idempotent
+   retry is Layer 04, so a projection treats a duplicate ID as corrupt history.)
+5. **Lineage.** The lineage is validated and resolved (HIST-007).
+
+**Result** (a closed record, purpose-neutral):
+
+```text
+{"through":   {"store_id": ..., "position": <last entry position, 0 if none>},
+ "records":   [<decoded envelopes, in position order>],
+ "skipped":   [<positions>],  "excluded": [<positions>],
+ "relations": [<the validated relations, ordered by (from position, relation, to position)>],
+ "current":   [<record_ids of current heads, in position order>],
+ "interpretations": [{"observation": <record_id>, "current": [<record_ids>]}, ...]}
+```
+
+`interpretations` is ordered by the observation's position. All ordering in the result is
+presentation only (store order); it never selects (G-069).
+
+**Errors.** Argument errors name `reader`, `stream` or `relations`. Entry errors also carry the
+entry's `position`. `history.unknown_required` keeps Layer 02's convention: it names no argument,
+but it carries the `position`.
+
+**Determinism (HIST-001).** Equal inputs give equal results, whatever the order of `relations`
+and of object members. The projection is rebuildable from the stream and the decoder output alone.
+
+
 ### PROJ-002 — Purpose-specific projections
 <a id="proj-002"></a>
 - **Profile:** core · **Source status:** GUARDRAIL · **Sources:** [IAA §A11] [R04 §26] [FND §deliberately-not-frozen]
@@ -630,6 +732,14 @@ envelopes. Unknown required semantics fail safely on that path.
 Different purposes (scheduling, diagnostics, progress UI, reporting, research, agent context)
 derive different projections from the same history. There is no universal summary/profile blob;
 a single global learner summary is deliberately not frozen.
+
+**Layer 03 contract (WP-03; Owner G-069).**
+- **Purpose-neutral.** The `project_history` result is the purpose-neutral base.
+- **Purpose-specific projections** (scheduling, diagnostics, progress, research, agent context)
+  derive from it with a documented, versioned policy. They record that policy's identity as
+  selection provenance and never discard candidates from the base.
+- **No universal summary.** No single universal summary is defined.
+
 
 ### PROJ-003 — ProjectionBudget
 <a id="proj-003"></a>
