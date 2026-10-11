@@ -65,7 +65,7 @@ work_packages:
     requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
     contract: {status: ACCEPTED, accepted_code_sha: dd55fb4f0abec262d7ba0dab64f28a74840b84c3, accepted_docs_sha: c36e0f5cb6dc2e7e92327bb9db358af0cdd31995}
     python: {status: APPROVED, approved_code_sha: dd55fb4f0abec262d7ba0dab64f28a74840b84c3, review: review/wp03-final-2@165b07dac82ad6b1875fc7e9d95be652e65883e5}
-    rust: {status: NOT_IMPLEMENTED}
+    rust: {status: IN_PROGRESS}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-03.md
     governance: reference/governance/2026-10-11-owner-layer03-start.md
