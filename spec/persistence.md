@@ -292,4 +292,6 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
   serialization boundary, and the transaction runs with `synchronous_commit = on`.
 - **Columns.** `profile`, `record_type` and `schema_version` repeat the envelope's routing triple
   for queries (PERS-003, PERS-014).
-- **Tablespace.** Test databases live in the tablespace from G-081.
+- **Databases.** Created with `TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`, so text
+  comparison is bytewise and independent of the host locale. Test databases live in the tablespace from
+  G-081.

@@ -126,3 +126,13 @@ Credentials live only under `.tmp/work`, never in the repositories.
 > Conflicting mutations or duplicate record IDs never use last-write-wins.This is local concurrency
 > safety only; it does not define distributed synchronization, cross-store merge, or cross-device
 > ordering."
+
+**Setup executed (2026-10-11).**
+- `.tmp/pgdata` was created, and `NetworkService` was granted modify rights on it only.
+- Using the superuser once, the role `mneme_dev` (LOGIN, CREATEDB) and the tablespace `mneme_ts` (owned by
+  `mneme_dev`, at `.tmp/pgdata`) were created.
+- `mneme_dev` credentials are in `.tmp/work/pg.env`. The superuser file `.tmp/work/pg-admin.env` is no
+  longer used by Claude.
+- The service's default template collation name (`English_World.1252`) fails a case-sensitive check on
+  Windows, so databases are created from `template0` with UTF-8 and the `C` collation, as the contract
+  records.
