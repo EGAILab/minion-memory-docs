@@ -3,14 +3,12 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: CONTRACT_REVIEW
+  status: CONTRACT_DRAFT
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp04/contract, sha: 1f4438763c91fb95a4e88d86ac96302d9830cdb3}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: 5cceb3176f7a502fb95ea5c216ca64d99c919ab5}
+  current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: []
+  open_findings: [WP04-CR-007]
   provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
@@ -22,10 +20,10 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Independent CONTRACT_REVIEW 2 of the revised WP-04 contract (response record WP-04-contract-review-codex-response-claude.md).
+    Revise the WP-04 contract for WP04-CR-007 (Codex review 2 f9d8e7d4).
   updated_by: Claude
-  updated_reason: WP-04 contract revision 1 for WP04-CR-001..006 under Owner G-085..G-087; CONTRACT_DRAFT -> CONTRACT_REVIEW.
+  updated_reason: Codex contract review 2 (f9d8e7d4) CHANGES_REQUIRED; CONTRACT_REVIEW -> CONTRACT_DRAFT.
   history:
     assurance_index: plans/WP-04.md
