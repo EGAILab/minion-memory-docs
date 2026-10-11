@@ -3,15 +3,15 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: REMEDIATION
+  status: IMPLEMENTATION_REVIEW
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
   current_candidate:
-    code: {repo: minion-memory, ref: wp04/contract, sha: afb36081fc569246e6055f2bde99ca9481ca5e8a}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: b94d0fde9118a33d5eba7055a0060c3531ea0327}
+    code: {repo: minion-memory, ref: wp04/contract, sha: 634625135851cccc188fe726acb86990911ebddb}
+    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: f16bb44a5e53f02ef6074a68466aab87ce5fdc54}
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: [WP04-CR-008, WP04-CR-009, WP04-CR-010, WP04-CR-011]
-  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007]
+  open_findings: []
+  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-008, WP04-CR-009, WP04-CR-010, WP04-CR-011]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
@@ -22,11 +22,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Remediate WP04-CR-008..011 (Codex Python review bb3dfa2c): schema-open structure check, same-handle
-    serialization, runner JSON create seam, G3 coverage.
+    Independent re-review of the WP-04 Python remediation (WP04-CR-008..011) at docs f16bb44a / code 63462513;
+    record APPROVED or CHANGES_REQUIRED on review/wp04-python-2.
   updated_by: Claude
-  updated_reason: Codex Python implementation review 1 (bb3dfa2c) CHANGES_REQUIRED; IMPLEMENTATION_REVIEW -> REMEDIATION.
+  updated_reason: WP-04 Python remediated for WP04-CR-008..011 (code 63462513); REMEDIATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-04.md

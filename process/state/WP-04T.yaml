@@ -8,7 +8,7 @@ workflow:
   current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-    WP-04: {relation: blocked_by, status: REMEDIATION}
+    WP-04: {relation: blocked_by, status: IMPLEMENTATION_REVIEW}
   open_findings: []
   provisionally_closed: []
   governance_source:
