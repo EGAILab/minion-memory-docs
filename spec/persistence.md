@@ -170,8 +170,14 @@ and its shared schema are at the end of this section.
   - Positions are a store-local cursor, never a global, causal or cross-device order (G-051).
 - **Writer.** A *writer* declares its schema as a Layer 02 replay reader `{profile, recognized}`
   (G-053 rules).
-- **Append-only API (PERS-012).** The repository exposes only `commit_history`, `read_history` and
-  `store_tail`. There is no update, delete or generic save operation.
+- **Append-only API (PERS-012).** The repository exposes only `create_store`, `commit_history`,
+  `read_history` and `store_tail`. There is no update, delete or generic save operation.
+- **Store lifecycle.**
+  - `create_store(store_id)` creates an empty store (tail 0). If the ID already exists, it fails with
+    `persistence.store_exists`.
+  - Every other operation on a `store_id` the backend does not hold fails with
+    `persistence.store_unknown`.
+  - Both checks follow the argument checks. Stores are never deleted through this API.
 
 ### `commit_history(store, writer, operation, records)`
 
@@ -205,10 +211,13 @@ Errors name their argument: `writer`, `operation` or `records`.
 and linearized with every other commit to the store:
 - **Already committed operation.** If the store has already committed `operation`, its
   **mutation** is compared: the SER-009 canonical bytes of the submitted draft array, in order,
-  excluding everything store-generated (G-082).
+  after Layer 02 normalization (for example, `occurred_at` spellings of one instant compare
+  equal), excluding everything store-generated (G-082).
+  - The writer's schema is not part of the mutation.
+  - Reordered drafts are a different mutation.
   - Equal: the **original receipt** is returned unchanged, and nothing is appended.
-  - Different: `persistence.operation_conflict`, a visible conflict that is never last-write-wins
-    (G-013).
+  - Different: `persistence.operation_conflict` (argument `operation`), a visible conflict that is
+    never last-write-wins (G-013).
 - **New operation.** Otherwise:
   - any draft whose `record_id` already exists in the store, under any profile or operation, is
     `history.duplicate_record_id` (G-083);
@@ -237,6 +246,8 @@ and linearized with every other commit to the store:
     `history.boundary_incomparable` (G-051).
   - Its `position` must not exceed the tail, else `history.boundary_invalid`.
   - `limit` is an integer from 1 to 2^53−1, else `persistence.limit_invalid`.
+  - Errors name their argument, `since` or `limit`. A boundary is first validated as a Layer 02
+    HistoryBoundary (`history.boundary_invalid`); only then is it compared with the store.
 - **Result.** `{"entries": [{"position", "record"}...], "through": <HistoryBoundary>,
   "tail": <HistoryBoundary>}`.
   - `entries` holds the committed records with positions greater than `since`, ascending, at most
@@ -260,9 +271,15 @@ retry of one operation identity (PERS-006).
 
 ### Clock and test seams
 
-The store's clock is injectable (G-082). A conformance scenario declares a store with a fixed
-sequence of clock instants; each *new* commit consumes exactly one. Retries and failed commits
-consume none.
+- **Clock.** The store's clock is injectable (G-082). Each *new* commit consumes exactly one
+  instant. Retries and failed commits consume none.
+- **Scenario runs.** Layer 04 conformance scenarios are stateful:
+  - every scenario runs its steps in order against one fresh, empty backend;
+  - a `create_store` step declares the store's clock as a finite list of canonical instants.
+- **Backends.** The corpus is backend-neutral (G-079). Each implementation runs it against every
+  backend it ships, and certification requires the PostgreSQL reference backend.
+- **Outside the corpus.** Crash, abort, concurrency and cross-language interoperability are proven
+  by implementation tests listed in the WP-04 feasibility matrix, not by corpus steps.
 
 ### Reference backend: PostgreSQL shared schema (G-079, G-081)
 
