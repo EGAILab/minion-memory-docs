@@ -1,7 +1,8 @@
 # WP-04 — Python implementation record (Claude)
 
 **Agreed contract:** docs `d857fcc2` / code `1f443876` (Codex APPROVED `67ba6632`).
-**Implementation:** code `afb36081fc569246e6055f2bde99ca9481ca5e8a` on `wp04/contract`.
+**Implementation:** code `afb36081fc569246e6055f2bde99ca9481ca5e8a` on `wp04/contract`; remediated at `634625135851cccc188fe726acb86990911ebddb`
+(see `WP-04-python-implementation-response-claude-1.md`).
 **Gate:** G3 (Python), author-run at the exact code. This record is evidence, not a review.
 
 ## Implementation (`minion_memory.persistence`)

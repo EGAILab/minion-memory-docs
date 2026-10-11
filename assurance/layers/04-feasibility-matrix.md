@@ -10,11 +10,11 @@ stage-table rows in `spec/serialization.md` and notes under HIST-008 and HIST-00
 **Governance:** G-077…G-087 (`reference/governance/2026-10-11-owner-layer04-start.md`), plus
 G-013, G-051 and G-054.
 
-**Status:** Python evidence at code `afb36081`, revision 3 contract (agreed docs `d857fcc2`, Codex
+**Status:** Python evidence at code `63462513` (remediated after Codex review `bb3dfa2c`), revision 3 contract (agreed docs `d857fcc2`, Codex
 APPROVED `67ba6632`).
-- Rows marked `AUDITED` cite executed Python evidence: [SC] 63 steps, [PT] and [CT] in
-  `tests/core/test_layer04_store.py`, and [MU] 19 of 20 planted violations killed (P14 is
-  equivalent; see the implementation record).
+- Rows marked `AUDITED` cite executed Python evidence: [SC] 65 steps, [PT] and [CT] in
+  `tests/core/test_layer04_store.py`, and [MU] 22 of 23 planted violations killed (P14 is
+  equivalent; see the implementation record and Codex review `bb3dfa2c`).
 - [IT], the cross-language witnesses, runs at the Rust candidate and is listed per row as still
   due.
 
@@ -55,12 +55,12 @@ APPROVED `67ba6632`).
 | Required semantic operation | Owning layer | Existing reviewed seam | Exact? | Python | Rust | Additive extension? | Reopen? |
 |---|---|---|---|---|---|---|---|
 | generic stages across arguments (G-031) | 01 | `validate_arguments` / `staged` | yes | yes | yes | no | no |
-| draft admission via the gates (G-055) | 02 | `_admit` / `envelope_rule` | needs a draft mode | to add | to add | **yes**: gates D1–D4, the envelope gates with `recorded_at` removed from the closed member set; a supplied `recorded_at` is a D3 unknown member | no |
+| draft admission via the gates (G-055) | 02 | `_admit` / `envelope_rule` | needs a draft mode | yes (`draft=True`) | to add | **yes**: gates D1–D4, the envelope gates with `recorded_at` removed from the closed member set; a supplied `recorded_at` is a D3 unknown member | no |
 | reader (writer) validation (G-053) | 02 | `_reader_rule` / `reader_rule` | yes | yes | yes | no | no |
 | operation identity (G-032/G-033) | 01 | `operation_identity` | yes | yes | yes | no | no |
 | boundary validation and comparison (G-051) | 02 | HistoryBoundary rules | yes | yes | yes | no | no |
 | canonical bytes (SER-009) | 01 | `canonical_bytes` | yes | yes | yes | no | no |
-| paging completeness (PERS-007, WP-04 part) | 04 | `read_history` | — | to add | to add | no | no |
+| paging completeness (PERS-007, WP-04 part) | 04 | `read_history` | — | yes | to add | no | no |
 | memory-bounded incremental rebuild (PERS-007) | 05 | none yet (an incremental projector is not exact over Layer 03's whole-stream projector) | — | — | — | DEFERRED to Layer 05 (G-087) | no |
 | container / target reads (PERS-007) | profile layers | none | — | — | — | DEFERRED to the profile layers; indexes are derived read models (G-087) | no |
 
@@ -103,7 +103,7 @@ APPROVED `67ba6632`).
 | H8 idempotency | AUDITED | `mneme_operation` primary key; [SC] retry; [CT] concurrent identical retries yield one physical commit and the same receipt |
 | H8 JSONL | NOT_APPLICABLE | no JSONL backend |
 | H8 durability | AUDITED | `synchronous_commit = on` asserted per connection ([PT] reads the setting) |
-| H8 schema version | AUDITED | singleton `mneme_schema` row; every open runs in an explicit Read Committed transaction and first takes `pg_advisory_xact_lock` on the shared schema-open key (CR-007), then inspects after the lock and creates schema v1 or requires exactly the four tables and version 1, else `persistence.schema_incompatible` with no change (Q3) ([PT] absent, mismatched, malformed and two-row cases; [CT] concurrent first opens; [IT] **mixed-language** concurrent first opens on an empty database: exactly one initializes, both open v1; [CT] and [IT] a **waiting opener** blocked on the lock while the other initializes then opens v1 successfully, even when the session's default isolation is Repeatable Read) |
+| H8 schema version | AUDITED | singleton `mneme_schema` row; every open runs in an explicit Read Committed transaction and first takes `pg_advisory_xact_lock` on the shared schema-open key (CR-007), then inspects after the lock and creates schema v1 or requires exactly the four tables and version 1, else `persistence.schema_incompatible` with no change (Q3) ([PT] absent schema; version 2; missing row; extra and missing tables; 10 damaged v1 shapes compared by catalog columns and constraints, including two schema rows (CR-008); [CT] concurrent first opens; [IT] **mixed-language** concurrent first opens on an empty database: exactly one initializes, both open v1; [CT] and [IT] a **waiting opener** blocked on the lock while the other initializes then opens v1 successfully, even when the session's default isolation is Repeatable Read) |
 | H9 (all members) | NOT_APPLICABLE | no filesystem paths in WP-04; asset files are WP-04T (PERS-016) |
 | H10 concurrent retry | AUDITED | [CT] N parallel identical commits → one physical commit, N equal receipts |
 | H10 async enrichment | NOT_APPLICABLE | enrichment ordering is WP-04T (PERS-004); WP-04 provides only the receipt barrier |
@@ -118,7 +118,7 @@ APPROVED `67ba6632`).
 | Ordering guarantee | Realistic wrong implementation | Witness that kills it |
 |---|---|---|
 | commits are linearized; ranges are gapless and consecutive (G-084) | read tail, then insert without locking | [CT] 8 writers × 50 commits: the union of ranges is exactly 1…N, no gaps or overlaps |
-| at most one physical commit per operation (G-084) | check-then-insert outside the lock | [CT] parallel identical retries |
+| at most one physical commit per operation (G-084) | check-then-insert outside the lock | [CT] parallel identical retries, on separate handles and overlapping on one handle (CR-009) |
 | conflicting mutations never last-write-wins | upsert on the operation key | [SC] conflict; [CT] parallel conflicting commits: exactly one wins, the others conflict |
 | failed commits consume nothing (G-080, G-082) | allocate positions from a sequence | [SC] rejected-batch step; [CT] killed transaction |
 | validation precedes every effect | append, then validate | [SC] mixed valid and invalid batch |
