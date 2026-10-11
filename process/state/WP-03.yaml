@@ -3,9 +3,11 @@ workflow:
   work_package: WP-03
   title: Layer 03 — canonical HistoryProjector and lineage resolution
   layer: "03"
-  status: PYTHON_IMPLEMENTATION
+  status: IMPLEMENTATION_REVIEW
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp03/contract, sha: c86daf806fecb473c832ccecba5495b064b243ca}
+    docs: {repo: minion-memory-docs, ref: wp03/contract, sha: 0e4e1bceb1d4faf419cc161c82d2f24dc26fce4b}
   dependencies:
     WP-02: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -20,11 +22,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Implement the agreed Layer 03 contract (docs b514c16d / code 619540ae; Codex APPROVED ea4abfd2) in
-    Python; G3 evidence; hand off for IMPLEMENTATION_REVIEW.
+    Execute process/handoffs/WP-03-codex-python-implementation-review.md: complete independent review of the
+    WP-03 Python implementation at docs 0e4e1bce / code c86daf80; record APPROVED or CHANGES_REQUIRED on
+    review/wp03-python-1.
   updated_by: Claude
-  updated_reason: WP-03 contract APPROVED by Codex round 3 (ea4abfd2; WP03-CR-001..005 closed); CONTRACT_REVIEW -> PYTHON_IMPLEMENTATION.
+  updated_reason: WP-03 Python implemented (code c86daf80); PYTHON_IMPLEMENTATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-03.md
