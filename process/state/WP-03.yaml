@@ -3,31 +3,29 @@ workflow:
   work_package: WP-03
   title: Layer 03 — canonical HistoryProjector and lineage resolution
   layer: "03"
-  status: CLOSURE_REVIEW
+  status: CLOSED
   requirements: [PROJ-001, PROJ-002, HIST-006, HIST-007]
   current_candidate:
-    code: {repo: minion-memory, ref: wp03/rust, sha: e9a94f78c8d1a44281bab1902f0c5af76d0deb9c}
-    docs: {repo: minion-memory-docs, ref: wp03/rust-state, sha: ce904f4f6d63edfa864effe2bc6aebbdec5f4817}
+    code: {repo: minion-memory, ref: main, sha: e9a94f78c8d1a44281bab1902f0c5af76d0deb9c}
+    docs: {repo: minion-memory-docs, ref: main, sha: ce904f4f6d63edfa864effe2bc6aebbdec5f4817}
   dependencies:
     WP-02: {relation: blocked_by, status: CLOSED}
   open_findings: []
   provisionally_closed: [WP03-CR-001, WP03-CR-002, WP03-CR-003, WP03-CR-004, WP03-CR-005, WP03-CR-006, WP03-CR-007]
   governance_source:
-    artifact: reference/governance/2026-10-11-owner-layer03-start.md
+    artifact: reference/governance/2026-10-11-owner-layer03-certification.md
     decision: >
-      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact pair (final
-      review 88b8bb3f, re-review 165b07da): docs main = c36e0f5c, code main = dd55fb4f. Layer 03 semantics
-      G-066..G-075.
+      Rust Layer 03 approved by Claude's CLOSURE_REVIEW afe48dc5; accepted onto main under the G-009
+      standing delegation (docs main = ce904f4f, code main = e9a94f78) after exact-tree containment checks;
+      Python and Rust certified, CERTIFIED_CLOSED, by Owner G-076.
     standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-03]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
-  next_action: >
-    Claude CLOSURE_REVIEW of the Rust Layer 03 candidate (code e9a94f78 / docs ce904f4f) against the
-    accepted contract and corpus; record on review/l03-rust-closure.
+  next_owner: null
+  next_action: null
   updated_by: Claude
-  updated_reason: Codex Rust Layer 03 candidate ready (code e9a94f78, docs ce904f4f); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
+  updated_reason: WP-03 closed and certified (G-076) on the accepted pair (code e9a94f78 / docs ce904f4f, G-009); CLOSURE_REVIEW -> CLOSED.
   history:
     assurance_index: plans/WP-03.md
