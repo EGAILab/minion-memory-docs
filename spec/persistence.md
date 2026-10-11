@@ -381,11 +381,67 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
   Read Committed it sees any initialization committed while this open waited. A stronger isolation
   level is not allowed here: its snapshot can predate a concurrent initialization (Codex review 3:
   SQLSTATE 42P07). An open never ignores a DDL error and never treats a validly initialized schema
-  as incompatible. The `read_history` snapshot rule is separate and unchanged. Under the lock:
-  - if no `mneme_` table exists, the transaction creates schema version 1 (the DDL above plus the
-    one `mneme_schema` row) and commits;
-  - otherwise it requires exactly the four tables and one `mneme_schema` row with version 1;
-    anything else fails the open with `persistence.schema_incompatible` and changes nothing.
+  as incompatible. The `read_history` snapshot rule is separate and unchanged. Under the lock, in
+  this order:
+  1. **Environment (G-090, G-091).** The server major version is 14, the database encoding is
+     `UTF8`, and the database `LC_COLLATE` and `LC_CTYPE` are each `C` or its equivalent `POSIX`.
+     Anything else fails the open with `persistence.schema_incompatible` and changes nothing. The
+     handle itself establishes `client_encoding` `UTF8`; it never relies on the ambient setting.
+  2. **Namespace.** The backend's namespace is the schema in which initialization creates the
+     unqualified DDL above: the connection's current schema. Inspection and every later operation
+     address the four tables in that schema. If the connection has no current schema, the engine
+     error propagates, as initialization there would fail.
+  3. if no `mneme_` table exists in the namespace, the transaction creates schema version 1 (the
+     DDL above plus the one `mneme_schema` row) and commits;
+  4. otherwise it requires the **v1 catalog contract** below and one `mneme_schema` row with
+     version 1; anything else fails the open with `persistence.schema_incompatible` and changes
+     nothing.
+- **v1 catalog contract (G-089).** An existing schema is accepted only if it is the finite catalog
+  state the v1 initializer produces, apart from catalog identity that cannot change semantics:
+  object names other than the four table names and the column names, OIDs, ownership and grants,
+  column order, dropped-column residue, and planner statistics (statistics targets and extended
+  statistics objects). Everything else is compared, including at least:
+  - **Relations:** apart from indexes, the namespace holds exactly four relations whose names begin
+    `mneme_`: the four tables (a view, sequence or other relation with that prefix is incompatible).
+    Each is an ordinary, permanent,
+    heap table: not partitioned, typed, a partition, unlogged or temporary. Each has no inheritance
+    parent or child, no row security (enabled or forced) and no policies, no rules, and no triggers
+    other than PostgreSQL's internal foreign-key triggers. Each also has the default tablespace, no
+    relation options, and the default replica identity. No constraint outside the four tables
+    references them.
+  - **Columns:** exactly the DDL's columns by name. Each has its built-in type (never a domain) with
+    no type modifier, the DDL's nullability, and the database default collation for `text`
+    columns. Defaults exist only on `mneme_schema.singleton` (`true`) and `mneme_store.tail` (`0`).
+    No column is an identity or generated column. Storage and compression are the type defaults.
+  - **Constraints:** exactly the DDL's primary-key, unique, check and foreign-key constraints, on
+    the same columns. Each is immediate and validated, and each check has the DDL's condition. Each
+    foreign key references `mneme_store (store_id)` with the default match type and actions
+    (`NO ACTION`).
+  - **Indexes:** exactly one index per primary-key or unique constraint, and no other index. Each
+    is a valid, ready, live, unique btree index on exactly the constraint's columns. It has the
+    columns' default operator classes and collations, no predicate, expressions or included
+    columns, no options, and no clustering mark.
+  - **Structured comparison (G-091).** Every property is compared as structured catalog data
+    (expressions as their stored trees, with column references and source locations normalized),
+    never as SQL that PostgreSQL renders, so session presentation settings cannot change acceptance.
+  - **Genuine observations (WP04-CR-007, CE-04-01).** Every function, operator, aggregate and type
+    that open or an operation relies on is PostgreSQL's built-in object. No user-defined object in
+    any schema may stand in for one, whatever the search path.
+  - A variation of this contract (an extra index, physical tuning, another PostgreSQL major) is a
+    reviewed catalog-contract revision, never implicit tolerance.
+- **Trust scope (G-092).** Open validates the environment and the catalog contract once, before it
+  returns a handle. After that, the WP-04 guarantees assume two things: the `mneme_` schema and its
+  rows change only through this API, and PostgreSQL's catalog and transaction semantics are genuine.
+  Outside the certification boundary are:
+  - DDL or direct row edits made outside the API after open;
+  - disabled internal constraints or triggers;
+  - catalog manipulation and other administrator or superuser interference.
+
+  Operations do not re-validate the schema, and open does not scan stored rows. Privileges are
+  deployment, not catalog shape: open does not verify them, and a genuine permission error from any
+  operation propagates as the engine's error with no effect. It is never
+  `persistence.schema_incompatible` and never a success.
 - **Databases.** Created with `TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`, so
-  text comparison is bytewise and independent of the host locale. Test databases live in the
-  tablespace from G-081.
+  text comparison is bytewise and independent of the host locale; open enforces this (G-090). Test
+  databases live in the tablespace from G-081. The reference backend is PostgreSQL 14 (G-091);
+  certification evidence is pinned to 14.12.

@@ -199,3 +199,34 @@ and a non-deterministic collation on `store_id`. WP04-CR-009…011 are resolved.
 > identity depend on: persistence, collations, indexes, triggers, rules, inheritance, generated
 > columns, etc.). Codex characterizes it, I classify, Codex approves the checkpoint, I implement once,
 > Codex closes. CR-009..011 stay closed."
+
+## G-089…G-092 — CE-04-01 candidate path-C items C01, C04, C05, C06
+
+**Context.** Codex's CE-04-01 characterization (`assurance/convergence/CE-04-01-characterization.md`,
+`0f7ac1bf`) offered six candidate path-C items. Claude discharged C02 (namespace binding) and C03
+(privileges) by authority reading, subject to Codex's checkpoint review, and put the other four to the
+Owner in one question set. The answers below are the Owner's typed text, verbatim.
+
+### G-089 — C01 — acceptance envelope of an existing v1 schema
+
+> **Q:** WP-04 CE-04-01 (C01): when an existing mneme_ schema differs from what v1 initialization creates, but the difference can't break any guarantee (e.g., an extra plain index, a fillfactor, a renamed constraint), what should open do? Codex showed many differences that DO break guarantees (unlogged tables, rules, triggers, row security, nondeterministic collations, generated columns, expression indexes that reject valid IDs).
+>
+> **A:** Selected "Exact v1 only (Recommended)", with the Owner's text: "Choose 1 — v1 open() accepts only the finite catalog contract produced by the certified v1 initializer, modulo explicitly non-semantic catalog identity such as names, OIDs, ownership/grants, column order, dropped-column residue, and planner statistics.The validator must check all catalog properties capable of changing durability, visibility, accepted writes, identity/equality, uniqueness, append semantics, or transaction behavior, including relation persistence/kind, inheritance, RLS/policies, rules, triggers, access method/options, column type/collation/default/generated/identity properties, constraints, and the exact constraint-backed index semantics.Additional indexes or physical tuning are not implicitly tolerated in v1. If a later operational need justifies specific variations, add them through an explicit reviewed catalog-contract revision rather than an open-ended semantic-equivalence rule."
+
+### G-090 — C04 — reference database environment at open
+
+> **Q:** C04: the contract says reference databases are created UTF8 with C/C collation. Should open enforce that? (Today a SQL_ASCII database initializes, then refuses its own schema on the next open; a LATIN1 one works.)
+>
+> **A:** Selected "Enforce at open (Recommended)", with the Owner's text: "Choose 1 — enforce the reference database environment at every v1 open().Before accepting or creating the Mneme schema, open() MUST verify that the current PostgreSQL database uses UTF8 encoding and that both LC_COLLATE and LC_CTYPE are C or the equivalent POSIX. Any mismatch returns persistence.schema_incompatible and performs no durable schema/store mutation.The connection MUST also establish UTF8 client encoding itself rather than relying on ambient client settings. These checks are part of the finite v1 storage trust boundary, not merely deployment advice. No new normative error code is required."
+
+### G-091 — C05 — supported PostgreSQL versions and structured comparison
+
+> **Q:** C05: which PostgreSQL versions does the reference backend support? Only 14.12 has been executed, and the current check compares PostgreSQL's rendered constraint text, which varies by release (and already falsely refuses a valid schema under quote_all_identifiers).
+>
+> **A:** Selected "PostgreSQL 14 only (Recommended)", with the Owner's text: "Choose 1 — the reference PostgreSQL backend supports major version 14 only for v1. open() MUST reject every other server major with persistence.schema_incompatible before performing any durable change. Current certification evidence is explicitly pinned to PostgreSQL 14.12; the contract supports 14.x rather than claiming untested later majors.Catalog validation MUST use structured PostgreSQL catalog properties rather than rendered constraint/index SQL, so presentation settings such as quote_all_identifiers and semantically irrelevant formatting cannot alter acceptance. Adding another PostgreSQL major is a reviewed backend-compatibility delta requiring its own characterization and cross-platform evidence."
+
+### G-092 — C06 — trust scope of the v1 guarantees
+
+> **Q:** C06: what trust scope do the v1 guarantees assume? Open can only check the schema at open time; it can't stop an administrator changing the schema or editing rows later, and some broken states (disabled FK triggers, catalog edits) need superuser.
+>
+> **A:** Selected "Open-time, trusted engine (Recommended)", with the Owner's text: "Choose 1 — v1 uses an open-time validated, trusted-engine model.open() verifies the PostgreSQL environment and the complete certified v1 catalog contract before returning a usable store handle. Thereafter, WP-04 guarantees assume that the mneme_ schema and canonical rows are modified only through the certified Minion-Memory API and that PostgreSQL's genuine catalog/transaction semantics remain trustworthy.Out-of-band DDL, direct row edits, disabled internal constraints/triggers, manual catalog manipulation, and other administrator/superuser interference after open() are outside the certification boundary. The store does not revalidate the full schema on every operation or scan all historical rows at open.A later integrity-check/repair facility may explicitly audit stored data, but it is a separate capability and does not alter the v1 trust model."
