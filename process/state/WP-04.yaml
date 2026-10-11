@@ -27,9 +27,9 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-04-CE-04-01-codex-checkpoint.md: independent checkpoint review of
-    assurance/convergence/CE-04-01-classification.md rev. 1 and its spec/persistence.md transcription.
+    Execute process/handoffs/WP-04-CE-04-01-codex-checkpoint-2.md: independent re-review of
+    assurance/convergence/CE-04-01-classification.md rev. 2 and its spec/persistence.md transcription.
   updated_by: Claude
-  updated_reason: CE-04-01 characterization received (0f7ac1bf); Owner G-089..G-092; Claude classification rev. 1 proposed for implementation; checkpoint review to Codex.
+  updated_reason: Codex CE-04-01 checkpoint review 1 CHANGES_REQUIRED (1ffec311, CE04-CP-001..003); Claude classification rev. 2; re-review to Codex.
   history:
     assurance_index: plans/WP-04.md

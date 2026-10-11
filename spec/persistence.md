@@ -391,8 +391,11 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
      unqualified DDL above: the connection's current schema. Inspection and every later operation
      address the four tables in that schema. If the connection has no current schema, the engine
      error propagates, as initialization there would fail.
-  3. if no `mneme_` table exists in the namespace, the transaction creates schema version 1 (the
-     DDL above plus the one `mneme_schema` row) and commits;
+  3. if the namespace holds no non-index relation whose name begins `mneme_`, the transaction
+     creates schema version 1 (the DDL above plus the one `mneme_schema` row). Its result must
+     satisfy the v1 catalog contract below, checked before commit, whatever the session's
+     defaults (for example `default_tablespace`). Otherwise it rolls back with
+     `persistence.schema_incompatible`. If the result satisfies it, the transaction commits;
   4. otherwise it requires the **v1 catalog contract** below and one `mneme_schema` row with
      version 1; anything else fails the open with `persistence.schema_incompatible` and changes
      nothing.
@@ -406,7 +409,9 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
     Each is an ordinary, permanent,
     heap table: not partitioned, typed, a partition, unlogged or temporary. Each has no inheritance
     parent or child, no row security (enabled or forced) and no policies, no rules, and no triggers
-    other than PostgreSQL's internal foreign-key triggers. Each also has the default tablespace, no
+    other than PostgreSQL's internal foreign-key triggers, which are exactly those its two foreign
+    keys create: enabled, internal, linked to their constraint, with PostgreSQL's built-in
+    referential-integrity functions. Each also has the default tablespace, no
     relation options, and the default replica identity. No constraint outside the four tables
     references them.
   - **Columns:** exactly the DDL's columns by name. Each has its built-in type (never a domain) with
@@ -424,17 +429,22 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
   - **Structured comparison (G-091).** Every property is compared as structured catalog data
     (expressions as their stored trees, with column references and source locations normalized),
     never as SQL that PostgreSQL renders, so session presentation settings cannot change acceptance.
-  - **Genuine observations (WP04-CR-007, CE-04-01).** Every function, operator, aggregate and type
-    that open or an operation relies on is PostgreSQL's built-in object. No user-defined object in
-    any schema may stand in for one, whatever the search path.
+  - **Genuine observations (WP04-CR-007, CE-04-01).** Every catalog relation, type, function,
+    operator and aggregate that open or an operation relies on, including the column types of the
+    initialization DDL, is PostgreSQL's built-in object. No user-defined or temporary object may
+    stand in for one, whatever the search path. The temporary schema is searched first for
+    relations and types even when it is not named, so a search-path setting alone does not
+    guarantee this.
   - A variation of this contract (an extra index, physical tuning, another PostgreSQL major) is a
     reviewed catalog-contract revision, never implicit tolerance.
-- **Trust scope (G-092).** Open validates the environment and the catalog contract once, before it
-  returns a handle. After that, the WP-04 guarantees assume two things: the `mneme_` schema and its
+- **Trust scope (G-092).** Open validates the environment and the complete catalog contract once,
+  before it returns a handle. Any catalog state that differs from the contract when open runs is
+  incompatible, however it arose: for example, a disabled internal trigger. After that, the WP-04
+  guarantees assume two things: the `mneme_` schema and its
   rows change only through this API, and PostgreSQL's catalog and transaction semantics are genuine.
-  Outside the certification boundary are:
-  - DDL or direct row edits made outside the API after open;
-  - disabled internal constraints or triggers;
+  Outside the certification boundary are these changes made **after open**:
+  - DDL or direct row edits made outside the API;
+  - disabling internal constraints or triggers;
   - catalog manipulation and other administrator or superuser interference.
 
   Operations do not re-validate the schema, and open does not scan stored rows. Privileges are
