@@ -26,13 +26,14 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Execution condition (G-093): start only after Minion-Agent reports host clear. Then run
-    .tmp/work/claude/ce0401_gates.sh fresh at candidate code b657081b96d67f7c2202c7fa541e1dceb09c8222,
-    fill assurance/reviews/WP-04-CE-04-01-implementation-claude.md with the literal results, and hand
-    to Codex for CE-04-01 closure.
+    Codex reviews CE-04-01 implementation closure for code be36323f56e61d87776d11c831ae1ef0573ea692
+    (tests-only remediation over b657081b) per
+    assurance/reviews/WP-04-CE-04-01-implementation-claude.md: gate run 1 at b657081b failed G4,
+    run 2 at be36323f is reported in full; P32/P40 predicted and P38 claimed engine-constrained
+    equivalents.
   updated_by: Claude
-  updated_reason: Owner G-093 - remain in CONTRACT_CONVERGENCE; CE-04-01 gates bound to b657081b, executed only after host clear; implementation record drafted (results pending).
+  updated_reason: Host clear received 2026-10-12 (G-093 condition met); CE-04-01 gates run (run 1 b657081b G4 failed, run 2 be36323f); implementation record submitted for Codex closure review.
   history:
     assurance_index: plans/WP-04.md
