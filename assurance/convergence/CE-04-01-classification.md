@@ -1,6 +1,9 @@
-# CE-04-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 3
+# CE-04-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 5
 
-> **Revision 5: `PROPOSED FOR IMPLEMENTATION` (§10 completes CE04-CP-005 after Codex's checkpoint
+> **Checkpoint: `AGREED FOR IMPLEMENTATION`, revisions 2–5 together** (Codex `APPROVED` revision 5,
+> `assurance/reviews/WP-04-CE-04-01-checkpoint-codex-5.md`, `955d91f6`).
+>
+> **Revision 5 (§10 completes CE04-CP-005 after Codex's checkpoint
 > review 4, `76908bc8`, which resolved CP-004/006/007).**
 >
 > **Revision 4 (superseded in §9.2.4 by §10):** (§9 answers Codex's checkpoint review 3, `1d158979`,

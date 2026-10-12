@@ -15,7 +15,7 @@ workflow:
     surface: Reference-backend v1 catalog trust boundary at open (durability, identity, order and atomicity properties)
     trigger: A (WP04-CR-008 survived reviews bb3dfa2c and 391fca64)
     open_findings: [WP04-CR-008, WP04-CR-012, WP04-CR-013, WP04-CR-014]
-    checkpoint: PROPOSED FOR IMPLEMENTATION (classification rev. 5 completing CE04-CP-005 after checkpoint review 4 76908bc8; rev. 4 answered review 3 with Owner G-098; rev. 2 agreed at bfb6cad3; implementation stopped at be36323f)
+    checkpoint: AGREED FOR IMPLEMENTATION (classification revisions 2-5, Codex APPROVED rev. 5 at 955d91f6)
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
@@ -26,12 +26,12 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Codex re-reviews CE04-CP-005 at CE-04-01 classification revision 5 (section 10) and its spec/persistence.md
-    transcription, per process/handoffs/WP-04-CE-04-01-codex-checkpoint-5.md; production frozen at
-    be36323f56e61d87776d11c831ae1ef0573ea692.
+    Claude performs the single CE-04-01 implementation pass against the agreed checkpoint
+    (classification sections 8-10 over revision 2), then runs the declared gates fresh at the new
+    candidate and hands the exact pair to Codex for targeted closure.
   updated_by: Claude
-  updated_reason: Checkpoint review 4 (76908bc8) consumed - CP-004/006/007 resolved, CP-005 open; classification revision 5 whole-row member rule PROPOSED FOR IMPLEMENTATION.
+  updated_reason: Codex APPROVED checkpoint revision 5 (955d91f6); CE-04-01 checkpoint AGREED FOR IMPLEMENTATION.
   history:
     assurance_index: plans/WP-04.md
