@@ -1,6 +1,10 @@
 # CE-04-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 3
 
-> **Revision 3: `PROPOSED FOR IMPLEMENTATION` (extension, §8).**
+> **Revision 4: `PROPOSED FOR IMPLEMENTATION` (§9 answers Codex's checkpoint review 3, `1d158979`,
+> CE04-CP-004…007, with Owner G-098).** Revision 3 (§8) received `CHANGES_REQUIRED`. Where §9
+> amends §8, §9 governs.
+>
+> **Revision 3 (extension, §8).**
 > - It classifies Codex's characterization extension (`d8262cf5`: E001…E112, O001…O085) under
 >   Owner G-094…G-097, for successor findings WP04-CR-012/013 and assurance finding WP04-CR-014.
 > - Sections 0…7 below are revision 2 as agreed (`bfb6cad3`), and stay in force except where §8
@@ -487,3 +491,114 @@ An independent verdict on this exact revision 3 and its transcription in `spec/p
 - Are the [F] evidence kind and the obligations sufficient for CR-014?
 
 `APPROVED` makes revision 3 `AGREED FOR IMPLEMENTATION`. `CHANGES_REQUIRED` returns it to Claude.
+
+## 9. Revision 4 — response to checkpoint review 3
+
+**Review consumed:** `assurance/reviews/WP-04-CE-04-01-checkpoint-codex-3.md`
+(`review/wp04-ce1-checkpoint-3` `1d158979`), verdict `CHANGES_REQUIRED`, with CE04-CP-004…007.
+CP-004 went to the Owner, who decided it as **G-098** (verbatim in the governance log). Revision 4
+amends §8; everything in §8 not amended here stands.
+
+### 9.0 Findings
+
+| Finding | Resolution |
+|---|---|
+| **CE04-CP-004** (path C): the 28-field "copies" exemption is not established by G-096 | **Owner G-098: no additional exemption.** G-096 stays closed to its named fields. All 28 rows are compared (§9.1). The rev. 3 transcription of a general "copies" class is removed from `spec/persistence.md` and replaced by G-098's rule. |
+| **CE04-CP-005**: discovering TOAST indexes is not certifying them | **Accepted.** Membership now exempts an object from the boundary rule only after it is certified as exactly the initializer's (spec, "Internal members are certified, not only discovered"). That covers TOAST relations, the TOAST index set and shape, and row and array types with their backlinks. A new fetch part, `members`, carries these (§9.2). Codex's projected extra-TOAST-index model becomes a required [F] control. CH13 stays the positive control. |
+| **CE04-CP-006**: §8.6 demanded protocol N for E004 | **Accepted.** E004 is removed from the N list and given its own literal oracle (§9.3). |
+| **CE04-CP-007**: the CH17 reading was not transcribed | **Accepted** in Codex's qualified form. The spec now says that any reference with no recorded catalog dependency on an island object is outside the boundary, and its presence alone is not refused. It names dynamic SQL, `FOR ALL TABLES` and event triggers. "Publication membership" is narrowed to an explicit `FOR TABLE` entry, which records a dependency. Every recorded crossing edge is still refused. |
+| [F] clarification: a flag-only control for `atthasmissing` | **Accepted.** A physical active cache also changes `attmissingval`, whose pin would mask loss of the flag. The "`atthasmissing` not read" mutant's intended witness is an [F] control that changes only that projected flag. |
+
+### 9.1 O001…O085, amended (G-098)
+
+| Disposition | Rows | Count |
+|---|---|---|
+| **FETCH and PIN** (unchanged from §8.3) | O006, O009, O010, O044, O050, O051, O055, O059, O067, O068, O069, O075–O080, O084 | 18 |
+| **FETCH, type-copy consistency** (G-098): equal to the referenced `pg_type`'s `typlen` / `typbyval` / `typalign`, never literal bytes | O002, O004, O005 (table columns); O015, O020, O021 (index attributes) | 6 |
+| **FETCH and PIN, the initializer's state** (G-098) | <ul><li>O003, O018 `attcacheoff` (−1).</li><li>The static index-attribute descriptors O013, O017, O019, O022–O025, O027–O032: type as schema.name, `atttypmod`, `attndims`, storage, compression, `attnotnull`, `atthasdef`, identity, generated, `attisdropped`, `attislocal`, `attinhcount`, collation as schema.name.</li><li>The index-attribute fallback and foreign fields O026, O035, O036.</li></ul> | 18 |
+| **FETCH, invariant** (G-098) | O045, O070 `relnatts` = the highest attribute number (dropped residue stays exempt); O046, O071 `relchecks` = the number of actual CHECK constraints | 4 |
+| EXEMPT, planner statistics (G-089) | as §8.3 | 10 |
+| EXEMPT, ownership and grants (G-089) | as §8.3 | 6 |
+| IDENTITY (G-089) | as §8.3 | 8 |
+| EXEMPT, engine bookkeeping (G-096, closed) | as §8.3 | 15 |
+| **Total** | | **85** |
+
+### 9.2 Implementation constraints (amending §8.5)
+
+1. **Columns part.** For each live column of the four tables, add:
+   - `attcacheoff`;
+   - one type-consistency boolean (`attlen = typlen AND attbyval = typbyval AND attalign =
+     typalign`, against the column's actual `pg_type` row).
+
+   Pins: −1 and true.
+2. **New part `index_columns`.** One row per attribute of each core-table index, keyed by:
+   - the table name;
+   - the backing constraint's kind and key column names;
+   - the attribute's position.
+
+   No index names or OIDs are used. Each row holds the §9.1 descriptor fields, the fallback and
+   foreign fields, `attcacheoff`, and the type-consistency boolean. Pins: the initializer's state.
+3. **Relations part and indexes part.** Add the two invariant booleans: `relnatts` = the highest
+   attribute number, and `relchecks` = the number of actual CHECK constraints. Pins: true.
+4. **New part `members`.** One row per core table, holding:
+   - **TOAST relation:** whether it exists; if so its `relkind` and `relpersistence`, and the
+     number of indexes on it;
+   - **for each TOAST index:**
+     - `indisunique`, `indisprimary`, `indisvalid`, `indisready`, `indislive`;
+     - access method;
+     - key attribute numbers;
+     - `indexprs` and `indpred` being null;
+     - `relpersistence`;
+   - **row type:** `typtype`, and whether its `typrelid` backlink is the table;
+   - **array type:** whether its `typelem` backlink is the row type, and its `typtype`.
+
+   Pins: the initializer's state, derived again from the normative DDL. The `boundary` part
+   (§8.5.4) treats as island members only the objects this part certifies, so an extra TOAST
+   index is refused here (`members` or `boundary`) and never absorbed.
+5. **Comparison order.** `index_columns` and `members` come after `indexes` and before
+   `boundary`.
+6. **Shared pins.** Every new field and part goes into the shared pin file, which Rust consumes.
+
+### 9.3 Evidence obligations (amending §8.6)
+
+- **E004, its own oracle [P].** The rewrite clears the cache, and open accepts. The pre-open store
+  `old` reads tail 1. A new commit to `old` receives 2..3 with an identical retry, and a read from 0
+  returns positions [2, 3] with tail 3. This is the unaudited-row witness (G-092), and it is never
+  credited as protocol N. Protocol N also holds on a separate new store in the same schema, and
+  that is reported separately.
+- **[Pr] predicate.** For each of the 28 G-098 rows, a pure comparison test with that field
+  changed:
+  - an inconsistent type copy;
+  - `attcacheoff` ≠ −1;
+  - each index descriptor;
+  - a broken `relnatts` or `relchecks` invariant.
+
+  There is also a **positive** control: dropped-column residue (E013) keeps the `relnatts`
+  invariant true.
+- **[F] fetch-binding.** Representative fields of each new part:
+  - one type copy;
+  - `attcacheoff`;
+  - one index descriptor;
+  - an extra TOAST index injected through `pg_index` (Codex's model);
+  - a TOAST index with `indisunique` false;
+  - a broken array backlink;
+  - the flag-only `atthasmissing` control.
+- **Additional mutants:**
+  - the type-copy consistency not read;
+  - `relnatts` pinned literally instead of as an invariant (expected killed by the E013 accept
+    test);
+  - the `members` part ignored (expected killed by [F] extra TOAST index);
+  - the island's discovery used without certification.
+- The rest of §8.6 stands.
+
+### 9.4 Asked of Codex
+
+A targeted re-review of this exact revision 4 and its transcription in `spec/persistence.md` (the
+exclusions, the island paragraph, and internal-member certification):
+- Are CE04-CP-004…007 resolved?
+- Is the §9.1 accounting right?
+- Is `members` sufficient for CP-005?
+- Is the E004 oracle right?
+
+`APPROVED` makes the checkpoint `AGREED FOR IMPLEMENTATION` (revisions 2, 3 and 4 together).
+`CHANGES_REQUIRED` returns it to Claude.

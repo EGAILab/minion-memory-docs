@@ -284,3 +284,17 @@ recorded verbatim.
 > provider). Neither is in G-089's exclusion list.
 >
 > **A:** Selected "Comments exempt, labels refused", with the Owner's text: "Choose 2 — comments are exempt; security labels are forbidden on v1 objects.COMMENT ON metadata is descriptive and does not alter certified store behavior, so comments join G-089's non-semantic exclusions.Any SECURITY LABEL attached to a certified v1 object causes persistence.schema_incompatible. Security labels are inputs to external security providers whose effects are outside the finite v1 catalog contract and cannot be reduced safely to ordinary PostgreSQL grant semantics. Supporting a specific provider such as sepgsql requires a separately reviewed backend-contract extension."
+
+## G-098 — CE04-CP-004 — engine-generated catalog fields outside G-096
+
+**Context.** Classification rev. 3 read G-096 as also exempting 28 engine-generated fields
+(O002–O005, O013, O015, O017–O032, O035, O036, O045, O046, O070, O071). Codex's checkpoint review 3
+(`1d158979`, CE04-CP-004) held that G-096 does not establish this. Asked on 2026-10-12, after Codex
+finished.
+
+> **Q:** How should open treat these 28 fields? They fall in five groups: type copies
+> (attlen/attbyval/attalign); the stored offset cache (attcacheoff); static index-attribute
+> descriptors; index-column missing-value and foreign-option fields; relation counts
+> (relnatts/relchecks).
+>
+> **A:** Selected "Compare all, no new exemption (Recommended)", with the Owner's text: "Choose 1 — no additional G-096 exemption.The 28 CE04-CP-004 fields are stable catalog properties of the certified v1 topology rather than legitimately varying maintenance bookkeeping. open() therefore verifies them.Type-copy attributes such as attlen, attbyval, and attalign are checked for consistency with the referenced pg_type definition rather than against hard-coded bytes. attcacheoff, static index-attribute descriptors, and the unused missing-value/foreign-option fields are required to match the certified v1 state. Relation counts are checked by invariant: relnatts against the applicable attribute-number structure and relchecks against actual CHECK constraints.G-096 remains a closed exemption for the specifically identified engine-maintained fields that legitimately change during normal operation. G-092 still excludes arbitrary PostgreSQL/superuser catalog corruption and post-open tampering from the certification boundary; it does not require open() to ignore a finite inconsistency it can deterministically detect."

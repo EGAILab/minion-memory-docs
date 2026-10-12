@@ -408,13 +408,23 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
   - cached summary flags such as `relhasindex`, `relhasrules`, `relhastriggers`, `relhassubclass`;
   - maintenance horizons and physical identifiers such as `relfrozenxid`, `relminmxid`,
     `relfilenode`;
-  - transient planner or MVCC safety state such as `indcheckxmin`;
-  - engine-maintained copies of authoritative catalog data, such as an attribute's copy of its
-    type's length, pass-by-value flag and alignment.
+  - transient planner or MVCC safety state such as `indcheckxmin`.
 
-  The authoritative objects behind them are compared. An inconsistency between bookkeeping and the
-  authoritative catalog falls under the trusted-engine assumption below. Everything else is
-  compared, including at least:
+  This exemption is closed: it covers only these fields, which legitimately change during normal
+  operation. The authoritative objects behind them are compared. An inconsistency between those
+  fields and the authoritative catalog falls under the trusted-engine assumption below.
+
+  Other engine-generated fields are stable properties of the v1 topology, and they are compared
+  (G-098):
+  - a column's or index attribute's copy of its type's length, pass-by-value flag and alignment is
+    compared for consistency with that type, not as literal bytes;
+  - the stored offset cache, the static descriptors of index attributes, and the unused
+    missing-value and foreign-option fields equal the initializer's state;
+  - relation counts are checked as invariants: `relnatts` against the highest attribute number,
+    which keeps dropped-column residue exempt, and `relchecks` against the actual CHECK
+    constraints.
+
+  Everything else is compared, including at least:
   - **Relations:** apart from indexes, the namespace holds exactly four relations whose names begin
     `mneme_`: the four tables (a view, sequence or other relation with that prefix is incompatible).
     Each is an ordinary, permanent,
@@ -455,15 +465,32 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
     Each of the following is therefore incompatible:
     - views and materialized views over a table;
     - sequences owned by a column;
-    - publication membership;
+    - an explicit publication entry for a table (`FOR TABLE`), which records a dependency;
     - routines, aggregates, operators, casts, domains or ranges that use a row type;
     - outside tables, indexes, policies, defaults or constraints that use a row type;
     - constraint triggers that name a table (`FROM`);
     - extension membership of an island object.
 
-    A name in code text with no recorded dependency, such as dynamic SQL in a function body, is
-    outside the trust boundary (G-092). A future dependent, such as an analytics view, is a reviewed
-    catalog-contract extension.
+    A reference with **no recorded catalog dependency** on an island object is outside the trust
+    boundary (G-092, G-094), and its presence alone is not refused. Examples:
+    - a name in code text, such as dynamic SQL in a function body;
+    - a publication `FOR ALL TABLES`, whose automatic membership records no per-table dependency;
+    - an event trigger.
+
+    Every recorded crossing edge is still refused. A future dependent, such as an analytics view, is
+    a reviewed catalog-contract extension.
+
+    **Internal members are certified, not only discovered.** Membership exempts an object from
+    the boundary rule only after it is checked to be exactly what the v1 initializer creates:
+    - **TOAST relations.** Each table has a TOAST relation exactly when the initializer's table
+      does. It is an ordinary permanent TOAST relation of the table, with the default TOAST
+      options.
+    - **TOAST indexes.** Each TOAST relation has exactly one index: a valid, ready, live, unique,
+      permanent btree index on its chunk identifier and sequence, with no predicate or expressions.
+    - **Types.** Each table's row type is the composite type of that table, and its array type is
+      the array of that row type. Each backlink matches. No other type is a member.
+
+    An extra or differing internal member is incompatible.
   - **Security labels (G-097).** No security label is attached to an island object.
   - **Structured comparison (G-091).** Every property is compared as structured catalog data
     (expressions as their stored trees, with column references and source locations normalized),
