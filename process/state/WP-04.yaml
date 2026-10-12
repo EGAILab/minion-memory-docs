@@ -26,12 +26,14 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Claude
+  next_owner: Codex
   next_action: >
-    Claude performs the single CE-04-01 implementation pass against the agreed checkpoint
-    (classification sections 8-10 over revision 2), then runs the declared gates fresh at the new
-    candidate and hands the exact pair to Codex for targeted closure.
+    Codex performs the targeted CE-04-01 closure review of code
+    038416286631a34846f99bd53b7c4d6ed41d30cf per
+    assurance/reviews/WP-04-CE-04-01-implementation-claude-2.md and
+    process/handoffs/WP-04-CE-04-01-codex-closure-2.md (gate run 3 failed G4 and is kept; run 4 is
+    the submitted evidence).
   updated_by: Claude
-  updated_reason: Codex APPROVED checkpoint revision 5 (955d91f6); CE-04-01 checkpoint AGREED FOR IMPLEMENTATION.
+  updated_reason: CE-04-01 implementation pass for checkpoint revisions 2-5 at 03841628; gate run 4 as declared (G4 58/59, P38 claimed equivalent); submitted for targeted closure.
   history:
     assurance_index: plans/WP-04.md
