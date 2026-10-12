@@ -247,3 +247,40 @@ and Minion-Agent asked that heavy batches wait for "host clear" while its Rust g
 > **A2:** "Choose 1 — remain in CONTRACT_CONVERGENCE. Do not transition state. Record next_owner = Claude, bind the pending CE-04-01 gates to candidate b657081b, and add an explicit execution condition that the heavy gate batch may begin only after Minion-Agent reports host clear. This is an operational scheduling condition, not a workflow-state change or Owner blocker."
 
 A2 refines A1's state wording; the status stays `CONTRACT_CONVERGENCE`.
+
+## G-094…G-097 — CE-04-01 extension: candidate path-C items EC01…EC05
+
+**Context.** Codex's closure review (`779a8f21`) found WP04-CR-012 and WP04-CR-013. Its
+characterization extension (`d8262cf5`, 112 executed rows and an 85-row omitted-field inventory)
+raised the packet EC01…EC05. Asked on 2026-10-12, after Codex finished, with the Owner's answers
+recorded verbatim.
+
+### G-094 — EC01 — outside objects that depend on the v1 tables
+
+> **Q:** Outside objects that depend on the four mneme tables (views, matviews, owned sequences,
+> publications, routines/aggregates/operators/casts/domains/ranges over a mneme row type, outside
+> indexes/policies/defaults using a row type, extension membership). Today open accepts all of them.
+> Which rule should open enforce?
+>
+> **A:** "Choose 1 — strict catalog closure.The PostgreSQL v1 backend accepts only the certified Mneme catalog dependency island. Except for explicitly exempt planner/extended-statistics objects and required pg_catalog/built-in dependencies, no object outside the v1 set may have a recorded catalog dependency on a v1 table, column, row/array type, index, constraint, or other certified object; conversely, no v1 object may depend on a user object outside the certified namespace.Any such edge yields persistence.schema_incompatible and open() performs no durable change. This includes views/materialized views, owned sequences, publications, functions/procedures/aggregates/operators/casts/domains/ranges involving Mneme row types, external policies/defaults/indexes, and extension membership.Dynamic SQL or other references with no PostgreSQL-recorded catalog dependency remain outside the v1 trust boundary under G-092. Future analytics/integration dependents require an explicit reviewed catalog-contract extension rather than an effect-based exception."
+
+### G-095 — EC02 — row-type references in outside constraints
+
+> **Q:** Does "No constraint outside the four tables references them" also cover outside constraints
+> that reference a mneme row type (outside CHECK, domain CHECK, constraint-trigger WHEN)?
+>
+> **A:** "Choose 1 — row-type dependencies count as references to the Mneme table.The no-external-constraint rule covers not only direct relation-reference fields but also recorded dependencies on the table’s composite row type or array type. Outside CHECK constraints, domain constraints, constraint-trigger predicates, or equivalent catalog objects that depend on those types are incompatible with the v1 closed catalog island. Under EC01 strict closure, this is already implied; EC02 simply makes the constraint wording explicit."
+
+### G-096 — EC03 — engine-maintained bookkeeping
+
+> **Q:** Engine-maintained bookkeeping that changes under genuine operations (stale relhas* flags,
+> relfrozenxid/relminmxid, relfilenode, indcheckxmin). How should open treat them?
+>
+> **A:** "Choose 1 — exempt engine-maintained bookkeeping from the v1 catalog comparison.open() does not compare cached relation flags such as relhasrules, relhastriggers, relhassubclass, or relhasindex; maintenance horizons such as relfrozenxid/relminmxid; physical identifiers such as relfilenode; or transient planner/MVCC safety state such as indcheckxmin. Instead it validates the authoritative catalog objects and semantic properties themselves.Genuine inconsistencies between those bookkeeping fields and PostgreSQL's authoritative catalogs fall under the trusted-engine/out-of-band corruption assumption in G-092 rather than becoming additional v1 schema predicates."
+
+### G-097 — EC04/EC05 — comments and security labels
+
+> **Q:** Annotations on v1 objects: COMMENT ON, and SECURITY LABEL (needs a superuser-installed
+> provider). Neither is in G-089's exclusion list.
+>
+> **A:** Selected "Comments exempt, labels refused", with the Owner's text: "Choose 2 — comments are exempt; security labels are forbidden on v1 objects.COMMENT ON metadata is descriptive and does not alter certified store behavior, so comments join G-089's non-semantic exclusions.Any SECURITY LABEL attached to a certified v1 object causes persistence.schema_incompatible. Security labels are inputs to external security providers whose effects are outside the finite v1 catalog contract and cannot be reduced safely to ordinary PostgreSQL grant semantics. Supporting a specific provider such as sepgsql requires a separately reviewed backend-contract extension."

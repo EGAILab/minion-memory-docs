@@ -402,8 +402,19 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
 - **v1 catalog contract (G-089).** An existing schema is accepted only if it is the finite catalog
   state the v1 initializer produces, apart from catalog identity that cannot change semantics:
   object names other than the four table names and the column names, OIDs, ownership and grants,
-  column order, dropped-column residue, and planner statistics (statistics targets and extended
-  statistics objects). Everything else is compared, including at least:
+  column order, dropped-column residue, planner statistics (statistics targets, per-column
+  `n_distinct` options, size and row estimates, and extended statistics objects), comments (G-097),
+  and engine-maintained bookkeeping (G-096). Engine-maintained bookkeeping means:
+  - cached summary flags such as `relhasindex`, `relhasrules`, `relhastriggers`, `relhassubclass`;
+  - maintenance horizons and physical identifiers such as `relfrozenxid`, `relminmxid`,
+    `relfilenode`;
+  - transient planner or MVCC safety state such as `indcheckxmin`;
+  - engine-maintained copies of authoritative catalog data, such as an attribute's copy of its
+    type's length, pass-by-value flag and alignment.
+
+  The authoritative objects behind them are compared. An inconsistency between bookkeeping and the
+  authoritative catalog falls under the trusted-engine assumption below. Everything else is
+  compared, including at least:
   - **Relations:** apart from indexes, the namespace holds exactly four relations whose names begin
     `mneme_`: the four tables (a view, sequence or other relation with that prefix is incompatible).
     Each is an ordinary, permanent,
@@ -413,11 +424,14 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
     keys create: enabled, internal, linked to their constraint, with PostgreSQL's built-in
     referential-integrity functions. Each also has the default tablespace, no
     relation options, and the default replica identity. No constraint outside the four tables
-    references them.
+    references them, directly or through their row or array types (G-095).
   - **Columns:** exactly the DDL's columns by name. Each has its built-in type (never a domain) with
     no type modifier, the DDL's nullability, and the database default collation for `text`
     columns. Defaults exist only on `mneme_schema.singleton` (`true`) and `mneme_store.tail` (`0`).
     No column is an identity or generated column. Storage and compression are the type defaults.
+    No live column holds a cached missing value (`atthasmissing` false, `attmissingval` null). A
+    cached missing value is the value older rows read for a column added later. It is live
+    semantic state, not dropped-column residue (WP04-CR-012).
   - **Constraints:** exactly the DDL's primary-key, unique, check and foreign-key constraints, on
     the same columns. Each is immediate and validated, and each check has the DDL's condition. Each
     foreign key references `mneme_store (store_id)` with the default match type and actions
@@ -425,7 +439,32 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
   - **Indexes:** exactly one index per primary-key or unique constraint, and no other index. Each
     is a valid, ready, live, unique btree index on exactly the constraint's columns. It has the
     columns' default operator classes and collations, no predicate, expressions or included
-    columns, no options, and no clustering mark.
+    columns, no options, and no clustering mark. Each is an ordinary, permanent index.
+  - **Closed dependency island (G-094, G-095).** The **v1 island** consists of:
+    - the four tables and their columns;
+    - their row and array types;
+    - their indexes, constraints, defaults and internal triggers;
+    - their TOAST relations and TOAST indexes.
+
+    Two rules apply to its edges, using PostgreSQL's recorded catalog dependencies:
+    - No object outside the island may depend on an island object. The only exception is planner
+      statistics objects.
+    - No island object may depend on anything outside the island other than the resolved
+      namespace and PostgreSQL's built-in objects.
+
+    Each of the following is therefore incompatible:
+    - views and materialized views over a table;
+    - sequences owned by a column;
+    - publication membership;
+    - routines, aggregates, operators, casts, domains or ranges that use a row type;
+    - outside tables, indexes, policies, defaults or constraints that use a row type;
+    - constraint triggers that name a table (`FROM`);
+    - extension membership of an island object.
+
+    A name in code text with no recorded dependency, such as dynamic SQL in a function body, is
+    outside the trust boundary (G-092). A future dependent, such as an analytics view, is a reviewed
+    catalog-contract extension.
+  - **Security labels (G-097).** No security label is attached to an island object.
   - **Structured comparison (G-091).** Every property is compared as structured catalog data
     (expressions as their stored trees, with column references and source locations normalized),
     never as SQL that PostgreSQL renders, so session presentation settings cannot change acceptance.
@@ -447,7 +486,9 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
   - disabling internal constraints or triggers;
   - catalog manipulation and other administrator or superuser interference.
 
-  Operations do not re-validate the schema, and open does not scan stored rows. Privileges are
+  Operations do not re-validate the schema, and open does not scan stored rows. A stored row that
+  holds a wrong value is therefore not detected by open. For example, a table rewrite can clear a
+  cached missing value while materializing it into existing rows. Privileges are
   deployment, not catalog shape: open does not verify them, and a genuine permission error from any
   operation propagates as the engine's error with no effect. It is never
   `persistence.schema_incompatible` and never a success.

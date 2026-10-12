@@ -15,24 +15,23 @@ workflow:
     surface: Reference-backend v1 catalog trust boundary at open (durability, identity, order and atomicity properties)
     trigger: A (WP04-CR-008 survived reviews bb3dfa2c and 391fca64)
     open_findings: [WP04-CR-008, WP04-CR-012, WP04-CR-013, WP04-CR-014]
-    checkpoint: EXTENSION REQUIRED (rev. 2 agreed at bfb6cad3; closure review 779a8f21 CHANGES_REQUIRED, successor findings CR-012/013 outside the characterized surface; implementation stopped at be36323f)
+    checkpoint: PROPOSED FOR IMPLEMENTATION (classification rev. 3 over characterization extension d8262cf5 and Owner G-094..G-097; rev. 2 agreed at bfb6cad3; implementation stopped at be36323f)
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
       G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
       backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
-      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics; G-088 convergence CE-04-01; G-089..G-092 CE-04-01 catalog contract, database environment, PostgreSQL 14, trust scope; G-093 gates wait for host clear.
+      positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics; G-088 convergence CE-04-01; G-089..G-092 CE-04-01 catalog contract, database environment, PostgreSQL 14, trust scope; G-093 gates wait for host clear; G-094..G-097 dependency island, row-type references, engine bookkeeping, comments/labels.
     scope: [WP-04]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Codex extends assurance/convergence/CE-04-01-characterization.md with executed rows for live
-    catalog properties the fetch omits (WP04-CR-012) and inbound linkage to the four tables
-    (WP04-CR-013), per process/handoffs/WP-04-CE-04-01-codex-characterization-2.md; production frozen
-    at be36323f56e61d87776d11c831ae1ef0573ea692.
+    Codex reviews CE-04-01 classification revision 3 (section 8) and its spec/persistence.md
+    transcription for the checkpoint, per process/handoffs/WP-04-CE-04-01-codex-checkpoint-3.md;
+    production frozen at be36323f56e61d87776d11c831ae1ef0573ea692.
   updated_by: Claude
-  updated_reason: Consumed Codex CE-04-01 closure review 779a8f21 (CHANGES_REQUIRED, CR-012..014); successor findings folded into CE-04-01 (adopted 11.8.1); route back to characterization before any production change.
+  updated_reason: Codex characterization extension d8262cf5 consumed; Owner G-094..G-097 on EC01..EC05; classification revision 3 PROPOSED FOR IMPLEMENTATION.
   history:
     assurance_index: plans/WP-04.md

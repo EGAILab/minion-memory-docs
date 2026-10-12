@@ -1,4 +1,12 @@
-# CE-04-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 2
+# CE-04-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 3
+
+> **Revision 3: `PROPOSED FOR IMPLEMENTATION` (extension, §8).**
+> - It classifies Codex's characterization extension (`d8262cf5`: E001…E112, O001…O085) under
+>   Owner G-094…G-097, for successor findings WP04-CR-012/013 and assurance finding WP04-CR-014.
+> - Sections 0…7 below are revision 2 as agreed (`bfb6cad3`), and stay in force except where §8
+>   amends them.
+> - Revision 3 becomes `AGREED FOR IMPLEMENTATION` only on Codex's separate `APPROVED`. Production
+>   code stays frozen at `be36323f` until then.
 
 **Input:** Codex's characterization `assurance/convergence/CE-04-01-characterization.md` at
 `0f7ac1bf` (136 executed rows against frozen code `63462513`).
@@ -302,3 +310,180 @@ Re-review this exact revision 2 and the revised transcription in `spec/persisten
 - the predicate-test route for non-constructible properties (§4.4, §5.3).
 
 `APPROVED` makes the checkpoint `AGREED FOR IMPLEMENTATION`. `CHANGES_REQUIRED` returns it to Claude.
+
+## 8. Revision 3 — extension for WP04-CR-012/013/014
+
+**Input:**
+- Codex's closure review `779a8f21`: CR-012, CR-013, CR-014;
+- Codex's characterization extension `d8262cf5`: 112 executed rows E001…E112 against frozen
+  `be36323f`, the omitted-property inventory O001…O085, and the inbound route ledger;
+- Owner G-094 (EC01, strict catalog closure), G-095 (EC02, row-type references count), G-096
+  (EC03, engine bookkeeping exempt) and G-097 (EC04/EC05, comments exempt and security labels
+  refused);
+- the transcription of these in `spec/persistence.md` ("v1 catalog contract": the exclusions,
+  Columns, Indexes, "Closed dependency island", "Security labels", "Trust scope").
+
+### 8.1 Independent reproduction (Claude, not gate evidence)
+
+Claude's probe `.tmp/work/claude/ce0401_island_probe.py` uses the ordinary role and throwaway
+schemas. It computes the **v1 island** from the structure:
+- the four `mneme_` tables;
+- their indexes, TOAST relations and TOAST indexes;
+- their row and array types;
+- their constraints, defaults and triggers.
+
+It then lists every `pg_depend` edge crossing the island boundary, other than edges to the resolved
+namespace or to built-in objects (OID < 16384). Observed:
+
+| Setup | Crossing edges |
+|---|---|
+| fresh v1 schema | **none** |
+| E028, constraint trigger `FROM mneme_store` | `in`: `pg_trigger` → `mneme_store` (`a`) |
+| E021, view | `in`: `pg_rewrite` → `mneme_store.store_id` (`n`) |
+| E024, `OWNED BY mneme_store.tail` | `in`: `pg_class` (sequence) → `mneme_store.tail` (`a`) |
+| E025, publication | `in`: `pg_publication_rel` → `mneme_record` (`a`) |
+| E030, row-type column | `in`: `pg_class` (column) → `mneme_store` row type (`n`) |
+| E031, row-type function | `in`: `pg_proc` → `mneme_store` row type (`n`) |
+| E062, extension membership | `out`: `mneme_store` → extension `hstore` (`e`) |
+| E020, extended statistics | `in`: `pg_statistic_ext` → two columns (`a`): **exempt** by its dependent class |
+| E033, SQL string body; E018, comment | none (no recorded dependency) |
+
+So a single structural edge check discriminates every executed G-094/G-095 route, CR-013 included,
+from the baseline and from the exemptions. The implementation must not rely on this probe: §8.6
+requires the check to be witnessed per route.
+
+### 8.2 Dispositions of E001…E112
+
+| Disposition | Rows | Count |
+|---|---|---|
+| **KEEP accept**, literal protocol N | E001, E007, E011 (planner statistics and freeze progress, G-089/G-096), E012 (`relfilenode`, G-096), E013 (dropped residue), E014, E015, E016 (stale flags, G-096), E017 (grants), E018 (comments, G-097), E020 (extended statistics, G-094 exemption), E033 (string body, no recorded dependency: outside the boundary, G-094), E042 (an outside trigger whose PL/pgSQL body names a table: no recorded dependency, G-094), E046 (index name), E049, E056 (an unrelated outside table), E086 | 17 |
+| **KEEP accept catalog; row not audited** | E004: a rewrite clears the cache and materializes the pre-open value into the old row. The catalog is v1, and open does not scan rows (G-092, now stated in "Trust scope"). | 1 |
+| **FIX → reject**, cached missing value (CR-012) | E002, E003, E006, E110 | 4 |
+| **FIX → reject**, constraint-trigger `FROM` reference (CR-013, published rule, G-094) | E028, E050, E051, E052, E097, E111, E112 | 7 |
+| **FIX → reject**, recorded dependency on the island (G-094/G-095) | E021, E022, E023, E024, E025, E030, E031, E032, E034, E035, E036, E037, E038, E039, E040, E057, E058, E059, E060, E061, E088, E093, E094, E103, E104, E105, E106, E108 | 28 |
+| **FIX → reject**, island object depends outside (extension membership, G-094) | E062, E109 | 2 |
+| **KEEP reject** | E005 (now refused by the cache check before the version row), E027, E029, E041, E043, E045, E047, E053, E054, E055, E095, E107 | 12 |
+| **Construction limit / residual-state control**: setup failed, so no claim is made for the altered state; the property is classified in §8.3 or §8.4 | E008, E009, E010, E019, E026, E044, E048, E063…E085, E087, E089, E090, E091, E092, E096, E098…E102 | 41 |
+| **Total** | | **112** |
+
+### 8.3 Dispositions of O001…O085
+
+Two rules govern these dispositions.
+- **Authoritative properties** of the island's relations, columns and indexes are compared, unless
+  G-089 or G-097 exempts them.
+- **Engine-maintained bookkeeping and copies** are exempt (G-096). This includes values the engine
+  copies from another authoritative catalog row, such as an attribute's copy of its type's
+  representation or an index attribute derived from its key column and operator class.
+
+| Disposition | Rows | Count |
+|---|---|---|
+| **FETCH and PIN** (new; the initializer's value) | <ul><li>Table columns: O006 `atthasmissing` (false), O009 `attfdwoptions` (null), O010 `attmissingval` (null).</li><li>Tables: O044 `relisshared` (false), O050 `relispopulated` (true), O051 `relrewrite` (0), O055 `relpartbound` (null).</li><li>Indexes: O059 `reloftype` (0), O067 `relisshared`, O068 `relpersistence` (`p`), O069 `relkind` (`i`), O075/O076 row security (false), O077 `relispopulated`, O078 `relreplident` (`n`), O079 `relispartition`, O080 `relrewrite`, O084 `relpartbound`.</li></ul> | 18 |
+| **EXEMPT, planner statistics** (G-089) | O001, O008, O014, O034, O040, O041, O042, O062, O063, O064 | 10 |
+| **EXEMPT, ownership and grants** (G-089) | O007, O033, O038, O054, O060, O083 | 6 |
+| **IDENTITY**, resolved and never pinned (G-089) | O011, O012, O016 (index attribute address, name, number: keys are compared through `indkey`), O037, O058 (row-type OID: the type is an island member), O056 (index name), O057 (index namespace), O065 (TOAST pointer) | 8 |
+| **EXEMPT, engine bookkeeping** (G-096, named) | O039, O061 (`relfilenode`); O043, O047, O048, O049, O066, O072, O073, O074 (`relhas*`); O052, O053, O081, O082 (freeze horizons); O085 (`indcheckxmin`) | 15 |
+| **EXEMPT, engine-maintained copies** (G-096, **Claude's reading; challenge it**) | Table attribute type copies: O002–O005. Every index `pg_attribute` field other than identity, statistics and grants: O013, O015, O017–O032, O035, O036. Relation counts: O045, O046, O070, O071. | 28 |
+| **Total** | | **85** |
+
+The 28 "copies" rows apply G-096's stated principle, that bookkeeping inconsistent with the
+authoritative catalog falls under the trusted engine, to a class G-096 does not list by name.
+- **Claude's view.** They are engine-maintained in exactly the same sense as the listed fields.
+  Their authoritative source is compared in every case: the column's type, the index's key columns,
+  the operator classes and collations, and the constraints.
+- **If Codex disagrees.** The alternative is to fetch each one as a consistency predicate against
+  its source. If Codex holds that G-096 does not cover them, Claude routes the question to the
+  Owner rather than choosing.
+
+### 8.4 Completeness challenge — additions
+
+| Row | State | Disposition |
+|---|---|---|
+| CH13 | The island's own internal objects: TOAST relations, TOAST indexes, array types, internal RI triggers, the namespace edge. They are present after initialization and after large payloads are stored. | KEEP accept. The boundary check must never refuse them. Witnesses: the baseline, and the large-payload rows B02/C16. |
+| CH14 | Extended statistics on core columns beside an owned sequence. The statistics exemption is by dependent class (`pg_statistic_ext`), never by dependency type. | FIX reject: the sequence still refuses. |
+| CH15 | An island object depends on a user object in the store's own namespace. | The outgoing rule refuses it. Any constructible form is refused first by the columns or defaults part. Covered by the comparison-order controls; there is no separate public row. |
+| CH16 | A security label on an island object (G-097). | Predicate-domain: no provider is installed, and installing one needs a superuser (E019, E099). A pure predicate test, plus a fetch-binding control (§8.6) that injects a `pg_seclabel` row. |
+| CH17 | Publication `FOR ALL TABLES`; event triggers. Both need a superuser (E026, E063), and **neither records a per-relation dependency**. | **Outside the trust boundary under G-094's own words** ("no PostgreSQL-recorded catalog dependency"), as dynamic SQL is. Not refused. Codex should challenge whether G-094 intends this. If it does not, Claude routes the question to the Owner. |
+| CH18 | A dormant `attmissingval` with `atthasmissing` false (E071, privileged). | Predicate-domain. Both fields are fetched and pinned, so either one differing is refused. |
+
+### 8.5 Implementation constraints (amending §5)
+
+1. **Columns part.** Add `atthasmissing`, `attmissingval` (as text) and `attfdwoptions` for every
+   live column of the four tables. Pins: false, null, null.
+2. **Relations part.** For tables, add `relisshared`, `relispopulated`, `relrewrite` and
+   `relpartbound IS NULL`.
+3. **Indexes part.** Add the index relation's `relkind`, `relpersistence`, `reloftype`,
+   `relisshared`, `relrowsecurity`, `relforcerowsecurity`, `relispopulated`, `relreplident`,
+   `relispartition`, `relrewrite` and `relpartbound IS NULL`. Pins: the initializer's values.
+4. **New part `boundary`** (pinned empty). One OID-free row per crossing edge, using the
+   object type and kind of each end, never OIDs. Every SQL text is `pg_catalog`-qualified
+   (§5.2). The rows are:
+   - every `pg_depend` edge whose referenced object is in the island and whose dependent is not,
+     unless the dependent's class is `pg_statistic_ext`;
+   - every `pg_depend` edge whose dependent is in the island and whose referenced object is
+     neither in the island, nor the resolved namespace, nor a built-in object
+     (OID < `FirstNormalObjectId`, 16384);
+   - every `pg_seclabel` row on an island object.
+
+   The island is computed structurally, as in §8.1, never by name pattern beyond the four-table
+   scope that §5 already uses.
+5. **Comparison order.** `boundary` is compared after the existing parts, so existing refusal
+   messages keep their part. E005 is now refused at the columns part before the version row is
+   read. The error code is unchanged.
+6. **Nothing else changes:**
+   - the exemptions (G-089, G-096, G-097) are not fetched;
+   - the operation transactions, locking and the version row are untouched.
+7. **Shared pins** (`reference-backend/postgres14-v1-catalog.json`) gain the new fields and the
+   empty `boundary` part, derived again from the normative DDL. Rust consumes the same pins.
+
+### 8.6 Evidence obligations (amending §6)
+
+There is a new evidence kind **[F], direct fetch-binding control (CR-014)**.
+- **How it works.** A connection proxy replaces one catalog relation in the store's **actual**
+  fetch SQL with a real subquery projection. The projection overrides a single field, or adds a
+  row, while keeping every genuine remaining field.
+- **What it requires.** The real fetch must report the change, and `mismatch` must name the
+  expected part.
+- **How it is reported.** It is never a public or physical execution. It shows that the read binds
+  the property and does not substitute an expected constant.
+- **Where it is required.** For every predicate-domain property the fetch reads:
+  - `tgenabled` (P40);
+  - `indisvalid` and `indisready` (P32);
+  - each new field of 8.5.1–8.5.3 that an ordinary role cannot construct;
+  - an injected `pg_seclabel` row.
+
+The obligations are:
+- **[P] public.**
+  - Every FIX row of §8.2 is refused with no change, as entries of the parametrized refused test.
+  - The ACCEPT rows E004, E011–E018, E020, E033, E042, E046 and E056 are accepted, and protocol N
+    holds.
+  - CH13 and CH14.
+- **[Pr] predicate.** A pure-comparison test for each new pinned field and for CH16 and CH18.
+- **[F].** As above. P32 and P40 are **expected killed by [F]**. The record reports them as
+  killed by direct fetch controls, never as public kills, and keeps both gate runs at `b657081b`
+  and `be36323f` as survivors.
+- **Mutants**, each with an intended witness and a baseline. The witnesses are expected to differ
+  only in the mutated part:
+  - `atthasmissing` not read;
+  - inbound edges not checked;
+  - outgoing edges not checked;
+  - the statistics exemption widened to every dependent class;
+  - the statistics exemption removed;
+  - array types missing from the island;
+  - TOAST missing from the island;
+  - the namespace edge not allowed;
+  - labels not read;
+  - index `relpersistence` not read.
+- **Gates.** G0–G5 as in the implementation record, fresh at the new candidate. Claude names each
+  intended witness after checking, with a whole-module diagnostic **before** the gate run, that
+  the witness differs only in the mutated part.
+
+### 8.7 Asked of Codex
+
+An independent verdict on this exact revision 3 and its transcription in `spec/persistence.md`:
+- Is each disposition in §8.2 and §8.3 right?
+- Is the "engine-maintained copies" reading of G-096 (§8.3) valid, or does it need the Owner?
+- Is the CH17 boundary reading valid?
+- Is the island definition complete?
+- Are the [F] evidence kind and the obligations sufficient for CR-014?
+
+`APPROVED` makes revision 3 `AGREED FOR IMPLEMENTATION`. `CHANGES_REQUIRED` returns it to Claude.
