@@ -1,6 +1,9 @@
 # CE-04-01 — completeness challenge, row classification, checkpoint proposal (Claude), revision 3
 
-> **Revision 4: `PROPOSED FOR IMPLEMENTATION` (§9 answers Codex's checkpoint review 3, `1d158979`,
+> **Revision 5: `PROPOSED FOR IMPLEMENTATION` (§10 completes CE04-CP-005 after Codex's checkpoint
+> review 4, `76908bc8`, which resolved CP-004/006/007).**
+>
+> **Revision 4 (superseded in §9.2.4 by §10):** (§9 answers Codex's checkpoint review 3, `1d158979`,
 > CE04-CP-004…007, with Owner G-098).** Revision 3 (§8) received `CHANGES_REQUIRED`. Where §9
 > amends §8, §9 governs.
 >
@@ -602,3 +605,95 @@ exclusions, the island paragraph, and internal-member certification):
 
 `APPROVED` makes the checkpoint `AGREED FOR IMPLEMENTATION` (revisions 2, 3 and 4 together).
 `CHANGES_REQUIRED` returns it to Claude.
+
+## 10. Revision 5 — CE04-CP-005 completed
+
+**Review consumed:** `assurance/reviews/WP-04-CE-04-01-checkpoint-codex-4.md`
+(`review/wp04-ce1-checkpoint-4` `76908bc8`), verdict `CHANGES_REQUIRED`.
+- **Resolved:** CE04-CP-004, CP-006 and CP-007.
+- **Still open:** CE04-CP-005. Its count now discriminates the extra TOAST index, but §9.2.4 listed
+  member fields one by one and omitted stable shape properties: TOAST-index `reloptions` and
+  `indoption`, shown by Codex's projected controls.
+
+**Accepted.** Revision 5 replaces §9.2.4's field list with a whole-row rule, so that no property
+can be left out by omission. §9 otherwise stands.
+
+### 10.1 The internal-member rule
+
+Every **internal member** is compared over **every column** of its catalog rows. The internal
+members are:
+- each TOAST relation;
+- its TOAST index;
+- the attributes of both;
+- each table's row type and array type.
+
+The catalog rows are `pg_class`, `pg_index`, `pg_attribute` and `pg_type`, as they exist on
+PostgreSQL 14. Only the closed exclusion list below is left out, and every excluded column is
+named:
+
+| Excluded column (member rows) | Why |
+|---|---|
+| `oid`, `relfilenode`, `indexrelid` / `indrelid` / `attrelid` and `typrelid` / `typelem` / `typarray` used only to resolve associations | identity (G-089); the associations themselves are compared as backlinks |
+| `relname`, `typname`, `attname` of TOAST attributes | names (G-089) |
+| `relowner`, `typowner`, `relacl`, `typacl`, `attacl` | ownership and grants (G-089) |
+| `relpages`, `reltuples`, `relallvisible`, `attstattarget`, `attoptions` | planner statistics (G-089) |
+| `relhasindex`, `relhasrules`, `relhastriggers`, `relhassubclass`, `relfrozenxid`, `relminmxid`, `indcheckxmin` | engine bookkeeping (G-096, closed) |
+
+For every other column:
+- **G-098** decides how it is compared. Type copies are compared for consistency with the
+  referenced `pg_type`, and `relnatts` / `relchecks` as invariants.
+- **Associations** are compared as backlinks and kinds, never as OIDs. These are a namespace (the
+  `pg_toast` namespace for TOAST relations, the store's namespace for types), an access method, an
+  operator class, a collation, a type, or a function. Built-in objects are compared as
+  schema.name.
+- **Everything else** equals the initializer's value.
+
+This includes at least:
+- the TOAST index's `reloptions`, `indoption`, `indclass`, `indcollation`, `indnatts`,
+  `indnkeyatts`, `indkey`, `indisclustered`, `indimmediate`, `indisreplident` and
+  `indisexclusion`;
+- the TOAST relation's `relam`, `reltablespace`, `reloptions` and `relreplident`;
+- every `pg_type` column, among them `typtype`, `typcategory`, `typispreferred`, `typisdefined`,
+  `typdelim`, `typsubscript`, the I/O, `typmod` and analyze functions, `typalign`, `typstorage`,
+  `typnotnull`, `typbasetype`, `typtypmod`, `typndims`, `typcollation` and `typdefault`.
+
+The implementation record lists the PostgreSQL 14 column inventory of these four catalogs against
+this rule, column by column, so that the "every column" claim can be checked.
+
+### 10.2 Implementation constraints (replacing §9.2.4)
+
+The `members` part holds one row per internal member, using the layout of 10.1:
+- TOAST relation rows reuse the relations-row layout;
+- TOAST-index rows reuse the indexes-row layout;
+- TOAST attribute rows reuse the columns and index-columns layouts;
+- row-type and array-type rows use a new type-row layout.
+
+Rows are keyed by the owning table's name and the member's kind. Pins are derived again from the
+normative DDL. `boundary` still grants membership only to certified members. §9.2.5 and §9.2.6
+stand.
+
+### 10.3 Evidence obligations (amending §9.3)
+
+- **[F] fetch-binding controls**, each changing exactly one field of a real member row through a
+  projection:
+  - TOAST-index `reloptions`;
+  - TOAST-index `indoption`, with both of Codex's projected variations as literal oracles;
+  - a TOAST-index `indclass`;
+  - TOAST relation `reloptions`;
+  - one `pg_type` field of the row type (for example `typdelim`);
+  - a broken array backlink;
+  - the extra TOAST index (count), which stays required.
+- **[Pr] predicate.** A pure-comparison test per member row layout: one changed field in each.
+- **[P] positive controls.** CH13 (baseline and large payloads) stays.
+- **Inventory test.** A test reads the live column list of the four catalogs. It fails if a
+  column exists that the implementation neither compares nor lists in the exclusion table, so a
+  later PostgreSQL 14 minor release cannot silently add an uncompared column.
+
+### 10.4 Asked of Codex
+
+A targeted re-review of CE04-CP-005 at this exact revision:
+- Does the whole-row rule, with its named exclusion list and the inventory test, close the
+  member-shape gap for TOAST relations, TOAST indexes, their attributes, and the row and array
+  types?
+
+`APPROVED` makes the checkpoint `AGREED FOR IMPLEMENTATION` (revisions 2 to 5 together).

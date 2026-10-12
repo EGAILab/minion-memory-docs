@@ -490,7 +490,11 @@ CREATE TABLE mneme_operation (store_id text NOT NULL REFERENCES mneme_store,
     - **Types.** Each table's row type is the composite type of that table, and its array type is
       the array of that row type. Each backlink matches. No other type is a member.
 
-    An extra or differing internal member is incompatible.
+    Each internal member is compared over every column of its `pg_class`, `pg_index`,
+    `pg_attribute` and `pg_type` rows. The only exceptions are the exclusions above (names, OIDs,
+    ownership and grants, planner statistics, engine bookkeeping) and G-098's consistency and
+    invariant rules. An extra or differing internal member is incompatible: for example, TOAST
+    index options or key ordering that differ from the initializer's.
   - **Security labels (G-097).** No security label is attached to an island object.
   - **Structured comparison (G-091).** Every property is compared as structured catalog data
     (expressions as their stored trees, with column references and source locations normalized),
