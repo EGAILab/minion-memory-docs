@@ -3,19 +3,15 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: CONTRACT_CONVERGENCE
+  status: FINAL_CONTRACT_REVIEW
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp04/contract, sha: 9d5a2d51c69987f799962868b8dc5175a11882d2}
+    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: ef5c13ff4b5d48f41648d083b11aeafa0be7545f}
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: [WP04-CR-008, WP04-CR-012, WP04-CR-013, WP04-CR-014]
-  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-009, WP04-CR-010, WP04-CR-011]
-  convergence:
-    episode: CE-04-01
-    surface: Reference-backend v1 catalog trust boundary at open (durability, identity, order and atomicity properties)
-    trigger: A (WP04-CR-008 survived reviews bb3dfa2c and 391fca64)
-    open_findings: [WP04-CR-008, WP04-CR-012, WP04-CR-013, WP04-CR-014]
-    checkpoint: AGREED FOR IMPLEMENTATION (classification revisions 2-5, Codex APPROVED rev. 5 at 955d91f6)
+  open_findings: [WP04-CR-015]
+  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-008, WP04-CR-009, WP04-CR-010, WP04-CR-011, WP04-CR-012, WP04-CR-013, WP04-CR-014]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
@@ -28,12 +24,11 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Codex performs the targeted CE-04-01 closure review of code
-    038416286631a34846f99bd53b7c4d6ed41d30cf per
-    assurance/reviews/WP-04-CE-04-01-implementation-claude-2.md and
-    process/handoffs/WP-04-CE-04-01-codex-closure-2.md (gate run 3 failed G4 and is kept; run 4 is
-    the submitted evidence).
+    Execute process/handoffs/WP-04-codex-final-review.md: one final complete review of WP-04 at docs
+    ef5c13ff / code 9d5a2d51 (CE-04-01 settled; WP04-CR-015 non-blocking, repaired, for verification);
+    record APPROVED or CHANGES_REQUIRED on review/wp04-final. On APPROVED, acceptance under G-009 and
+    RUST_IMPLEMENTATION.
   updated_by: Claude
-  updated_reason: CE-04-01 implementation pass for checkpoint revisions 2-5 at 03841628; gate run 4 as declared (G4 58/59, P38 claimed equivalent); submitted for targeted closure.
+  updated_reason: Codex CE-04-01 closure review 2 APPROVED (46514f00; CR-008/012/013/014 closed); episode settled; frozen candidate gates run 5 as declared; CONTRACT_CONVERGENCE -> FINAL_CONTRACT_REVIEW.
   history:
     assurance_index: plans/WP-04.md
