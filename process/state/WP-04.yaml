@@ -3,11 +3,9 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: IMPLEMENTATION_REVIEW
+  status: RUST_IMPLEMENTATION
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate:
-    code: {repo: minion-memory, ref: wp04/contract, sha: 9d5a2d51c69987f799962868b8dc5175a11882d2}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: f887f6ac94973a9c2fa4f4413bc8b4a16b50acd8}
+  current_candidate: null
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -15,19 +13,23 @@ workflow:
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
-      G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
+      Accepted onto main under the G-009 standing delegation after Codex APPROVED the exact pair (final
+      review eec44b3d, re-review 54d3f94b; CE-04-01 closure 46514f00): docs main = f887f6ac, code main =
+      9d5a2d51. Layer 04 semantics: G-077 start Layer 04; G-078 split (WP-04 canonical store first, WP-04T after its seam); G-079
       backend-neutral contract with PostgreSQL shared-schema reference backend; G-080 gapless
       positions; G-081 PostgreSQL 14 service, one-time superuser setup, test data on E:; G-082..G-087 store semantics; G-088 convergence CE-04-01; G-089..G-092 CE-04-01 catalog contract, database environment, PostgreSQL 14, trust scope; G-093 gates wait for host clear; G-094..G-097 dependency island, row-type references, engine bookkeeping, comments/labels; G-098 no further exemption for engine-generated fields.
+    standing_delegation: reference/governance/2026-10-10-owner-wp00-acceptance.md#g-009
     scope: [WP-04]
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-04-codex-final-review-2.md: targeted re-review of WP04-CR-016 at docs
-    f887f6ac / code 9d5a2d51; record APPROVED or CHANGES_REQUIRED on review/wp04-final-2. On APPROVED,
-    acceptance under G-009 and RUST_IMPLEMENTATION.
+    Execute process/handoffs/WP-04-codex-rust-implementation.md: Rust Layer 04 canonical store and v1
+    catalog validation against the accepted contract, the shared pins and the 5 ACTIVE store scenarios
+    (not against Python), with the [IT] cross-language witnesses; hand the Rust candidate to Claude for
+    CLOSURE_REVIEW.
   updated_by: Claude
-  updated_reason: Codex final review (eec44b3d) CHANGES_REQUIRED on WP04-CR-016 (docs only; CR-015 resolved); assurance index repaired; FINAL_CONTRACT_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
+  updated_reason: WP-04 accepted onto main under G-009 (Codex APPROVED 54d3f94b; docs main f887f6ac, code main 9d5a2d51); final review chain -> RUST_IMPLEMENTATION (no candidate under review).
   history:
     assurance_index: plans/WP-04.md

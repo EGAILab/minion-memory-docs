@@ -21,11 +21,11 @@ G-031, G-033, G-051, G-054 and G-055.
 
 ## Current candidate and evidence
 
-**Status:** `FINAL_CONTRACT_REVIEW`.
+**Status:** accepted onto `main` under G-009; the formal workflow state is in `process/state/WP-04.yaml`.
 
 **Current pair:**
-- **code:** `9d5a2d51c69987f799962868b8dc5175a11882d2` on `wp04/contract`;
-- **docs:** the content commit named in `process/state/WP-04.yaml`.
+- **code:** `9d5a2d51c69987f799962868b8dc5175a11882d2` (code `main`);
+- **docs:** `f887f6ac94973a9c2fa4f4413bc8b4a16b50acd8` (docs `main`), accepted under G-009 on Codex `54d3f94b`.
 
 **Current gate evidence:** `assurance/reviews/WP-04-CE-04-01-implementation-claude-2.md` §5.3
 (run 5):
