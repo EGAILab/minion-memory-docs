@@ -3,15 +3,15 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: FINAL_CONTRACT_REVIEW
+  status: IMPLEMENTATION_REVIEW
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
   current_candidate:
     code: {repo: minion-memory, ref: wp04/contract, sha: 9d5a2d51c69987f799962868b8dc5175a11882d2}
-    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: ef5c13ff4b5d48f41648d083b11aeafa0be7545f}
+    docs: {repo: minion-memory-docs, ref: wp04/contract, sha: f887f6ac94973a9c2fa4f4413bc8b4a16b50acd8}
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
-  open_findings: [WP04-CR-015]
-  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-008, WP04-CR-009, WP04-CR-010, WP04-CR-011, WP04-CR-012, WP04-CR-013, WP04-CR-014]
+  open_findings: []
+  provisionally_closed: [WP04-CR-001, WP04-CR-002, WP04-CR-003, WP04-CR-004, WP04-CR-005, WP04-CR-006, WP04-CR-007, WP04-CR-008, WP04-CR-009, WP04-CR-010, WP04-CR-011, WP04-CR-012, WP04-CR-013, WP04-CR-014, WP04-CR-015, WP04-CR-016]
   governance_source:
     artifact: reference/governance/2026-10-11-owner-layer04-start.md
     decision: >
@@ -24,11 +24,10 @@ workflow:
     derived_from_quarantined_artifact: false
   next_owner: Codex
   next_action: >
-    Execute process/handoffs/WP-04-codex-final-review.md: one final complete review of WP-04 at docs
-    ef5c13ff / code 9d5a2d51 (CE-04-01 settled; WP04-CR-015 non-blocking, repaired, for verification);
-    record APPROVED or CHANGES_REQUIRED on review/wp04-final. On APPROVED, acceptance under G-009 and
-    RUST_IMPLEMENTATION.
+    Execute process/handoffs/WP-04-codex-final-review-2.md: targeted re-review of WP04-CR-016 at docs
+    f887f6ac / code 9d5a2d51; record APPROVED or CHANGES_REQUIRED on review/wp04-final-2. On APPROVED,
+    acceptance under G-009 and RUST_IMPLEMENTATION.
   updated_by: Claude
-  updated_reason: Codex CE-04-01 closure review 2 APPROVED (46514f00; CR-008/012/013/014 closed); episode settled; frozen candidate gates run 5 as declared; CONTRACT_CONVERGENCE -> FINAL_CONTRACT_REVIEW.
+  updated_reason: Codex final review (eec44b3d) CHANGES_REQUIRED on WP04-CR-016 (docs only; CR-015 resolved); assurance index repaired; FINAL_CONTRACT_REVIEW -> REMEDIATION -> IMPLEMENTATION_REVIEW.
   history:
     assurance_index: plans/WP-04.md
