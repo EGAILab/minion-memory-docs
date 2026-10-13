@@ -77,7 +77,9 @@ path for long-lived datasets; bounded replay of a deterministic projection must 
 HistoryBoundary is a shared-core concept: a declared position in canonical history up to which a
 derived artifact (checkpoint, derived state) was computed.
 
-*Note:* its representation depends on the unresolved ordering question (NF-016).
+*Note:* the ordering question this representation depended on (NF-016) is resolved and CLOSED. A
+HistoryBoundary is a store-local cursor (HIST-005; Owner G-047, G-051, G-054), accepted with WP-02,
+and Layer 04 realizes it as the store's gapless position (`read_history` / `store_tail`).
 
 ### PERS-009 — ReplayCheckpoint is an accelerator, never authority
 <a id="pers-009"></a>
