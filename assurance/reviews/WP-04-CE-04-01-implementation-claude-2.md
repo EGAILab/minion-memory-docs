@@ -1,7 +1,12 @@
 # WP-04 CE-04-01 — Claude's implementation record 2 (the pass for checkpoint revisions 2–5)
 
-**Status: SUBMITTED for Codex targeted closure.** Claude does not claim that any finding is closed;
-closure is Codex's.
+**Status: targeted closure APPROVED by Codex** (`assurance/reviews/WP-04-CE-04-01-closure-codex-2.md`,
+`46514f00`).
+- **Closed by Codex:** WP04-CR-008, CR-012, CR-013 and CR-014.
+- **CR-015** (documentary, non-blocking): repaired in §2 and in the test comment (code `9d5a2d51`,
+  comment only). It is left for Codex to verify in the final complete review.
+
+The frozen candidate's gates are in §5.3.
 
 **Authority:**
 - the agreed checkpoint `assurance/convergence/CE-04-01-classification.md`, revisions 2–5 (Codex
@@ -47,9 +52,9 @@ failure.
 | E011–E018, E020, E033, E042, E046, E056 | [P] `test_public_open_accepts_a_v1_catalog_and_protocol_n_holds[<row>]` |
 | E004 | [P] `test_public_e004_…`, with its own oracle: the old store reads tail 1, a commit receives 2..3, reads return [2, 3] and the tail is 3, with an identical retry. Protocol N is run separately on a new store. |
 | CH13 | the baseline and large-payload rows (unchanged) |
-| the 18 new pinned fields of §8.3 and the 28 G-098 rows of §9.1; the members' row layouts; CH16; CH18 | [Pr] `test_predicate_an_extension_difference_is_refused[…]` (55 cases, with a collection guard); the residue positive control `test_predicate_dropped_column_residue_keeps_the_relnatts_invariant` |
-| CR-014 and the predicate-domain properties | [F] `test_fetch_binding_control_the_fetch_reports_a_supplied_field[…]` (17) and `…_supplied_row[…]` (2): `tgenabled` (P40), `indisvalid` and `indisready` (P32), `atthasmissing` alone, a cached value alone, a type copy, `attcacheoff`, an index descriptor, an index's persistence, TOAST-index options, ordering, operator class and uniqueness, an extra TOAST index, TOAST-relation options (refused by `relations`) and persistence, a row-type field, an array backlink, a security label |
-| Single-part witnesses after run 3 | [Pr] `…extension_difference_is_refused[part inheritance alone / part policies alone / part rules alone]`; [F] `…supplied_field[table persistence]`; [F] `test_fetch_binding_control_the_fetch_reports_a_supplied_patched_row[…]` (5): a genuine row of an unrelated object redirected to a v1 table for `pg_trigger`, `pg_rewrite`, `pg_policy`, `pg_index` and `pg_inherits` |
+| the 18 new pinned fields of §8.3 and the 28 G-098 rows of §9.1; the members' row layouts; CH16; CH18 | [Pr] `test_predicate_an_extension_difference_is_refused[…]` (58 cases at the candidate: 55 added in `6cda5b46` and 3 single-part added in `03841628`; with a collection guard); the residue positive control `test_predicate_dropped_column_residue_keeps_the_relnatts_invariant` |
+| CR-014 and the predicate-domain properties | [F] `test_fetch_binding_control_the_fetch_reports_a_supplied_field[…]` (18, including `table persistence`) and `…_supplied_row[…]` (2): `tgenabled` (P40), `indisvalid` and `indisready` (P32), `atthasmissing` alone, a cached value alone, a type copy, `attcacheoff`, an index descriptor, an index's persistence, TOAST-index options, ordering, operator class and uniqueness, an extra TOAST index, TOAST-relation options (refused by `relations`) and persistence, a row-type field, an array backlink, a security label |
+| Single-part witnesses after run 3 | [Pr] `…extension_difference_is_refused[part inheritance alone / part policies alone / part rules alone]`; [F] `…supplied_field[table persistence]`; [F] `test_fetch_binding_control_the_fetch_reports_a_supplied_patched_row[…]` (5): a genuine catalog row copied with one field changed so it names a v1 table, and no dependency row added. Isolation as measured by Codex (closure review 2, WP04-CR-015): <ul><li>**rule, policy and inheritance rows** come from unrelated objects; only `rules`, `policies` and `inheritance` differ respectively.</li><li>**The trigger row** copies a core internal RI trigger with `tgisinternal` false; only `triggers` differs.</li><li>**The index row** is redirected into the island, so `indexes`, `index_columns` and `boundary` all differ. P31's kill is a bounded fetch kill: losing the `indexes` read moves the first mismatch to `index_columns`. It is not a single-part projection.</li></ul> |
 | §10.3 inventory | `test_every_member_catalog_column_is_compared_or_named_as_excluded`: the live columns of the four catalogs equal compared ∪ excluded, the two are disjoint, and the normalized columns are among those compared |
 
 How the [F] controls work:
@@ -147,6 +152,20 @@ witness never raced.
 
 Before run 4, a dry run of the complete table gave the same 58 of 59 (`dryrun-g4.log`, not
 evidence).
+
+### 5.3 Run 5: the frozen final candidate `9d5a2d51` (adopted §11.8.8; logs `ce0401-gates-9d5a2d51/`)
+
+`9d5a2d51` is `03841628` (approved in closure review 2) plus the comment-only WP04-CR-015 repair.
+
+| Gate | Result |
+|---|---|
+| G0 | `candidate 9d5a2d51c69987f799962868b8dc5175a11882d2 clean` |
+| G1 | exit 0 |
+| G2 | exit 0: **856 passed, 4 xfailed** in 216.69 s |
+| G3 | **1304 statements, 490 branches, 0 missed: 100 %** |
+| G4 | **58 killed of 59**; P38 survived (claimed equivalent) |
+| G5 | 17 killed of 18; P14 survived (known equivalent) |
+| post | `tree clean at 9d5a2d51c69987f799962868b8dc5175a11882d2` |
 
 Earlier runs are kept:
 - run 1 at `b657081b` (G4 failed);
