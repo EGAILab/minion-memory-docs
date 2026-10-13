@@ -3,9 +3,11 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: RUST_IMPLEMENTATION
+  status: CLOSURE_REVIEW
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp04/rust, sha: 6ef220e5b4f48ea8d458ead2f30dfdfcf67cba3d}
+    docs: {repo: minion-memory-docs, ref: wp04/rust-state, sha: 137778f79a34b8187088ab4c5964934e72702f33}
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
   open_findings: []
@@ -23,13 +25,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-04-codex-rust-implementation.md: Rust Layer 04 canonical store and v1
-    catalog validation against the accepted contract, the shared pins and the 5 ACTIVE store scenarios
-    (not against Python), with the [IT] cross-language witnesses; hand the Rust candidate to Claude for
-    CLOSURE_REVIEW.
+    Claude CLOSURE_REVIEW of the Rust Layer 04 candidate (code 6ef220e5 / docs 137778f7) against the
+    accepted contract, the shared pins and the corpus; record on review/l04-rust-closure.
   updated_by: Claude
-  updated_reason: WP-04 accepted onto main under G-009 (Codex APPROVED 54d3f94b; docs main f887f6ac, code main 9d5a2d51); final review chain -> RUST_IMPLEMENTATION (no candidate under review).
+  updated_reason: Codex Rust Layer 04 candidate ready (code 6ef220e5, docs 137778f7); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
   history:
     assurance_index: plans/WP-04.md

@@ -75,7 +75,7 @@ work_packages:
     requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
     contract: {status: ACCEPTED, accepted_code_sha: 9d5a2d51c69987f799962868b8dc5175a11882d2, accepted_docs_sha: f887f6ac94973a9c2fa4f4413bc8b4a16b50acd8}
     python: {status: APPROVED, approved_code_sha: 9d5a2d51c69987f799962868b8dc5175a11882d2, review: review/wp04-final-2@54d3f94bb27ddc07600e0996c36434ccdbe812d1}
-    rust: {status: NOT_IMPLEMENTED}
+    rust: {status: IN_PROGRESS}
     cross_language: {status: NOT_CLOSED}
     evidence: plans/WP-04.md
     governance: reference/governance/2026-10-11-owner-layer04-start.md
