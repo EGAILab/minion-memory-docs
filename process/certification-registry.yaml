@@ -74,11 +74,11 @@ work_packages:
     layer: "04"
     requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
     contract: {status: ACCEPTED, accepted_code_sha: 9d5a2d51c69987f799962868b8dc5175a11882d2, accepted_docs_sha: f887f6ac94973a9c2fa4f4413bc8b4a16b50acd8}
-    python: {status: APPROVED, approved_code_sha: 9d5a2d51c69987f799962868b8dc5175a11882d2, review: review/wp04-final-2@54d3f94bb27ddc07600e0996c36434ccdbe812d1}
-    rust: {status: IN_PROGRESS}
-    cross_language: {status: NOT_CLOSED}
+    python: {status: CERTIFIED, certified_code_sha: 220c6f285744fd52736cbd20f22105e9f33a5dce, review: review/wp04-final-2@54d3f94bb27ddc07600e0996c36434ccdbe812d1}
+    rust: {status: CERTIFIED, certified_code_sha: 220c6f285744fd52736cbd20f22105e9f33a5dce, review: review/l04-rust-closure-2@996154b3df74225c60f7a6e0f9d9918329ff5c91}
+    cross_language: {status: CERTIFIED_CLOSED}
     evidence: plans/WP-04.md
-    governance: reference/governance/2026-10-11-owner-layer04-start.md
+    governance: reference/governance/2026-10-13-owner-layer04-certification.md
   WP-04T:
     title: Layer 04 — storage tiers, enrichment ordering, local-first, assets
     layer: "04"
