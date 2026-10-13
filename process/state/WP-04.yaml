@@ -3,9 +3,11 @@ workflow:
   work_package: WP-04
   title: Layer 04 — canonical history store
   layer: "04"
-  status: RUST_IMPLEMENTATION
+  status: CLOSURE_REVIEW
   requirements: [PERS-005, PERS-006, PERS-007, PERS-008, PERS-012, PERS-014, PERS-015, HIST-008, HIST-009]
-  current_candidate: null
+  current_candidate:
+    code: {repo: minion-memory, ref: wp04/rust, sha: 220c6f285744fd52736cbd20f22105e9f33a5dce}
+    docs: {repo: minion-memory-docs, ref: wp04/rust-state, sha: b45018d67f2e5e861ec6aa458b3d94efd968e7e2}
   dependencies:
     WP-03: {relation: blocked_by, status: CLOSED}
   open_findings: [WP04-CR-017, WP04-CR-018]
@@ -23,12 +25,11 @@ workflow:
   deferred_trigger: null
   quarantine:
     derived_from_quarantined_artifact: false
-  next_owner: Codex
+  next_owner: Claude
   next_action: >
-    Execute process/handoffs/WP-04-codex-rust-remediation-1.md: test-only witnesses for WP04-CR-017
-    (v1-named non-table before initialization; kill R10) and WP04-CR-018 (table relpersistence [F]
-    control; kill R06); hand the remediated Rust pair to Claude for targeted re-review.
+    Claude targeted CLOSURE_REVIEW of WP04-CR-017/018 at the remediated Rust pair (code 220c6f28 /
+    docs b45018d6); record on review/l04-rust-closure-2.
   updated_by: Claude
-  updated_reason: Claude Rust CLOSURE_REVIEW (review/l04-rust-closure 70f2a3e3) CHANGES_REQUIRED on WP04-CR-017/018 (witness gaps, no production defect); CLOSURE_REVIEW -> RUST_IMPLEMENTATION.
+  updated_reason: Codex Rust remediation 1 ready (code 220c6f28, docs b45018d6; test-only); RUST_IMPLEMENTATION -> CLOSURE_REVIEW.
   history:
     assurance_index: plans/WP-04.md
